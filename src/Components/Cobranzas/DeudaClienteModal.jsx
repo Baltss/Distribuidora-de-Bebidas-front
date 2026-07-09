@@ -50,7 +50,7 @@ export default function DeudaClienteModal({
   const [savingCobro, setSavingCobro] = useState(false);
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // NUEVO: cobro para saldo previo (deuda histórica)
   // IMPORTANTE: se enviará como aplicación explícita { venta_id: null, monto_aplicado }
   // para evitar que el backend ejecute FIFO y toque ventas.
@@ -192,7 +192,7 @@ export default function DeudaClienteModal({
     });
     setCobros(next);
 
-    // Benjamin Orellana - 25-02-2026 - Cobrar todo también incluye saldo previo (si existe)
+    //  - 25-02-2026 - Cobrar todo también incluye saldo previo (si existe)
     if (Number(resumen.saldoPrevioTotal || 0) > 0) {
       setCobroSaldoPrevio(String(Number(resumen.saldoPrevioTotal || 0)));
     }
@@ -216,7 +216,7 @@ export default function DeudaClienteModal({
     const clienteNombre = data?.cliente?.nombre || 'el cliente seleccionado';
 
     // ======================================================
-    // Benjamin Orellana - 25-02-2026
+    //  - 25-02-2026
     // Armamos aplicaciones EXPLÍCITAS:
     // - aplicaciones a ventas (venta_id)
     // - + una aplicación "crédito suelto" (venta_id: null, aplica_a: 'CREDITO')
@@ -239,7 +239,7 @@ export default function DeudaClienteModal({
       apps.push({
         venta_id: null,
         monto_aplicado: Number(totalCobrarSaldoPrevioAhora.toFixed(2)),
-        // Benjamin Orellana - 25-02-2026 - Distingue pago a saldo previo de crédito suelto en backend/GET deuda
+        //  - 25-02-2026 - Distingue pago a saldo previo de crédito suelto en backend/GET deuda
         aplica_a: 'SALDO_PREVIO'
       });
     }
@@ -436,7 +436,7 @@ export default function DeudaClienteModal({
                       </span>
                     </div>
 
-                    {/* Benjamin Orellana - 25-02-2026 - Breakdown deuda */}
+                    {/*  - 25-02-2026 - Breakdown deuda */}
                     <span className="text-[11px] text-emerald-100/80 text-right">
                       Ventas pendientes:{' '}
                       <span className="font-semibold">

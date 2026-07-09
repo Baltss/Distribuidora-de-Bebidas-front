@@ -2,7 +2,7 @@
 // FILE: src/Components/Repartos/RepartoClientesSlideover.jsx
 // ===============================
 /*
- * Programador: Benjamin Orellana
+ *
  * Fecha Creación: 29 / 11 / 2025
  * Versión: 1.0
  *

@@ -42,7 +42,7 @@ const ventasLinks = [
     label: 'Nueva Venta',
     icon: <FaCashRegister />
   },
-  // Benjamin Orellana - 25/02/2026 - Link a pantalla de carga manual de saldo previo (deudas históricas sin productos)
+  //  - 25/02/2026 - Link a pantalla de carga manual de saldo previo (deudas históricas sin productos)
   {
     to: '/dashboard/ventas/saldo-previo',
     label: 'Cargar Saldo Previo',
@@ -73,7 +73,7 @@ const AdminPageVentas = () => {
       setCreating(true);
 
       // ======================================================
-      // Benjamin Orellana - 17-01-2026
+      //  - 17-01-2026
       // Crear venta en 1 solo request (cabecera + items + a_cuenta)
       // ======================================================
       const nueva = await createVenta({ ...venta, items });

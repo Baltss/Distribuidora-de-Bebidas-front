@@ -28,7 +28,7 @@ const Footer = () => {
                 className="group inline-flex items-center gap-2 text-sm text-white/90 hover:text-white transition"
               >
                 <PhoneIcon />
-                <span className="tracking-wide">+54 9 3815 43-0503</span>
+                <span className="tracking-wide">+54 9 3813 58-8908</span>
                 <span className="h-px w-6 bg-gradient-to-r from-rose-400/0 via-rose-400/70 to-rose-400/0 translate-y-[7px] group-hover:via-rose-300/90 transition" />
               </a>
             </div>

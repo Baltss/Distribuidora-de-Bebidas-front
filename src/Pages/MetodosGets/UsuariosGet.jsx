@@ -45,10 +45,10 @@ export default function UsuariosGet() {
   };
 
   const usuarioId = getUserId();
-  // RELACION AL FILTRADO BENJAMIN ORELLANA 24-04-25
+  // RELACION AL FILTRADO  24-12-25
   const [rolFiltro, setRolFiltro] = useState('todos');
   const [localFiltro, setLocalFiltro] = useState('todos');
-  // RELACION AL FILTRADO BENJAMIN ORELLANA 24-04-25
+  // RELACION AL FILTRADO  24-12-25
 
   const fetchUsuarios = async () => {
     try {

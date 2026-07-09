@@ -80,7 +80,7 @@ export default function VentaRepartoFormModal({
     [clientes, clientesExcluidos]
   );
 
-  // Benjamin Orellana - 17/01/2026 - Buscador por cliente (nombre/rango) + selección rápida para enfocar "A cuenta"
+  //  - 17/01/2026 - Buscador por cliente (nombre/rango) + selección rápida para enfocar "A cuenta"
   const [clienteSearch, setClienteSearch] = useState('');
   const [clienteSelectedId, setClienteSelectedId] = useState(null);
 
@@ -129,7 +129,7 @@ export default function VentaRepartoFormModal({
   }, [clientesUI, clienteSelectedId, clienteSearch]);
 
   useEffect(() => {
-    // Benjamin Orellana - 25/02/2026 - Limpia saldos previos cargados al cambiar reparto, ya que cambia el conjunto de clientes.
+    //  - 25/02/2026 - Limpia saldos previos cargados al cambiar reparto, ya que cambia el conjunto de clientes.
     setSaldoPrevioPorCliente({});
     setSavingSaldoPrevioByCliente({});
     setSaldoPrevioCargadoByCliente({});
@@ -164,7 +164,7 @@ export default function VentaRepartoFormModal({
       ...prev,
       [clienteId]: Number.isFinite(num) && num >= 0 ? num : 0
     }));
-    // Benjamin Orellana - 24/02/2026 - Si cambia el a cuenta, invalidamos la marca de venta cargada del cliente
+    //  - 24/02/2026 - Si cambia el a cuenta, invalidamos la marca de venta cargada del cliente
     setSavedByCliente((prev) => ({ ...prev, [clienteId]: false }));
   };
 
@@ -200,7 +200,7 @@ export default function VentaRepartoFormModal({
   // Cantidades por cliente-producto: { `${clienteId}-${productoId}`: number }
   const [cantidades, setCantidades] = useState({});
 
-  // Benjamin Orellana - 25/02/2026 - Estado local para cargar deuda histórica (saldo previo) por cliente en venta masiva.
+  //  - 25/02/2026 - Estado local para cargar deuda histórica (saldo previo) por cliente en venta masiva.
   const [saldoPrevioPorCliente, setSaldoPrevioPorCliente] = useState({});
 
   // Controla loading del botón OK de saldo previo por cliente.
@@ -212,7 +212,7 @@ export default function VentaRepartoFormModal({
   const [saldoPrevioCargadoByCliente, setSaldoPrevioCargadoByCliente] =
     useState({});
 
-  // Benjamin Orellana - 25/02/2026 - Normaliza monto de saldo previo por cliente (permite string del input y devuelve número válido o null).
+  //  - 25/02/2026 - Normaliza monto de saldo previo por cliente (permite string del input y devuelve número válido o null).
   const getSaldoPrevioClienteNum = (clienteId) => {
     const raw = saldoPrevioPorCliente?.[clienteId];
     if (raw === '' || raw === undefined || raw === null) return null;
@@ -221,7 +221,7 @@ export default function VentaRepartoFormModal({
     return n;
   };
 
-  // Benjamin Orellana - 25/02/2026 - Actualiza input de saldo previo por cliente permitiendo edición controlada.
+  //  - 25/02/2026 - Actualiza input de saldo previo por cliente permitiendo edición controlada.
   const handleSaldoPrevioChange = (clienteId, value) => {
     setSaldoPrevioPorCliente((prev) => ({
       ...prev,
@@ -408,7 +408,7 @@ export default function VentaRepartoFormModal({
       ...prev,
       [key]: clean
     }));
-    // Benjamin Orellana - 24/02/2026 - Si cambia la cantidad, invalidamos la marca de venta cargada del cliente
+    //  - 24/02/2026 - Si cambia la cantidad, invalidamos la marca de venta cargada del cliente
     setSavedByCliente((prev) => ({ ...prev, [clienteId]: false }));
   };
 
@@ -490,11 +490,11 @@ export default function VentaRepartoFormModal({
     user?.name ||
     'Seleccioná un vendedor';
 
-  // Benjamin Orellana - 24/02/2026 - Estado por cliente para guardar ventas individuales sin cerrar el modal
+  //  - 24/02/2026 - Estado por cliente para guardar ventas individuales sin cerrar el modal
   const [savingByCliente, setSavingByCliente] = useState({});
   const [savedByCliente, setSavedByCliente] = useState({});
 
-  // Benjamin Orellana - 24/02/2026 - Construye una venta individual (1 cliente) reutilizando la misma lógica del submit masivo
+  //  - 24/02/2026 - Construye una venta individual (1 cliente) reutilizando la misma lógica del submit masivo
   const buildVentaItemByCliente = (cli) => {
     if (!cli?.id) return null;
 
@@ -525,7 +525,7 @@ export default function VentaRepartoFormModal({
     };
   };
 
-  // Benjamin Orellana - 24/02/2026 - Validaciones de cabecera reutilizables para submit global e individual
+  //  - 24/02/2026 - Validaciones de cabecera reutilizables para submit global e individual
   const validarCabeceraVentasMasivas = () => {
     if (!repartoSelected?.id) {
       showWarnSwal({
@@ -547,7 +547,7 @@ export default function VentaRepartoFormModal({
     return true;
   };
 
-  // Benjamin Orellana - 24/02/2026 - Guarda una sola venta (por cliente) y notifica éxito sin cerrar el modal
+  //  - 24/02/2026 - Guarda una sola venta (por cliente) y notifica éxito sin cerrar el modal
   const handleSubmitCliente = async (cli) => {
     if (!cli?.id) return;
     if (!validarCabeceraVentasMasivas()) return;
@@ -613,7 +613,7 @@ export default function VentaRepartoFormModal({
 
     const vendedorIdNum = Number(vendedorId);
 
-    // Benjamin Orellana - 24/02/2026 - En el submit global se envían SOLO ventas pendientes (clientes no cargados con OK individual)
+    //  - 24/02/2026 - En el submit global se envían SOLO ventas pendientes (clientes no cargados con OK individual)
     const items = [];
     for (const cli of clientesVisibles || []) {
       if (savedByCliente?.[cli.id]) continue; // ya cargado, no reenviar
@@ -647,7 +647,7 @@ export default function VentaRepartoFormModal({
       setSaving(true);
       const resp = await createVentasRepartoMasiva(payload);
 
-      // Benjamin Orellana - 24/02/2026 - Marca como cargados los clientes incluidos en el submit global
+      //  - 24/02/2026 - Marca como cargados los clientes incluidos en el submit global
       setSavedByCliente((prev) => {
         const next = { ...prev };
         for (const it of items) {
@@ -665,7 +665,7 @@ export default function VentaRepartoFormModal({
 
       onCreated?.(resp);
 
-      // Benjamin Orellana - 24/02/2026 - Se mantiene abierto el modal por pedido del cliente
+      //  - 24/02/2026 - Se mantiene abierto el modal por pedido del cliente
       // onClose?.();
     } catch (err) {
       console.error('Error creando ventas por reparto:', err);
@@ -680,7 +680,7 @@ export default function VentaRepartoFormModal({
     }
   };
 
-  // Benjamin Orellana - 25/02/2026 - Registra saldo previo de un cliente desde la venta masiva sin crear productos/ventas nuevas.
+  //  - 25/02/2026 - Registra saldo previo de un cliente desde la venta masiva sin crear productos/ventas nuevas.
   const handleSubmitSaldoPrevioCliente = async (cli) => {
     try {
       if (!repartoSelected?.id) {
@@ -757,7 +757,7 @@ export default function VentaRepartoFormModal({
       }));
     }
   };
-  // Benjamin Orellana - 17/01/2026 - Helper: formato moneda AR (miles '.' y decimales ',')
+  //  - 17/01/2026 - Helper: formato moneda AR (miles '.' y decimales ',')
   function formatArMoney(value, opts = {}) {
     const {
       currency = 'ARS',
@@ -1045,7 +1045,7 @@ export default function VentaRepartoFormModal({
                   </div>
                 </motion.div>
 
-                {/* Benjamin Orellana - 17/01/2026 - Buscador de clientes (reemplaza Observaciones generales) */}
+                {/*  - 17/01/2026 - Buscador de clientes (reemplaza Observaciones generales) */}
                 <motion.div variants={fieldV} className="mt-3">
                   <label className="block text-xs sm:text-sm font-medium text-teal-50 mb-1.5">
                     Buscar cliente (por nombre o rango)
@@ -1253,7 +1253,7 @@ export default function VentaRepartoFormModal({
                                     </span>
                                   </div>
 
-                                  {/* Benjamin Orellana - 24/02/2026 - Acciones por venta individual (cliente) con OK sin cerrar modal */}
+                                  {/*  - 24/02/2026 - Acciones por venta individual (cliente) con OK sin cerrar modal */}
                                   <div className="flex flex-wrap items-center justify-end gap-2">
                                     {/* Campo A cuenta + Saldo previo (debajo, mismo lugar) */}
                                     <div className="flex flex-col items-start gap-1.5">
@@ -1508,7 +1508,7 @@ export default function VentaRepartoFormModal({
                     </div>
                   </motion.div>
                 </div>
-                {/* Benjamin Orellana - 24/02/2026 - Ayuda visual para flujo mixto (OK por cliente + submit global opcional) */}
+                {/*  - 24/02/2026 - Ayuda visual para flujo mixto (OK por cliente + submit global opcional) */}
                 <div className="text-[11px] text-cyan-100/70">
                   Podés guardar cada venta con el botón OK de cada cliente sin
                   cerrar esta ventana.

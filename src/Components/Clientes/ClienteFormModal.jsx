@@ -353,7 +353,7 @@ export default function ClienteFormModal({
     const ciudadOK = Number(form.ciudad_id) > 0;
     if (!ciudadOK) out.ciudad_id = 'La ciudad es obligatoria.';
 
-    // Benjamin Orellana - 24-02-2026 - Reparto ahora es obligatorio en el formulario y se valida antes de enviar al backend.
+    //  - 24-02-2026 - Reparto ahora es obligatorio en el formulario y se valida antes de enviar al backend.
     const repartoRaw = String(form.reparto_id ?? '').trim();
     if (!repartoRaw) {
       out.reparto_id = 'El reparto es obligatorio.';
@@ -364,7 +364,7 @@ export default function ClienteFormModal({
       }
     }
 
-    // Benjamin Orellana - 24-02-2026 - Calle y número dejan de ser obligatorios por requerimiento; se permiten vacíos.
+    //  - 24-02-2026 - Calle y número dejan de ser obligatorios por requerimiento; se permiten vacíos.
     return out;
   }, [form.nombre, form.ciudad_id, form.reparto_id]);
 
@@ -409,7 +409,7 @@ export default function ClienteFormModal({
         // Se mantiene por compatibilidad: si el usuario completa detalle, se envía
         barrio_id: toNumOrNull(form.barrio_id),
 
-        // Benjamin Orellana - 24-02-2026 - Dirección detallada opcional: se envía null si calle/número llegan vacíos.
+        //  - 24-02-2026 - Dirección detallada opcional: se envía null si calle/número llegan vacíos.
         direccion_calle: toNull(form.direccion_calle?.trim()),
         direccion_numero: toNull(form.direccion_numero?.trim()),
         direccion_piso_dpto: toNull(form.direccion_piso_dpto?.trim()),

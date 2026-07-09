@@ -1,5 +1,5 @@
 // FILE: src/Components/Ventas/DeudoresResumenModal.jsx
-// Benjamin Orellana - 25-02-2026 - Soporta saldo_previo_total cuando un deudor no tiene ventas pendientes
+// - 25-02-2026 - Soporta saldo_previo_total cuando un deudor no tiene ventas pendientes
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -275,7 +275,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                               {selected.documento || 'Sin documento'}
                             </div>
 
-                            {/* Benjamin Orellana - 25-02-2026 - Mostrar saldo previo si existe */}
+                            {/*  - 25-02-2026 - Mostrar saldo previo si existe */}
                             {selectedSaldoPrevio > 0.01 && (
                               <div className="text-[11px] text-emerald-100/80 mt-1">
                                 Saldo previo:{' '}
@@ -305,7 +305,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                       >
                         {!selected.ventas || !selected.ventas.length ? (
                           <div className="py-10 text-center text-xs text-emerald-100/80">
-                            {/* Benjamin Orellana - 25-02-2026 - Mensaje coherente si solo hay saldo previo */}
+                            {/*  - 25-02-2026 - Mensaje coherente si solo hay saldo previo */}
                             {selectedSaldoPrevio > 0.01
                               ? 'Este cliente no tiene ventas fiado pendientes, pero mantiene saldo previo pendiente.'
                               : 'Este cliente no tiene ventas fiado pendientes.'}

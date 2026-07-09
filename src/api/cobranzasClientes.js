@@ -17,7 +17,7 @@ export const createCobranzaCliente = async (payload) => {
   return data;
 };
 
-// Benjamin Orellana - 25/02/2026 - Lista deudores desde CxC (ruta mantenida /ventas/deudores-fiado)
+//  - 25/02/2026 - Lista deudores desde CxC (ruta mantenida /ventas/deudores-fiado)
 export const listClientesConDeudaFiado = async (params = {}) => {
   const { data } = await http.get('/ventas/deudores-fiado', { params });
   return Array.isArray(data) ? data : [];

@@ -2,7 +2,7 @@
 // FILE: src/Pages/Ventas/VentasReportesPage.jsx
 // ===============================
 /*
- * Programador: Benjamin Orellana
+ *
  * Fecha: 14 / 11 / 2025
  * Versión: 1.0
  *

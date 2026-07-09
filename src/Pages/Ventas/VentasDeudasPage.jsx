@@ -2,7 +2,7 @@
 // FILE: src/Pages/Ventas/VentasDeudasPage.jsx
 // ===============================
 /*
- * Programador: Benjamin Orellana
+ *
  * Fecha: 14 / 11 / 2025
  * Versión: 1.2
  *
@@ -31,7 +31,7 @@ import { listLocalidades } from '../../api/localidades';
 import { listBarrios } from '../../api/barrios';
 
 // ======================================================
-// Benjamin Orellana - 17-01-2026
+//  - 17-01-2026
 // Nuevo: Repartos (filtro por reparto en deudas)
 // ======================================================
 import { listRepartos } from '../../api/repartos';
@@ -39,7 +39,7 @@ import { listRepartos } from '../../api/repartos';
 import SearchableSelect from '../../Components/Common/SearchableSelect';
 import { moneyAR } from '../../utils/money';
 
-// Benjamin Orellana - 25-02-2026 - http client para consumir GET /cxc/deudas (deuda real por cliente, incluye saldo_previo).
+//  - 25-02-2026 - http client para consumir GET /cxc/deudas (deuda real por cliente, incluye saldo_previo).
 import http from '../../api/http';
 
 // Util formatear fecha
@@ -70,7 +70,7 @@ const VentasDeudasPage = () => {
   const { userLevel } = useAuth(); // por si después limitás acceso
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // Fuente de datos:
   // - 'ventas': deudas calculadas desde ventas (total_neto - monto_a_cuenta)
   // - 'cxc': deuda real por cliente desde ledger cxc_movimientos (incluye saldo_previo)
@@ -102,7 +102,7 @@ const VentasDeudasPage = () => {
   // Datos
   const [ventas, setVentas] = useState([]);
 
-  // Benjamin Orellana - 25-02-2026 - Dataset para fuente CxC (GET /cxc/deudas): deuda real por cliente.
+  //  - 25-02-2026 - Dataset para fuente CxC (GET /cxc/deudas): deuda real por cliente.
   const [cxcDeudas, setCxcDeudas] = useState([]);
 
   const [meta, setMeta] = useState({
@@ -116,7 +116,7 @@ const VentasDeudasPage = () => {
   const [loading, setLoading] = useState(false);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Nuevo: filtro reparto
   // ======================================================
   const [repartoId, setRepartoId] = useState(null);
@@ -160,7 +160,7 @@ const VentasDeudasPage = () => {
   }, []);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Cargar repartos (activos) para filtro
   // Nota: traemos todos y filtramos en front por ciudadId si aplica.
   // ======================================================
@@ -191,7 +191,7 @@ const VentasDeudasPage = () => {
 
   // Localidades cuando cambia ciudadId
   useEffect(() => {
-    // Benjamin Orellana - 25-02-2026 - En fuente CxC, la geografía disponible es ciudad (clientes.ciudad_id). Localidad/Barrio no aplican.
+    //  - 25-02-2026 - En fuente CxC, la geografía disponible es ciudad (clientes.ciudad_id). Localidad/Barrio no aplican.
     if (fuente === 'cxc') {
       setLocalidades([]);
       setLocalidadId(null);
@@ -269,7 +269,7 @@ const VentasDeudasPage = () => {
       setError('');
 
       // -----------------------------
-      // Benjamin Orellana - 17-01-2026
+      //  - 17-01-2026
       // Sanitizar filtros para que "Todos" / "" no rompa deuda
       // -----------------------------
       const safeTipo = ['fiado', 'a_cuenta', 'contado'].includes(
@@ -330,7 +330,7 @@ const VentasDeudasPage = () => {
           : undefined,
         barrio_id: Number.isFinite(safeBarrioId) ? safeBarrioId : undefined,
         // ======================================================
-        // Benjamin Orellana - 17-01-2026
+        //  - 17-01-2026
         // Filtro por reparto
         // ======================================================
         reparto_id: Number.isFinite(safeRepartoId) ? safeRepartoId : undefined,
@@ -352,7 +352,7 @@ const VentasDeudasPage = () => {
       const metaRes = res?.meta || {};
 
       setVentas(rows);
-      setCxcDeudas([]); // Benjamin Orellana - 25-02-2026 - Evita mezclar datasets en UI
+      setCxcDeudas([]); //  - 25-02-2026 - Evita mezclar datasets en UI
       setMeta({
         total: metaRes.total ?? rows.length,
         page: metaRes.page ?? page,
@@ -372,7 +372,7 @@ const VentasDeudasPage = () => {
   };
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // Fetch deudas desde CxC (ledger): GET /cxc/deudas
   // Nota: este modo incluye saldos previos y deuda real consolidada por cliente.
   // ======================================================
@@ -404,7 +404,7 @@ const VentasDeudasPage = () => {
       const metaRes = data?.meta || {};
 
       setCxcDeudas(rows);
-      setVentas([]); // Benjamin Orellana - 25-02-2026 - Evita mezclar datasets en UI
+      setVentas([]); //  - 25-02-2026 - Evita mezclar datasets en UI
       setMeta({
         total: metaRes.total ?? rows.length,
         page: metaRes.page ?? page,
@@ -425,13 +425,13 @@ const VentasDeudasPage = () => {
 
   // Carga inicial / cambio de fuente
   useEffect(() => {
-    // Benjamin Orellana - 25-02-2026 - Al cambiar fuente, volvemos a página 1 y refrescamos según origen.
+    //  - 25-02-2026 - Al cambiar fuente, volvemos a página 1 y refrescamos según origen.
     if (fuente === 'cxc') fetchCxCDeudas(1);
     else fetchVentas(1);
   }, [fuente]); // eslint-disable-line
 
   const handleBuscar = () => {
-    // Benjamin Orellana - 25-02-2026 - Buscar respeta la fuente seleccionada.
+    //  - 25-02-2026 - Buscar respeta la fuente seleccionada.
     if (fuente === 'cxc') fetchCxCDeudas(1);
     else fetchVentas(1);
   };
@@ -444,7 +444,7 @@ const VentasDeudasPage = () => {
 
   // --------- KPIs calculados en front ---------
   const kpis = useMemo(() => {
-    // Benjamin Orellana - 25-02-2026 - KPIs calculados sobre el dataset cargado (página actual).
+    //  - 25-02-2026 - KPIs calculados sobre el dataset cargado (página actual).
     // En caso de requerir KPIs globales (todas las páginas), conviene devolverlos desde el backend.
     if (fuente === 'cxc') {
       if (!cxcDeudas || cxcDeudas.length === 0) {
@@ -473,7 +473,7 @@ const VentasDeudasPage = () => {
       };
     }
 
-    // Benjamin Orellana - 25-02-2026 - Total adeudado debe ser el saldo (total_neto - a_cuenta), no el total_neto.
+    //  - 25-02-2026 - Total adeudado debe ser el saldo (total_neto - a_cuenta), no el total_neto.
     const totalDeudas = ventas.reduce((acc, v) => {
       const totalNeto = Number(v.total_neto ?? 0);
       const aCuenta = Number(v.monto_a_cuenta ?? 0);
@@ -487,7 +487,7 @@ const VentasDeudasPage = () => {
   }, [ventas, cxcDeudas, fuente]);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Repartos filtrados por ciudad (si hay ciudadId seleccionado)
   // ======================================================
   const repartosFiltrados = useMemo(() => {
@@ -598,7 +598,7 @@ const VentasDeudasPage = () => {
                   <span className="text-sm font-semibold">Filtros</span>
                 </div>
 
-                {/* Benjamin Orellana - 25-02-2026 - Selector de fuente de datos */}
+                {/*  - 25-02-2026 - Selector de fuente de datos */}
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-500">
                     Fuente
@@ -654,7 +654,7 @@ const VentasDeudasPage = () => {
                 </div>
 
                 {/* ======================================================
-                    Benjamin Orellana - 17-01-2026
+                     - 17-01-2026
                     Filtro Reparto
                   ====================================================== */}
                 <div>
@@ -794,7 +794,7 @@ const VentasDeudasPage = () => {
                       console.log('Ciudad seleccionada:', val);
                       setCiudadId(val || null);
 
-                      // Benjamin Orellana - 25-02-2026 - Si cambia ciudad, limpiamos reparto para evitar filtros inconsistentes.
+                      //  - 25-02-2026 - Si cambia ciudad, limpiamos reparto para evitar filtros inconsistentes.
                       setRepartoId(null);
                     }}
                     placeholder="Todas"
@@ -1050,7 +1050,7 @@ const VentasDeudasPage = () => {
                       {ventas.length === 0 && (
                         <tr>
                           <td
-                            // Benjamin Orellana - 25-02-2026 - Corrige colSpan para coincidir con la cantidad real de columnas
+                            //  - 25-02-2026 - Corrige colSpan para coincidir con la cantidad real de columnas
                             colSpan={10}
                             className="px-4 py-6 text-center text-gray-500"
                           >

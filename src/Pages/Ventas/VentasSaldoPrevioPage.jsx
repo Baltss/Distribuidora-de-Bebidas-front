@@ -22,7 +22,7 @@ import ventasApi from '../../api/ventas';
 import SearchableSelect from '../../Components/Common/SearchableSelect';
 import AdminPageVentas from './AdminPageVentas';
 
-// Benjamin Orellana - 25/02/2026 - Form para cargar saldo previo (deuda histórica) sin registrar productos/ventas.
+//  - 25/02/2026 - Form para cargar saldo previo (deuda histórica) sin registrar productos/ventas.
 export default function VentasSaldoPrevioPage() {
   const navigate = useNavigate();
 
@@ -126,7 +126,7 @@ export default function VentasSaldoPrevioPage() {
         const repId = Number(form.reparto_id || 0);
         const ciudadId = Number(form.ciudad_id || 0);
 
-        // Benjamin Orellana - 25/02/2026 - Priorizamos reparto_id para cargar clientes (fuente de verdad).
+        //  - 25/02/2026 - Priorizamos reparto_id para cargar clientes (fuente de verdad).
         // Si no hay reparto, intentamos por ciudad_id (si el backend lo soporta).
         const params =
           repId > 0
@@ -162,7 +162,7 @@ export default function VentasSaldoPrevioPage() {
   const handleCiudad = (e) => {
     const v = e.target.value;
 
-    // Benjamin Orellana - 25/02/2026 - Reset duro de dependencias al cambiar ciudad
+    //  - 25/02/2026 - Reset duro de dependencias al cambiar ciudad
     setSaved(false);
 
     setForm((prev) => ({
@@ -179,7 +179,7 @@ export default function VentasSaldoPrevioPage() {
   const handleReparto = (e) => {
     const v = e.target.value;
 
-    // Benjamin Orellana - 25/02/2026 - Reset duro al cambiar reparto
+    //  - 25/02/2026 - Reset duro al cambiar reparto
     setSaved(false);
 
     setForm((prev) => ({
@@ -258,10 +258,10 @@ export default function VentasSaldoPrevioPage() {
 
       const payload = {
         cliente_id: Number(form.cliente_id),
-        // Benjamin Orellana - 25/02/2026 - Enviamos fecha como datetime 00:00:00 para normalizar.
+        //  - 25/02/2026 - Enviamos fecha como datetime 00:00:00 para normalizar.
         fecha: `${String(form.fecha).trim()}T00:00:00`,
         monto: moneyRound(montoNumber),
-        // Benjamin Orellana - 25/02/2026 - Contexto opcional para auditoría/validación backend
+        //  - 25/02/2026 - Contexto opcional para auditoría/validación backend
         reparto_id:
           form.reparto_id === '' || form.reparto_id === null
             ? null

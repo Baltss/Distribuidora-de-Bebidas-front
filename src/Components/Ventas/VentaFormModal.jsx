@@ -25,12 +25,12 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     tipo: 'fiado', // contado | fiado | a_cuenta
     observaciones: '',
     // ======================================================
-    // Benjamin Orellana - 17-01-2026
+    //  - 17-01-2026
     // Monto a cuenta para ventas tipo "a_cuenta"
     // ======================================================
     monto_a_cuenta: '',
     // ======================================================
-    // Benjamin Orellana - 25-02-2026
+    //  - 25-02-2026
     // Saldo previo (deuda histórica) sin registrar productos
     // ======================================================
     saldo_previo: ''
@@ -39,7 +39,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   const [saving, setSaving] = useState(false);
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // Estados UI para carga de saldo previo (unitario)
   // ======================================================
   const [savingSaldoPrevio, setSavingSaldoPrevio] = useState(false);
@@ -54,7 +54,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   const [vendedorLabel, setVendedorLabel] = useState('');
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Repartos (para selector reparto_id en ventas)
   // ======================================================
   const [repartos, setRepartos] = useState([]);
@@ -99,7 +99,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   }, [open]);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Repartos filtrados por ciudad seleccionada
   // ======================================================
   const repartosByCiudad = useMemo(() => {
@@ -116,13 +116,13 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   }, [repartos, form.ciudad_id]);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Handler reparto
   // ======================================================
   const handleReparto = (e) => {
     const v = e.target.value;
 
-    // Benjamin Orellana - 25-02-2026 - Reset de saldo previo al cambiar reparto
+    //  - 25-02-2026 - Reset de saldo previo al cambiar reparto
     setSaldoPrevioCargado(false);
     setSavingSaldoPrevio(false);
 
@@ -147,9 +147,9 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       vendedor_id: '',
       tipo: 'fiado',
       observaciones: '',
-      // Benjamin Orellana - 17-01-2026
+      //  - 17-01-2026
       monto_a_cuenta: '',
-      // Benjamin Orellana - 25-02-2026
+      //  - 25-02-2026
       saldo_previo: ''
     });
     setSelectedCliente(null);
@@ -158,7 +158,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       { producto_id: '', producto: null, cantidad: '', precio_unit: '' }
     ]);
 
-    // Benjamin Orellana - 25-02-2026 - Resetea estado visual de saldo previo al reabrir modal
+    //  - 25-02-2026 - Resetea estado visual de saldo previo al reabrir modal
     setSavingSaldoPrevio(false);
     setSaldoPrevioCargado(false);
   };
@@ -167,7 +167,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Resolver "precio" de producto
   // ======================================================
   const getPrecioFromProducto = (p) => {
@@ -208,7 +208,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   const totalLabel = useMemo(() => formatMoneyLabel(totalNeto), [totalNeto]);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // A cuenta y saldo (solo aplica si tipo === 'a_cuenta')
   // ======================================================
   const aCuentaNumber = useMemo(() => {
@@ -229,7 +229,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   );
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // Saldo previo (deuda histórica) - cálculo y validación UI
   // ======================================================
   const saldoPrevioNumber = useMemo(() => {
@@ -278,7 +278,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
         );
       });
 
-    // Benjamin Orellana - 17-01-2026
+    //  - 17-01-2026
     // Si es "a_cuenta", validamos que a_cuenta no supere total
     const aCuentaOk =
       form.tipo !== 'a_cuenta'
@@ -348,7 +348,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   }, [open]);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Cargar clientes al elegir reparto (fuente de verdad)
   // ======================================================
   useEffect(() => {
@@ -390,7 +390,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       ...f,
       tipo,
       // ======================================================
-      // Benjamin Orellana - 17-01-2026
+      //  - 17-01-2026
       // Si cambia a contado/fiado, limpiamos monto_a_cuenta
       // ======================================================
       ...(tipo === 'a_cuenta' ? {} : { monto_a_cuenta: '' })
@@ -405,7 +405,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     const v = e.target.value;
 
     // ======================================================
-    // Benjamin Orellana - 17-01-2026
+    //  - 17-01-2026
     // Reset duro al cambiar ciudad para evitar clientes "pegados"
     // ======================================================
     setClientes([]);
@@ -429,7 +429,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   };
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Handler de A cuenta
   // ======================================================
   const handleMontoACuenta = (e) => {
@@ -451,7 +451,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   };
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // Handler de saldo previo (deuda histórica)
   // ======================================================
   const handleSaldoPrevio = (e) => {
@@ -497,7 +497,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       }));
       return;
     }
-    // Benjamin Orellana - 25-02-2026 - Al cambiar cliente, reseteamos estado visual de saldo previo
+    //  - 25-02-2026 - Al cambiar cliente, reseteamos estado visual de saldo previo
     setSaldoPrevioCargado(false);
     setSavingSaldoPrevio(false);
     setForm((prev) => ({ ...prev, saldo_previo: '' }));
@@ -538,7 +538,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
         if (i !== index) return row;
 
         // ======================================================
-        // Benjamin Orellana - 17-01-2026
+        //  - 17-01-2026
         // Al seleccionar producto:
         // - Setea cantidad por defecto = 1 (si estaba vacía/0)
         // - Setea precio_unit automáticamente (si el producto trae precio)
@@ -622,7 +622,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           observaciones: form.observaciones?.trim() || null,
 
           // ======================================================
-          // Benjamin Orellana - 17-01-2026
+          //  - 17-01-2026
           // Nuevo: reparto_id (snapshot para filtrar por reparto)
           // ======================================================
           reparto_id:
@@ -633,7 +633,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
               : Number(form.reparto_id),
 
           // ======================================================
-          // Benjamin Orellana - 17-01-2026
+          //  - 17-01-2026
           // Enviamos monto_a_cuenta
           // ======================================================
           monto_a_cuenta: moneyRound(Number(form.monto_a_cuenta || 0))
@@ -648,7 +648,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   };
 
   // ======================================================
-  // Benjamin Orellana - 25-02-2026
+  //  - 25-02-2026
   // Registrar saldo previo (deuda histórica) sin crear venta
   // ======================================================
   const submitSaldoPrevio = async () => {
@@ -1069,7 +1069,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
-                      {/* Benjamin Orellana - 17-01-2026 / 25-02-2026: A cuenta + Saldo previo (debajo) */}
+                      {/*  - 17-01-2026 / 25-02-2026: A cuenta + Saldo previo (debajo) */}
                       <div className="w-full sm:w-[260px]">
                         {/* A cuenta */}
                         <div className="mb-2.5">

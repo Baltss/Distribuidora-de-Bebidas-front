@@ -1,5 +1,5 @@
 /*
- * Programador: Benjamin Orellana
+ *
  * Fecha Creación: 30 / 11 / 2025
  * Versión: 1.1 (buscador + paginación)
  *
@@ -67,7 +67,7 @@ export default function ReporteRepartoCobranza() {
   const [zonaId, setZonaId] = useState('all'); // reservado
   const [fechaDesde, setFechaDesde] = useState('');
   const [fechaHasta, setFechaHasta] = useState('');
-  // Benjamin Orellana - 25-02-2026 palomita de “imprimir solo clientes con deuda” siempre activada por pedido de chocoloca
+  //  - 25-02-2026 palomita de “imprimir solo clientes con deuda” siempre activada por pedido de chocoloca
   const [soloConDeuda, setSoloConDeuda] = useState(true);
 
   // Data del backend
@@ -149,7 +149,7 @@ export default function ReporteRepartoCobranza() {
       if (fechaDesde) params.fecha_desde = fechaDesde;
       if (fechaHasta) params.fecha_hasta = fechaHasta;
 
-      // Benjamin Orellana - 18-01-2026
+      //  - 18-01-2026
       // Si está tildado, el backend debería devolver solo clientes con deuda.
       if (soloConDeuda) params.solo_con_deuda = '1';
 
@@ -173,7 +173,7 @@ export default function ReporteRepartoCobranza() {
     }
   }, [repartoId, fechaDesde, fechaHasta, soloConDeuda]);
 
-  // Benjamin Orellana - 18-01-2026
+  //  - 18-01-2026
   // Antes estaba [], por eso NO refrescaba al cambiar filtros.
   // Ahora vuelve a pedir el reporte cuando cambian reparto/fechas/soloConDeuda.
   useEffect(() => {
@@ -281,7 +281,7 @@ export default function ReporteRepartoCobranza() {
     };
   }, [reporte, planeo]);
 
-  // Benjamin Orellana - 25-02-2026 - Estado de selección de clientes para impresión
+  //  - 25-02-2026 - Estado de selección de clientes para impresión
   const [selectedClientes, setSelectedClientes] = useState({});
 
   const toggleSelectCliente = (clienteId) => {
@@ -313,7 +313,7 @@ export default function ReporteRepartoCobranza() {
     });
 
     // ======================================================
-    // Benjamin Orellana - 25-02-2026
+    //  - 25-02-2026
     // Nuevo: si hay clientes seleccionados, imprimimos SOLO esos clientes.
     // cliente_ids se manda como CSV: "20,35,99"
     // ======================================================
@@ -361,7 +361,7 @@ export default function ReporteRepartoCobranza() {
     deuda_total_zona: 0
   };
 
-  // Benjamin Orellana - 18-01-2026
+  //  - 18-01-2026
   // Regla de negocio: si NO hay deuda (0) y NO hay ventas fiado pendientes, NO se muestra en el reporte visual.
   // Esto evita que aparezcan "saldados" aunque el backend los incluya por cualquier motivo.
   const clientesConDeudaUI = useMemo(() => {
@@ -758,7 +758,7 @@ export default function ReporteRepartoCobranza() {
             transition={{ duration: 0.45, delay: 0.3 }}
             className="mt-8"
           >
-            {/* Benjamin Orellana - 18-01-2026
+            {/*  - 18-01-2026
                 Usamos la lista "clientesConDeudaUI" para evitar mostrar saldados (deuda 0 y sin pendientes) */}
             {loading && !clientesConDeudaUI.length && (
               <div className="py-10 text-center text-sm text-amber-50/80 flex flex-col items-center gap-3">
@@ -910,7 +910,7 @@ export default function ReporteRepartoCobranza() {
                                 <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-400/70 px-3 py-1.5">
                                   <DollarSign className="h-4 w-4 text-emerald-300" />
                                   <div className="text-right">
-                                    {/* Benjamin Orellana - 25-02-2026 - Checkbox
+                                    {/*  - 25-02-2026 - Checkbox
                                     para seleccionar cliente a imprimir */}
                                     <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                                       <input
@@ -1245,7 +1245,7 @@ export default function ReporteRepartoCobranza() {
           </div>
         </div>
         {/* ======================================================
-    Benjamin Orellana - 25-02-2026
+     - 25-02-2026
     CTA flotante: Exportar/Imprimir para clientes seleccionados.
     Se muestra fijo abajo solo si hay seleccionados, para evitar volver al header.
    ====================================================== */}

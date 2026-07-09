@@ -1,6 +1,6 @@
 /*
- * Programador: Benjamin Orellana
- * Fecha Actualización: 21 / 06 / 2025
+ *
+ * Fecha Actualización: 21 / 11 / 2025
  * Versión: 1.2
  *
  * Descripción:

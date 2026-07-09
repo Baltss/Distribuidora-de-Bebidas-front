@@ -1,6 +1,6 @@
 /*
- * Programador: Benjamin Orellana
- * Fecha Creación: 26 / 05 / 2025
+ *
+ * Fecha Creación: 26 / 11 / 2025
  * Versión: 1.0
  *
  * Descripción:
@@ -8,7 +8,7 @@
  *
  * Tema: Renderizacion
  * Capa: Frontend
- * Contacto: benjamin.orellanaof@gmail.com || 3863531891
+ *
  */
 
 import React from 'react';

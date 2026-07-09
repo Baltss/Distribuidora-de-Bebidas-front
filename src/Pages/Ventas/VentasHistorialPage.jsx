@@ -14,7 +14,7 @@ import { moneyAR } from '../../utils/money';
 import { useLocation } from 'react-router-dom';
 
 // ======================================================
-// Benjamin Orellana - 17-01-2026
+//  - 17-01-2026
 // Repartos: para filtro reparto_id en historial
 // ======================================================
 import http from '../../api/http';
@@ -29,7 +29,7 @@ import {
   FaMoneyBillWave,
   FaExclamationTriangle,
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Icono para reparto
   // ======================================================
   FaTruck
@@ -72,7 +72,7 @@ const VentasHistorialPage = () => {
     desde: '',
     hasta: '',
     // ======================================================
-    // Benjamin Orellana - 17-01-2026
+    //  - 17-01-2026
     // Nuevo filtro: reparto_id
     // ======================================================
     reparto_id: '',
@@ -86,7 +86,7 @@ const VentasHistorialPage = () => {
   const [detalleLoading, setDetalleLoading] = useState(false);
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Repartos para filtro de historial
   // ======================================================
   const [repartos, setRepartos] = useState([]);
@@ -149,7 +149,7 @@ const VentasHistorialPage = () => {
       if (overrides.page) params.page = overrides.page;
 
       // ======================================================
-      // Benjamin Orellana - 17-01-2026
+      //  - 17-01-2026
       // Normalizamos reparto_id para querystring
       // ======================================================
       if (
@@ -210,7 +210,7 @@ const VentasHistorialPage = () => {
       desde: '',
       hasta: '',
       // ======================================================
-      // Benjamin Orellana - 17-01-2026
+      //  - 17-01-2026
       // Reset reparto
       // ======================================================
       reparto_id: '',
@@ -294,7 +294,7 @@ const VentasHistorialPage = () => {
   };
 
   // ======================================================
-  // Benjamin Orellana - 17-01-2026
+  //  - 17-01-2026
   // Mapa rápido para resolver reparto por id en la tabla
   // ======================================================
   const repartoById = useMemo(() => {
@@ -430,7 +430,7 @@ const VentasHistorialPage = () => {
                 </div>
 
                 {/* ======================================================
-      Benjamin Orellana - 17-01-2026
+       - 17-01-2026
       Filtro Reparto
     ====================================================== */}
                 <div className="w-full">
@@ -651,7 +651,7 @@ const VentasHistorialPage = () => {
                           const aCuenta = Number(v.monto_a_cuenta ?? 0);
                           const saldo = Math.max(0, totalNeto - aCuenta);
 
-                          // Benjamin Orellana - 17-01-2026
+                          //  - 17-01-2026
                           // Mostrar como "a_cuenta" SOLO si es fiado con pago parcial (saldo pendiente).
                           // Si está totalmente saldada (saldo ~ 0), mantenemos el tipo real: "fiado".
                           const tipoUI =
@@ -871,7 +871,7 @@ const VentasHistorialPage = () => {
 
                   {!detalleLoading && detalle && (
                     <>
-                      {/* Benjamin Orellana - 17/01/2026 - Mostrar A cuenta + Saldo y tipo UI "a_cuenta" si corresponde */}
+                      {/*  - 17/01/2026 - Mostrar A cuenta + Saldo y tipo UI "a_cuenta" si corresponde */}
                       {(() => {
                         const totalNeto = Number(detalle.total_neto ?? 0);
                         const aCuenta = Number(detalle.monto_a_cuenta ?? 0);
@@ -1051,7 +1051,7 @@ const VentasHistorialPage = () => {
                                             : `Producto #${it.producto_id}`}
                                         </p>
 
-                                        {/* Benjamin Orellana - 17/01/2026 - Cantidad numérica (evita strings DECIMAL) */}
+                                        {/*  - 17/01/2026 - Cantidad numérica (evita strings DECIMAL) */}
                                         <p className="text-gray-400">
                                           Cant: {Number(it.cantidad ?? 0)} · PU:{' '}
                                           {moneyAR(it.precio_unit)}

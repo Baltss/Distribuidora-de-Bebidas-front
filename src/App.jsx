@@ -1,6 +1,6 @@
 /*
- * Programador: Benjamin Orellana
- * Fecha Creación: 26 / 05 / 2025
+ *
+ * Fecha Creación: 11 / 11 / 2025
  * Versión: 1.0
  *
  * Descripción:
@@ -12,7 +12,6 @@
  *
  * Tema: Configuración de la Aplicación Principal
  * Capa: Frontend
- * Contacto: benjamin.orellanaof@gmail.com || 3863531891
  */
 
 import './App.css';
@@ -51,7 +50,7 @@ import RepartosCards from './Pages/Repartos/RepartosCards';
 import AdminPageCobranzas from './Pages/Cobranzas/AdminPageCobranzas';
 import ReporteRepartoCobranza from './Pages/Reportes/ReporteRepartoCobranza';
 
-// Benjamin Orellana - 25/02/2026 - Pantalla de saldo previo (deudas históricas)
+//  - 25/02/2026 - Pantalla de saldo previo (deudas históricas)
 import VentasSaldoPrevioPage from './Pages/Ventas/VentasSaldoPrevioPage.jsx';
 
 function AppContent() {
@@ -59,7 +58,7 @@ function AppContent() {
     <>
       <div className="w-full min-h-screen overflow-x-hidden bg-[#1f3636]">
         <Rutas>
-          <Ruta path="/" element={<Home />} />
+          <Ruta path="/" element={<LoginForm />} />
           {/* componentes del staff y login INICIO */}
           <Ruta path="/login" element={<LoginForm />} />
           <Ruta
@@ -252,7 +251,7 @@ function AppContent() {
             }
           />
         </Rutas>
-        <Footer></Footer>
+        
       </div>
     </>
   );
