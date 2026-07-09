@@ -14,7 +14,10 @@ import {
   ShoppingBag,
   AlertTriangle,
   BanknoteArrowUp,
-  FileText
+  FileText,
+  Truck,
+  ShoppingCart,
+  Receipt
 } from 'lucide-react';
 
 import DeudoresResumenModal from '../../Components/Ventas/DeudoresResumenModal';
@@ -297,6 +300,30 @@ const AdminPage = () => {
                 to="/dashboard/generacion-informes"
                 icon={FileText}
                 delay={0.28}
+              />
+
+              <DashboardTile
+                title="Proveedores"
+                description="ABM de proveedores y su cuenta corriente: deuda, compras pendientes y pagos."
+                to="/dashboard/proveedores"
+                icon={Truck}
+                delay={0.3}
+              />
+
+              <DashboardTile
+                title="Compras"
+                description="Registrá compras a proveedores: suman stock automáticamente y generan deuda si son a cuenta corriente."
+                to="/dashboard/compras"
+                icon={ShoppingCart}
+                delay={0.32}
+              />
+
+              <DashboardTile
+                title="Gastos"
+                description="Cargá y controlá los gastos operativos por categoría, con resumen gráfico."
+                to="/dashboard/gastos"
+                icon={Receipt}
+                delay={0.34}
               />
             </div>
           </div>
