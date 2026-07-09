@@ -1,24 +1,22 @@
-// src/Components/Productos/ProductCard.jsx
+// src/Components/Proveedores/ProveedorCard.jsx
 import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  FaBoxOpen,
+  FaTruck,
   FaCheckCircle,
   FaTimesCircle,
   FaEye,
   FaEdit,
   FaTrash,
-  FaBarcode,
-  FaCubes,
-  FaPercent,
-  FaRuler,
-  FaTags,
-  FaMoneyBill,
-  FaWarehouse,
-  FaExclamationTriangle
+  FaIdCard,
+  FaPhone,
+  FaEnvelope,
+  FaMapMarkerAlt,
+  FaWallet,
+  FaFileInvoiceDollar
 } from 'react-icons/fa';
 import DetailViewModal from '../Common/DetailViewModal';
-import moneyAR from '../../utils/money';
+
 const StatusPill = ({ active }) => (
   <span
     className={`inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border transition-colors
@@ -52,53 +50,42 @@ const buttonBase =
   'group relative inline-flex items-center justify-center gap-2 px-3.5 py-2 min-h-[40px] text-[13px] leading-tight whitespace-nowrap font-semibold text-white rounded-xl border border-white/20 bg-gradient-to-br shadow transition-all hover:scale-[1.02] hover:brightness-110 focus:outline-none focus:ring-2';
 const BTN = {
   view: `${buttonBase} from-indigo-500/85 to-indigo-600/90 focus:ring-indigo-300`,
-  stock: `${buttonBase} from-teal-500/85 to-teal-600/90 focus:ring-teal-300`,
+  cuenta: `${buttonBase} from-emerald-500/85 to-emerald-600/90 focus:ring-emerald-300`,
   edit: `${buttonBase} from-amber-400/80 to-amber-500/90 focus:ring-amber-300`,
   toggle: `${buttonBase} from-cyan-500/85 to-cyan-600/90 focus:ring-cyan-300`,
   del: `${buttonBase} from-rose-500/85 to-rose-700/90 focus:ring-rose-300`
 };
 
-export default function ProductCard({
+export default function ProveedorCard({
   item,
   onEdit,
   onToggleActivo,
   onDelete,
-  onView, // ← opcional: si viene, usa el handler externo
-  onVerStock, // ← opcional: si viene, muestra botón "Stock"
-  stock, // ← opcional: { stock_actual, stock_minimo, stock_bajo }
-  color = '#06b6d4', // cyan-500
+  onVerCuenta,
+  color = '#10b981', // emerald-500
   compact = false
 }) {
   const [viewOpen, setViewOpen] = useState(false);
 
   const initial = useMemo(
-    () => (item?.nombre ? item.nombre[0]?.toUpperCase() : 'P'),
-    [item?.nombre]
+    () => (item?.razon_social ? item.razon_social[0]?.toUpperCase() : 'P'),
+    [item?.razon_social]
   );
 
   const isInactive = (item?.estado || '').toLowerCase() !== 'activo';
 
-  const presentacionLabel = useMemo(() => {
-    const pres = (item?.presentacion || '').toLowerCase();
-    if (pres === 'pack') return `Pack x${item?.pack_cantidad ?? '—'}`;
-    return 'Unidad';
-  }, [item?.presentacion, item?.pack_cantidad]);
+  const condicionLabel = useMemo(() => {
+    const c = (item?.condicion_pago || '').toLowerCase();
+    return c === 'contado' ? 'Contado' : 'Cuenta corriente';
+  }, [item?.condicion_pago]);
 
-  const umContenido = useMemo(() => {
-    const um = item?.unidad_medida || 'u';
-    const cont = item?.contenido;
-    if (cont === null || cont === undefined || cont === '') return um;
-    return `${cont} ${um}`;
-  }, [item?.unidad_medida, item?.contenido]);
-
-  // Props para el DetailViewModal estándar
   const buildViewProps = (p) => {
     const activo = (p?.estado || '').toLowerCase() === 'activo';
     return {
-      title: p?.nombre || 'Producto',
+      title: p?.razon_social || 'Proveedor',
       subtitle: p?.id ? `ID ${p.id}` : undefined,
-      icon: FaBoxOpen,
-      leftAccent: '#06b6d4',
+      icon: FaTruck,
+      leftAccent: color,
       status: {
         label: activo ? 'Activo' : 'Inactivo',
         tone: activo ? 'emerald' : 'zinc',
@@ -113,31 +100,18 @@ export default function ProductCard({
           title: 'Identificación',
           cols: 2,
           rows: [
-            { label: 'SKU', icon: <FaTags />, key: 'codigo_sku' },
-            { label: 'EAN', icon: <FaBarcode />, key: 'barra_ean13' },
+            { label: 'CUIT', icon: <FaIdCard />, key: 'cuit' },
+            { label: 'Condición de pago', value: condicionLabel, icon: <FaWallet /> },
             { label: 'Estado', value: activo ? 'Activo' : 'Inactivo' }
           ]
         },
         {
-          title: 'Características',
+          title: 'Contacto',
           cols: 2,
           rows: [
-            {
-              label: 'Presentación',
-              value: presentacionLabel,
-              icon: <FaCubes />
-            },
-            { label: 'UM / Contenido', value: umContenido, icon: <FaRuler /> },
-            {
-              label: 'PRECIO DEL PRODUCTO',
-              value: moneyAR(p?.pre_prod),
-              icon: <FaMoneyBill />
-            },
-            {
-              label: 'IVA (%)',
-              value: p?.iva_porcentaje ?? '—',
-              icon: <FaPercent />
-            }
+            { label: 'Teléfono', icon: <FaPhone />, key: 'telefono' },
+            { label: 'Email', icon: <FaEnvelope />, key: 'email' },
+            { label: 'Dirección', icon: <FaMapMarkerAlt />, key: 'direccion' }
           ]
         }
       ],
@@ -153,14 +127,13 @@ export default function ProductCard({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.28 }}
         className={`relative overflow-hidden rounded-3xl border border-white/20 shadow-lg backdrop-blur-xl dark:border-white/10
-                 hover:shadow-cyan-600/50 hover:scale-[1.02] transition-all duration-300
+                 hover:shadow-emerald-600/50 hover:scale-[1.02] transition-all duration-300
                  ${
                    isInactive
                      ? 'bg-zinc-200/50 dark:bg-zinc-800/60 saturate-50'
                      : 'bg-white/80 dark:bg-zinc-900/70'
                  }`}
       >
-        {/* Banda lateral cromática */}
         <div className="absolute left-0 top-0 h-full w-24 sm:w-28">
           <div
             className="absolute inset-0"
@@ -178,102 +151,66 @@ export default function ProductCard({
           />
         </div>
 
-        {/* Contenido */}
         <div
           className={`relative z-10 grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-4 p-5 sm:p-6 ${
             isInactive ? 'opacity-70' : 'opacity-100'
           }`}
         >
-          {/* Monograma / Ícono */}
           <div className="flex items-start sm:items-center gap-4">
             <div className="relative -ml-2 sm:ml-0 h-14 w-14 shrink-0 rounded-2xl ring-1 ring-white/30 bg-white/90 dark:bg-zinc-800/80 flex items-center justify-center">
               <span className="text-xl font-black text-zinc-900 dark:text-white">
                 {initial}
               </span>
-              <FaBoxOpen className="absolute -right-2 -bottom-2 text-white" />
+              <FaTruck className="absolute -right-2 -bottom-2 text-white" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="truncate text-lg font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
-                  {item?.nombre || 'Producto'}
+                  {item?.razon_social || 'Proveedor'}
                 </h3>
                 <StatusPill active={!isInactive} />
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                ID {item?.id} •{' '}
-                {item?.created_at
-                  ? new Date(item.created_at).toLocaleDateString()
-                  : ''}
+                ID {item?.id} • {condicionLabel}
               </div>
             </div>
           </div>
 
-          {/* Datos + Acciones */}
           <div className="min-w-0">
             <div
               className={`grid ${
                 compact ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'
               } gap-3`}
             >
-              <Field label="SKU">
+              <Field label="CUIT">
                 <span className="inline-flex items-center gap-1">
-                  <FaTags className="opacity-70" />
-                  {item?.codigo_sku}
+                  <FaIdCard className="opacity-70" />
+                  {item?.cuit || '—'}
                 </span>
               </Field>
-              <Field label="Presentación">
+              <Field label="Teléfono">
                 <span className="inline-flex items-center gap-1">
-                  <FaCubes className="opacity-70" />
-                  {presentacionLabel}
+                  <FaPhone className="opacity-70" />
+                  {item?.telefono || '—'}
                 </span>
               </Field>
-              <Field label="UM / Contenido">
+              <Field label="Email">
                 <span className="inline-flex items-center gap-1">
-                  <FaRuler className="opacity-70" />
-                  {umContenido}
+                  <FaEnvelope className="opacity-70" />
+                  {item?.email || '—'}
                 </span>
               </Field>
-              <Field label="PRECIO PRODUCTO">
+              <Field label="Dirección">
                 <span className="inline-flex items-center gap-1">
-                  <FaMoneyBill className="opacity-70" />
-                  {item?.pre_prod != null ? moneyAR(item?.pre_prod) : '—'}
+                  <FaMapMarkerAlt className="opacity-70" />
+                  {item?.direccion || '—'}
                 </span>
               </Field>
-              <Field label="IVA (%)">
-                <span className="inline-flex items-center gap-1">
-                  <FaPercent className="opacity-70" />
-                  {item?.iva_porcentaje ?? '—'}
-                </span>
-              </Field>
-              <Field label="EAN">
-                <span className="inline-flex items-center gap-1">
-                  <FaBarcode className="opacity-70" />
-                  {item?.barra_ean13 || '—'}
-                </span>
-              </Field>
-              {stock && (
-                <Field label="Stock">
-                  <span
-                    className={`inline-flex items-center gap-1 ${
-                      stock.stock_bajo ? 'text-rose-600 dark:text-rose-300 font-semibold' : ''
-                    }`}
-                  >
-                    {stock.stock_bajo ? (
-                      <FaExclamationTriangle className="opacity-80" />
-                    ) : (
-                      <FaWarehouse className="opacity-70" />
-                    )}
-                    {stock.stock_actual ?? '—'}
-                    {stock.stock_minimo != null ? ` / mín. ${stock.stock_minimo}` : ''}
-                  </span>
-                </Field>
-              )}
             </div>
 
-            {/* Orden de acciones: Ver, Des/Activar, Editar, Eliminar */}
             <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
               <button
-                onClick={() => (onView ? onView(item) : setViewOpen(true))}
+                onClick={() => setViewOpen(true)}
                 className={BTN.view}
                 title="Ver detalle"
               >
@@ -281,14 +218,14 @@ export default function ProductCard({
                 <span className="hidden md:inline">Ver</span>
               </button>
 
-              {onVerStock && (
+              {onVerCuenta && (
                 <button
-                  onClick={() => onVerStock(item)}
-                  className={BTN.stock}
-                  title="Ver stock y movimientos"
+                  onClick={() => onVerCuenta(item)}
+                  className={BTN.cuenta}
+                  title="Ver cuenta corriente"
                 >
-                  <FaWarehouse className="text-sm" />
-                  <span className="hidden md:inline">Stock</span>
+                  <FaFileInvoiceDollar className="text-sm" />
+                  <span className="hidden md:inline">Cuenta cte.</span>
                 </button>
               )}
 
@@ -321,14 +258,11 @@ export default function ProductCard({
         </div>
       </motion.div>
 
-      {/* Modal interno reutilizable (solo si NO te pasan onView) */}
-      {!onView && (
-        <DetailViewModal
-          open={viewOpen}
-          onClose={() => setViewOpen(false)}
-          {...buildViewProps(item)}
-        />
-      )}
+      <DetailViewModal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        {...buildViewProps(item)}
+      />
     </>
   );
 }

@@ -10,6 +10,7 @@ import { FaPlus, FaSearch } from 'react-icons/fa';
 
 import ProductCard from '../../Components/Productos/ProductCard';
 import ProductoFormModal from '../../Components/Productos/ProductoFormModal';
+import StockMovimientosModal from '../../Components/Stock/StockMovimientosModal';
 
 import {
   listProductos,
@@ -18,6 +19,7 @@ import {
   patchProductoEstado,
   deleteProducto
 } from '../../api/productos.js';
+import { getStockResumen } from '../../api/stock.js';
 
 import {
   showErrorSwal,
@@ -51,6 +53,20 @@ export default function ProductosCards() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+
+  const [stockMap, setStockMap] = useState({});
+  const [stockModalProducto, setStockModalProducto] = useState(null);
+
+  const fetchStock = async () => {
+    try {
+      const resp = await getStockResumen();
+      const map = {};
+      for (const r of resp?.data || []) map[r.producto_id] = r;
+      setStockMap(map);
+    } catch {
+      // no bloqueamos el listado de productos si falla el resumen de stock
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -118,6 +134,10 @@ export default function ProductosCards() {
   useEffect(() => {
     fetchData(); // eslint-disable-next-line
   }, [dq, filtroEstado, filtroPresentacion, page]);
+
+  useEffect(() => {
+    fetchStock();
+  }, []);
 
   const onNew = () => {
     setEditing(null);
@@ -377,6 +397,8 @@ export default function ProductosCards() {
                     onEdit={onEdit}
                     onToggleActivo={onToggleActivo}
                     onDelete={onDeleteDirect}
+                    onVerStock={setStockModalProducto}
+                    stock={stockMap[it.id]}
                     color={it.presentacion === 'pack' ? '#a12262' : '#06b6d4'}
                   />
                 ))}
@@ -397,6 +419,13 @@ export default function ProductosCards() {
         }}
         onSubmit={onSubmit}
         initial={editing}
+      />
+
+      <StockMovimientosModal
+        open={!!stockModalProducto}
+        producto={stockModalProducto}
+        onClose={() => setStockModalProducto(null)}
+        onChanged={fetchStock}
       />
     </>
   );

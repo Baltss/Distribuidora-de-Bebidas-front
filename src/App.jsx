@@ -53,6 +53,11 @@ import ReporteRepartoCobranza from './Pages/Reportes/ReporteRepartoCobranza';
 //  - 25/02/2026 - Pantalla de saldo previo (deudas históricas)
 import VentasSaldoPrevioPage from './Pages/Ventas/VentasSaldoPrevioPage.jsx';
 
+//  - 09/07/2026 - Stock, Proveedores, Compras y Gastos
+import ProveedoresCards from './Pages/Proveedores/ProveedoresCards.jsx';
+import ComprasHistorialPage from './Pages/Compras/ComprasHistorialPage.jsx';
+import GastosPage from './Pages/Gastos/GastosPage.jsx';
+
 function AppContent() {
   return (
     <>
@@ -247,6 +252,33 @@ function AppContent() {
               <ProtectedRoute>
                 {' '}
                 <ReporteRepartoCobranza />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/proveedores"
+            element={
+              <ProtectedRoute>
+                {' '}
+                <ProveedoresCards />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/compras"
+            element={
+              <ProtectedRoute>
+                {' '}
+                <ComprasHistorialPage />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/gastos"
+            element={
+              <ProtectedRoute>
+                {' '}
+                <GastosPage />{' '}
               </ProtectedRoute>
             }
           />

@@ -52,6 +52,7 @@ export default function ProductoFormModal({
     codigo_sku: '',
     presentacion: 'unidad', // unidad | pack
     pack_cantidad: 1,
+    stock_minimo: '',
     unidad_medida: 'u',
     contenido: '',
     barra_ean13: '',
@@ -72,6 +73,7 @@ export default function ProductoFormModal({
         presentacion: initial?.presentacion ?? 'unidad',
         pack_cantidad:
           initial?.pack_cantidad ?? (initial?.presentacion === 'pack' ? 12 : 1),
+        stock_minimo: initial?.stock_minimo ?? '',
         unidad_medida: initial?.unidad_medida ?? 'u',
         contenido: initial?.contenido ?? '',
         barra_ean13: initial?.barra_ean13 ?? '',
@@ -89,12 +91,12 @@ export default function ProductoFormModal({
     const { name, value, type } = e.target;
     setForm((f) => {
       let v = value;
-      if (['pack_cantidad', 'iva_porcentaje', 'contenido'].includes(name)) {
+      if (['pack_cantidad', 'stock_minimo', 'iva_porcentaje', 'contenido'].includes(name)) {
         // normalizamos número
         v =
           v === ''
             ? ''
-            : name === 'pack_cantidad'
+            : name === 'pack_cantidad' || name === 'stock_minimo'
             ? parseInt(v, 10) || ''
             : parseFloat(v);
       }
@@ -146,6 +148,7 @@ export default function ProductoFormModal({
       codigo_sku: form.codigo_sku?.trim().toUpperCase(),
       presentacion: form.presentacion,
       pack_cantidad: Number(form.pack_cantidad) || 1,
+      stock_minimo: form.stock_minimo === '' ? null : Number(form.stock_minimo),
       unidad_medida: form.unidad_medida || 'u',
       contenido: form.contenido === '' ? null : Number(form.contenido),
       barra_ean13: form.barra_ean13?.trim() || null,
@@ -431,6 +434,25 @@ export default function ProductoFormModal({
                     />
                   </motion.div>
                 </div>
+
+                {/* Stock mínimo */}
+                <motion.div variants={fieldV}>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <Boxes className="h-4 w-4 text-gray-400" />
+                    Stock mínimo (opcional)
+                  </label>
+                  <input
+                    name="stock_minimo"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.stock_minimo}
+                    onChange={handle}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
+                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    placeholder="Alerta de stock bajo a partir de…"
+                  />
+                </motion.div>
 
                 {/* IVA + Estado */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
