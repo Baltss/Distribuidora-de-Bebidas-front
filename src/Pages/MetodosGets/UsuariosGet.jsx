@@ -10,6 +10,7 @@ import axiosWithAuth from '../../utils/axiosWithAuth';
 import { getUserId } from '../../utils/authUtils';
 import PasswordEditor from '../../Security/PasswordEditor';
 import Swal from 'sweetalert2';
+import { API_BASE_URL } from '../../api/apiBase';
 
 Modal.setAppElement('#root');
 
@@ -64,7 +65,7 @@ export default function UsuariosGet() {
 
   const fetchLocales = async () => {
     try {
-      const res = await axios.get('https://vps-5697083-x.dattaweb.com/locales');
+      const res = await axios.get(`${API_BASE_URL}/locales`);
       setLocales(res.data);
     } catch (error) {
       console.error('Error al obtener locales:', error);

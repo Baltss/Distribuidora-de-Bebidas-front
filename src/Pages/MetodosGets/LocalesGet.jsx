@@ -6,10 +6,11 @@ import Modal from 'react-modal';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
 import { getUserId } from '../../utils/authUtils';
+import { API_BASE_URL } from '../../api/apiBase';
 
 Modal.setAppElement('#root');
 
-const API = 'https://vps-5697083-x.dattaweb.com/locales';
+const API = `${API_BASE_URL}/locales`;
 
 const defaultFormValues = {
   nombre: '',

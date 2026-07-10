@@ -1,8 +1,9 @@
 // api/axiosClient.js
 import axios from 'axios';
+import { API_BASE_URL } from '../api/apiBase';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+  baseURL: API_BASE_URL
 });
 
 // Interceptor para adjuntar token en cada request

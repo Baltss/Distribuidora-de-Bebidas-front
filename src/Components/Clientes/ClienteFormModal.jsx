@@ -16,6 +16,7 @@ import { listCiudades } from '../../api/ciudades';
 import { listLocalidades } from '../../api/localidades';
 import { listBarrios } from '../../api/barrios';
 import http from '../../api/http';
+import { API_BASE_URL } from '../../api/apiBase';
 
 export default function ClienteFormModal({
   open,
@@ -104,12 +105,8 @@ export default function ClienteFormModal({
     }
   };
 
-  // Base URL (por si usan env en Vite)
-  const API_BASE =
-    (typeof import.meta !== 'undefined' &&
-      import.meta?.env &&
-      import.meta.env.VITE_API_URL) ||
-    'https://vps-5697083-x.dattaweb.com';
+  // Base URL centralizada (ver src/api/apiBase.js)
+  const API_BASE = API_BASE_URL;
 
   // Si no nos pasaron barrios por props, los cargamos
   useEffect(() => {

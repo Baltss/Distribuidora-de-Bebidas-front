@@ -23,6 +23,7 @@ import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import VideoLogin from '../../Images/staff/videoBienvenida.mp4';
 import ParticlesBackground from '../ParticlesBackground';
+import { API_BASE_URL } from '../../api/apiBase';
 Modal.setAppElement('#root');
 
 const LoginForm = () => {
@@ -67,7 +68,7 @@ const LoginForm = () => {
       setLoading(true);
 
       axios
-        .post('https://vps-5697083-x.dattaweb.com/login', {
+        .post(`${API_BASE_URL}/login`, {
           email: values.email,
           password: values.password
         })

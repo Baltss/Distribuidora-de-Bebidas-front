@@ -38,7 +38,7 @@ import ButtonBack from '../../Components/ButtonBack';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import { useAuth } from '../../AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 const moneyAR = (n) =>
   (Number(n) || 0).toLocaleString('es-AR', {
