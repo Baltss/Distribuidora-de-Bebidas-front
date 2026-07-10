@@ -4,7 +4,7 @@
 import axios from 'axios';
 import { getUserId } from '../utils/authUtils';
 
-const BASE_URL = import.meta?.env?.VITE_API_BASE_URL || 'https://vps-5697083-x.dattaweb.com';
+const BASE_URL = import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:8080';
 
 const http = axios.create({
   baseURL: BASE_URL,

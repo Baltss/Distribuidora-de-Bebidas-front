@@ -38,7 +38,7 @@ import ButtonBack from '../../Components/ButtonBack';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import { useAuth } from '../../AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://vps-5697083-x.dattaweb.com';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const moneyAR = (n) =>
   (Number(n) || 0).toLocaleString('es-AR', {

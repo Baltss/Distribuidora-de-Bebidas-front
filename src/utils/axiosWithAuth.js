@@ -3,7 +3,7 @@ import axios from 'axios';
 const axiosWithAuth = () => {
   const token = localStorage.getItem('authToken');
   return axios.create({
-    baseURL: 'https://vps-5697083-x.dattaweb.com',
+    baseURL: 'http://localhost:8080',
     headers: {
       Authorization: token ? `Bearer ${token}` : ''
     }
