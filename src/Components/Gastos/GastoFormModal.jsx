@@ -186,14 +186,18 @@ export default function GastoFormModal({ open, onClose, onSubmit, categorias = [
                     <CreditCard className="h-4 w-4 text-gray-400" />
                     Medio de pago (opcional)
                   </label>
-                  <input
+                  <select
                     name="medio_pago"
                     value={form.medio_pago}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-transparent"
-                    placeholder="Efectivo, transferencia…"
-                  />
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
+                               focus:outline-none focus:ring-2 focus:ring-amber-300/40 focus:border-transparent"
+                  >
+                    <option value="" className="text-black">Seleccionar…</option>
+                    <option value="Contado" className="text-black">Contado</option>
+                    <option value="Transferencia" className="text-black">Transferencia</option>
+                    <option value="Débito" className="text-black">Débito</option>
+                  </select>
                 </motion.div>
 
                 <motion.div variants={fieldV}>
