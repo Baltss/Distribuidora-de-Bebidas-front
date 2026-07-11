@@ -11,8 +11,8 @@
 // (reiniciá `npm run dev` después de crearlo o modificarlo).
 
 export const API_BASE_URL =
-  import.meta?.env?.VITE_API_BASE_URL ||
-  import.meta?.env?.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
   'https://vps-5697083-x.dattaweb.com';
 
 export default API_BASE_URL;
