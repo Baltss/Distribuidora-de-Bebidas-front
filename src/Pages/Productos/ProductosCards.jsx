@@ -20,6 +20,7 @@ import {
   deleteProducto
 } from '../../api/productos.js';
 import { getStockResumen } from '../../api/stock.js';
+import { listCategorias } from '../../api/categorias.js';
 
 import {
   showErrorSwal,
@@ -47,6 +48,8 @@ export default function ProductosCards() {
 
   const [filtroEstado, setFiltroEstado] = useState('todos'); // 'todos' | 'activos' | 'inactivos'
   const [filtroPresentacion, setFiltroPresentacion] = useState('todas'); // 'todas' | 'unidad' | 'pack'
+  const [filtroCategoria, setFiltroCategoria] = useState(''); // '' = todas
+  const [categorias, setCategorias] = useState([]);
 
   const [page, setPage] = useState(1);
   const limit = 18;
@@ -84,6 +87,7 @@ export default function ProductosCards() {
       if (filtroPresentacion === 'unidad' || filtroPresentacion === 'pack') {
         params.presentacion = filtroPresentacion;
       }
+      if (filtroCategoria) params.categoria_id = filtroCategoria;
 
       const resp = await listProductos(params);
 
@@ -133,11 +137,21 @@ export default function ProductosCards() {
 
   useEffect(() => {
     fetchData(); // eslint-disable-next-line
-  }, [dq, filtroEstado, filtroPresentacion, page]);
+  }, [dq, filtroEstado, filtroPresentacion, filtroCategoria, page]);
 
   useEffect(() => {
     fetchStock();
+    cargarCategorias();
   }, []);
+
+  const cargarCategorias = async () => {
+    try {
+      const resp = await listCategorias({ estado: 'activo' });
+      setCategorias(resp?.data || []);
+    } catch {
+      // el filtro queda sin opciones si falla, sin romper el listado
+    }
+  };
 
   const onNew = () => {
     setEditing(null);
@@ -366,6 +380,22 @@ export default function ProductosCards() {
                   <option value="todas">Todas</option>
                   <option value="unidad">Unidad</option>
                   <option value="pack">Pack</option>
+                </select>
+
+                <select
+                  value={filtroCategoria}
+                  onChange={(e) => {
+                    setPage(1);
+                    setFiltroCategoria(e.target.value);
+                  }}
+                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="">Todas las categorías</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nombre}
+                    </option>
+                  ))}
                 </select>
 
                 <button

@@ -17,8 +17,13 @@ import {
   Ruler,
   Percent,
   StickyNote,
-  Power
+  Power,
+  Layers,
+  Plus,
+  Check
 } from 'lucide-react';
+import { listCategorias, createCategoria } from '../../api/categorias';
+import { showErrorSwal } from '../../ui/swal';
 
 /*
  * Programador: Benjamin Orellana
@@ -49,6 +54,7 @@ export default function ProductoFormModal({
 
   const [form, setForm] = useState({
     nombre: '',
+    categoria_id: '',
     codigo_sku: '',
     presentacion: 'unidad', // unidad | pack
     pack_cantidad: 1,
@@ -64,11 +70,56 @@ export default function ProductoFormModal({
 
   const [errors, setErrors] = useState({});
 
+  // Categorías (dinámicas) + alta rápida sin salir del modal
+  const [categorias, setCategorias] = useState([]);
+  const [catNuevaOpen, setCatNuevaOpen] = useState(false);
+  const [catNuevaNombre, setCatNuevaNombre] = useState('');
+  const [catSaving, setCatSaving] = useState(false);
+
+  const cargarCategorias = async () => {
+    try {
+      const resp = await listCategorias({ estado: 'activo' });
+      setCategorias(resp?.data || []);
+    } catch {
+      // si falla, el select queda vacío pero no rompe el form
+    }
+  };
+
+  const crearCategoriaRapida = async () => {
+    const nombre = catNuevaNombre.trim();
+    if (!nombre) return;
+    try {
+      setCatSaving(true);
+      const resp = await createCategoria({ nombre });
+      const nueva = resp?.categoria;
+      await cargarCategorias();
+      if (nueva?.id) {
+        setForm((f) => ({ ...f, categoria_id: String(nueva.id) }));
+      }
+      setCatNuevaNombre('');
+      setCatNuevaOpen(false);
+    } catch (err) {
+      const { code, mensajeError, tips } = err || {};
+      await showErrorSwal({
+        title: code === 'DUPLICATE' ? 'Categoría existente' : 'No se pudo crear',
+        text: mensajeError || 'No se pudo crear la categoría',
+        tips
+      });
+    } finally {
+      setCatSaving(false);
+    }
+  };
+
   // Cargar/limpiar cuando abre
   useEffect(() => {
     if (open) {
+      cargarCategorias();
+      setCatNuevaOpen(false);
+      setCatNuevaNombre('');
       setForm({
         nombre: initial?.nombre ?? '',
+        categoria_id:
+          initial?.categoria_id != null ? String(initial.categoria_id) : '',
         codigo_sku: initial?.codigo_sku ?? '',
         presentacion: initial?.presentacion ?? 'unidad',
         pack_cantidad:
@@ -145,6 +196,7 @@ export default function ProductoFormModal({
 
     const payload = {
       nombre: form.nombre?.trim(),
+      categoria_id: form.categoria_id === '' ? null : Number(form.categoria_id),
       codigo_sku: form.codigo_sku?.trim().toUpperCase(),
       presentacion: form.presentacion,
       pack_cantidad: Number(form.pack_cantidad) || 1,
@@ -278,6 +330,64 @@ export default function ProductoFormModal({
                     <p className="mt-1 text-sm text-rose-300">
                       {errors.nombre}
                     </p>
+                  )}
+                </motion.div>
+
+                {/* Categoría (dinámica) con alta rápida */}
+                <motion.div variants={fieldV}>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <Layers className="h-4 w-4 text-gray-400" />
+                    Categoría (opcional)
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      name="categoria_id"
+                      value={form.categoria_id}
+                      onChange={handle}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
+                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    >
+                      <option value="" className="text-black">Sin categoría</option>
+                      {categorias.map((c) => (
+                        <option key={c.id} value={c.id} className="text-black">
+                          {c.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setCatNuevaOpen((v) => !v)}
+                      className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl border border-cyan-400/40 bg-cyan-400/10 text-cyan-200 text-sm hover:bg-cyan-400/20 transition"
+                      title="Agregar nueva categoría"
+                    >
+                      <Plus className="h-4 w-4" /> Nueva
+                    </button>
+                  </div>
+
+                  {catNuevaOpen && (
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        value={catNuevaNombre}
+                        onChange={(e) => setCatNuevaNombre(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            crearCategoriaRapida();
+                          }
+                        }}
+                        placeholder="Nombre de la nueva categoría"
+                        className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-white
+                                   placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={crearCategoriaRapida}
+                        disabled={catSaving || !catNuevaNombre.trim()}
+                        className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      >
+                        <Check className="h-4 w-4" /> {catSaving ? 'Guardando…' : 'Crear'}
+                      </button>
+                    </div>
                   )}
                 </motion.div>
 

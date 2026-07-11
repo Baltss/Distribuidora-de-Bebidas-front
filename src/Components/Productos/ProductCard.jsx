@@ -15,7 +15,8 @@ import {
   FaTags,
   FaMoneyBill,
   FaWarehouse,
-  FaExclamationTriangle
+  FaExclamationTriangle,
+  FaLayerGroup
 } from 'react-icons/fa';
 import DetailViewModal from '../Common/DetailViewModal';
 import moneyAR from '../../utils/money';
@@ -114,6 +115,11 @@ export default function ProductCard({
           cols: 2,
           rows: [
             { label: 'SKU', icon: <FaTags />, key: 'codigo_sku' },
+            {
+              label: 'Categoría',
+              icon: <FaLayerGroup />,
+              value: p?.categoria?.nombre || 'Sin categoría'
+            },
             { label: 'EAN', icon: <FaBarcode />, key: 'barra_ean13' },
             { label: 'Estado', value: activo ? 'Activo' : 'Inactivo' }
           ]
@@ -219,6 +225,12 @@ export default function ProductCard({
                 <span className="inline-flex items-center gap-1">
                   <FaTags className="opacity-70" />
                   {item?.codigo_sku}
+                </span>
+              </Field>
+              <Field label="Categoría">
+                <span className="inline-flex items-center gap-1">
+                  <FaLayerGroup className="opacity-70" />
+                  {item?.categoria?.nombre || 'Sin categoría'}
                 </span>
               </Field>
               <Field label="Presentación">
