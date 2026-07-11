@@ -406,6 +406,24 @@ export default function ReporteRepartoCobranza() {
   }, [clientesConDeudaUI, searchTerm]);
 
   const totalFiltrados = filteredClientes.length;
+
+  //  Selección masiva: seleccionar/quitar todos los clientes filtrados actuales.
+  const allFilteredSelected =
+    filteredClientes.length > 0 &&
+    filteredClientes.every(({ cliente }) => selectedClientes[cliente.id]);
+
+  const toggleSelectAllFiltered = () => {
+    setSelectedClientes((prev) => {
+      const next = { ...prev };
+      if (allFilteredSelected) {
+        for (const { cliente } of filteredClientes) delete next[cliente.id];
+      } else {
+        for (const { cliente } of filteredClientes) next[cliente.id] = true;
+      }
+      return next;
+    });
+  };
+
   const totalPages = Math.max(1, Math.ceil(totalFiltrados / pageSize));
   const paginaActual = Math.min(currentPage, totalPages);
 
@@ -814,6 +832,15 @@ export default function ReporteRepartoCobranza() {
                         <span>Sin coincidencias para el filtro actual.</span>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      onClick={toggleSelectAllFiltered}
+                      disabled={!totalFiltrados}
+                      className="h-8 rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 text-[11px] font-semibold text-amber-100 hover:bg-amber-400/20 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      {allFilteredSelected ? 'Quitar selección' : 'Seleccionar todos'}
+                    </button>
+
                     <div className="flex items-center gap-2">
                       <span className="hidden sm:inline">Por página</span>
                       <select
