@@ -24,6 +24,11 @@ import {
 import { listVendedores } from '../../api/vendedores';
 import { listBarrios } from '../../api/barrios';
 
+//   - 14-07-2026 - Borrado lógico del filtro de barrios (dejó de ser
+// necesario). Se mantiene el estado/lógica por si se reactiva a futuro;
+// solo se oculta el control de UI.
+const SHOW_FILTRO_BARRIO = false;
+
 import {
   showErrorSwal,
   showWarnSwal,
@@ -357,21 +362,23 @@ export default function ClientesCards() {
                   <option value="inactivos">Inactivos</option>
                 </select>
 
-                <select
-                  value={filtroBarrio}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroBarrio(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">Barrio (todos)</option>
-                  {barrios.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.nombre}
-                    </option>
-                  ))}
-                </select>
+                {SHOW_FILTRO_BARRIO && (
+                  <select
+                    value={filtroBarrio}
+                    onChange={(e) => {
+                      setPage(1);
+                      setFiltroBarrio(e.target.value);
+                    }}
+                    className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="">Barrio (todos)</option>
+                    {barrios.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.nombre}
+                      </option>
+                    ))}
+                  </select>
+                )}
 
                 <select
                   value={filtroVendedor}

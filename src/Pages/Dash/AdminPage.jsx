@@ -13,7 +13,6 @@ import {
   UserCircle2,
   ShoppingBag,
   AlertTriangle,
-  BanknoteArrowUp,
   FileText,
   Truck,
   ShoppingCart,
@@ -279,19 +278,11 @@ const AdminPage = () => {
               />
 
               <DashboardTile
-                title="Gestión de Deudas"
-                description="Control de saldos pendientes, planes de pago y cobranzas."
+                title="Gestión de Deudas y Cobranzas"
+                description="Consultá clientes con deuda, saldo pendiente, registrá cobros y revisá el historial de cobranzas."
                 to="/dashboard/ventas/deudas"
                 icon={AlertTriangle}
                 delay={0.22}
-              />
-
-              <DashboardTile
-                title="Gestión de Cobranzas"
-                description="Consultá deudas de fiado, registrá cobranzas y mantené la cuenta corriente al día."
-                to="/dashboard/cobranzas"
-                icon={BanknoteArrowUp}
-                delay={0.26}
               />
 
               <DashboardTile

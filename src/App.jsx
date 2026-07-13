@@ -40,14 +40,12 @@ import AdminPageVendedores from './Pages/Vendedores/AdminPageVendedores';
 import VendedoresCards from './Pages/Vendedores/VendedoresCards';
 import VendedorBarriosCards from './Pages/Vendedores/VendedorBarriosCards';
 import ClientesCards from './Pages/Clientes/ClientesCards';
-import AdminPageVentas from './Pages/Ventas/AdminPageVentas';
 import VentasHistorialPage from './Pages/Ventas/VentasHistorialPage';
 import VentasDeudasPage from './Pages/Ventas/VentasDeudasPage';
 import VentasReportesPage from './Pages/Ventas/VentasReportesPage';
 import AdminPageRepartos from './Pages/Repartos/AdminPageRepartos';
 import RepartosCards from './Pages/Repartos/RepartosCards';
 
-import AdminPageCobranzas from './Pages/Cobranzas/AdminPageCobranzas';
 import ReporteRepartoCobranza from './Pages/Reportes/ReporteRepartoCobranza';
 
 //  - 25/02/2026 - Pantalla de saldo previo (deudas históricas)
@@ -179,7 +177,7 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 {' '}
-                <AdminPageVentas />{' '}
+                <VentasHistorialPage />{' '}
               </ProtectedRoute>
             }
           />
@@ -242,7 +240,7 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 {' '}
-                <AdminPageCobranzas />{' '}
+                <VentasDeudasPage />{' '}
               </ProtectedRoute>
             }
           />

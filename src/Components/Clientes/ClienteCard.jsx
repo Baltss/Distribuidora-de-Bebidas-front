@@ -288,7 +288,7 @@ export default function ClienteCard({
                 <StatusPill active={!isInactive} />
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                ID {item?.id} •{' '}
+                ID {item?.id} • {item?.tipo === 'local' ? 'Local' : 'Reparto'} •{' '}
                 {item?.created_at
                   ? new Date(item.created_at).toLocaleDateString()
                   : ''}

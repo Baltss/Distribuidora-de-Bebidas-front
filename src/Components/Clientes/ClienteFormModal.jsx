@@ -29,6 +29,7 @@ export default function ClienteFormModal({
   // ------- Form -------
   const [form, setForm] = useState({
     nombre: '',
+    tipo: 'reparto', // 'local' | 'reparto'
     documento: '',
     telefono: '',
     email: '',
@@ -169,6 +170,7 @@ export default function ClienteFormModal({
     // Intenta deducir ciudad/localidad desde el barrio_id de initial
     const seed = {
       nombre: initial?.nombre || '',
+      tipo: initial?.tipo === 'local' ? 'local' : 'reparto',
       documento: initial?.documento || '',
       telefono: initial?.telefono || '',
       email: initial?.email || '',
@@ -347,23 +349,27 @@ export default function ClienteFormModal({
     const nombreOK = form.nombre.trim().length > 0;
     if (!nombreOK) out.nombre = 'El nombre es obligatorio.';
 
-    const ciudadOK = Number(form.ciudad_id) > 0;
-    if (!ciudadOK) out.ciudad_id = 'La ciudad es obligatoria.';
+    //  - 14-07-2026 - Ciudad y reparto solo son obligatorios para clientes de reparto.
+    //  Un cliente "local" (mostrador) no pide datos de entrega.
+    if (form.tipo === 'reparto') {
+      const ciudadOK = Number(form.ciudad_id) > 0;
+      if (!ciudadOK) out.ciudad_id = 'La ciudad es obligatoria.';
 
-    //  - 24-02-2026 - Reparto ahora es obligatorio en el formulario y se valida antes de enviar al backend.
-    const repartoRaw = String(form.reparto_id ?? '').trim();
-    if (!repartoRaw) {
-      out.reparto_id = 'El reparto es obligatorio.';
-    } else {
-      const rid = Number(repartoRaw);
-      if (!Number.isFinite(rid) || rid <= 0) {
-        out.reparto_id = 'El reparto seleccionado es inválido.';
+      //  - 24-02-2026 - Reparto ahora es obligatorio en el formulario y se valida antes de enviar al backend.
+      const repartoRaw = String(form.reparto_id ?? '').trim();
+      if (!repartoRaw) {
+        out.reparto_id = 'El reparto es obligatorio.';
+      } else {
+        const rid = Number(repartoRaw);
+        if (!Number.isFinite(rid) || rid <= 0) {
+          out.reparto_id = 'El reparto seleccionado es inválido.';
+        }
       }
     }
 
     //  - 24-02-2026 - Calle y número dejan de ser obligatorios por requerimiento; se permiten vacíos.
     return out;
-  }, [form.nombre, form.ciudad_id, form.reparto_id]);
+  }, [form.nombre, form.tipo, form.ciudad_id, form.reparto_id]);
 
   const canSave = useMemo(() => {
     return Object.keys(errors).length === 0;
@@ -388,6 +394,7 @@ export default function ClienteFormModal({
     if (!canSave) return;
 
     const toNull = (v) => (v === '' || v === undefined ? null : v);
+    const esLocal = form.tipo === 'local';
     const repId = form.reparto_id === '' ? null : Number(form.reparto_id);
 
     try {
@@ -395,30 +402,33 @@ export default function ClienteFormModal({
 
       await onSubmit({
         nombre: form.nombre.trim(),
+        tipo: form.tipo,
         documento: form.documento?.trim() || null,
         telefono: form.telefono?.trim() || null,
         email: form.email?.trim() || null,
         estado: form.estado,
 
-        // Nuevo requerido por negocio (solo ciudad, localidad/barrio opcional)
-        ciudad_id: toNumOrNull(form.ciudad_id),
+        // Ciudad/geografía: solo aplica a clientes de reparto.
+        ciudad_id: esLocal ? null : toNumOrNull(form.ciudad_id),
 
         // Se mantiene por compatibilidad: si el usuario completa detalle, se envía
-        barrio_id: toNumOrNull(form.barrio_id),
+        barrio_id: esLocal ? null : toNumOrNull(form.barrio_id),
 
         //  - 24-02-2026 - Dirección detallada opcional: se envía null si calle/número llegan vacíos.
-        direccion_calle: toNull(form.direccion_calle?.trim()),
-        direccion_numero: toNull(form.direccion_numero?.trim()),
-        direccion_piso_dpto: toNull(form.direccion_piso_dpto?.trim()),
-        referencia: toNull(form.referencia?.trim()),
+        direccion_calle: esLocal ? null : toNull(form.direccion_calle?.trim()),
+        direccion_numero: esLocal ? null : toNull(form.direccion_numero?.trim()),
+        direccion_piso_dpto: esLocal
+          ? null
+          : toNull(form.direccion_piso_dpto?.trim()),
+        referencia: esLocal ? null : toNull(form.referencia?.trim()),
 
-        lat: toNumOrNull(form.lat),
-        lng: toNumOrNull(form.lng),
+        lat: esLocal ? null : toNumOrNull(form.lat),
+        lng: esLocal ? null : toNumOrNull(form.lng),
 
         vendedor_preferido_id: toNumOrNull(form.vendedor_preferido_id),
 
-        // Asignación inicial desde el modal
-        reparto_id: Number.isFinite(repId) ? repId : null
+        // Asignación inicial desde el modal (no aplica a clientes locales)
+        reparto_id: esLocal ? null : Number.isFinite(repId) ? repId : null
       });
 
       // onClose();
@@ -478,6 +488,42 @@ export default function ClienteFormModal({
                 animate="visible"
                 className="space-y-5 sm:space-y-6"
               >
+                {/* Tipo de cliente */}
+                <motion.div variants={fieldV}>
+                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                    Tipo de cliente
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, tipo: 'local' }))}
+                      className={`flex-1 px-3.5 py-3 rounded-xl border text-sm font-medium transition ${
+                        form.tipo === 'local'
+                          ? 'border-cyan-300/60 bg-cyan-400/10 text-cyan-100'
+                          : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
+                      }`}
+                    >
+                      Local (mostrador)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, tipo: 'reparto' }))}
+                      className={`flex-1 px-3.5 py-3 rounded-xl border text-sm font-medium transition ${
+                        form.tipo === 'reparto'
+                          ? 'border-cyan-300/60 bg-cyan-400/10 text-cyan-100'
+                          : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
+                      }`}
+                    >
+                      Reparto
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-400">
+                    {form.tipo === 'local'
+                      ? 'Cliente de mostrador: solo se piden nombre, documento, teléfono y email.'
+                      : 'Cliente de reparto: requiere ciudad, dirección y reparto asignado.'}
+                  </p>
+                </motion.div>
+
                 {/* Nombre */}
                 <motion.div variants={fieldV}>
                   <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -570,6 +616,9 @@ export default function ClienteFormModal({
                   </motion.div>
                 </div>
 
+                {/* Geografía, reparto y dirección: solo para clientes de reparto */}
+                {form.tipo === 'reparto' && (
+                  <>
                 {/* Geografía (cascada) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Ciudad */}
@@ -827,6 +876,8 @@ export default function ClienteFormModal({
                     placeholder="Frente a..., cerca de..."
                   />
                 </motion.div>
+                  </>
+                )}
 
                 {/* Acciones */}
                 <motion.div

@@ -15,14 +15,29 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavbarStaff from '../Dash/NavbarStaff';
 import '../../Styles/staff/dashboard.css';
 import '../../Styles/staff/background.css';
 import { useAuth } from '../../AuthContext';
 import ParticlesBackground from '../../Components/ParticlesBackground';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ButtonBack from '../../Components/ButtonBack';
-import { FaUser, FaUserTie, FaSearch, FaFilter, FaTruck } from 'react-icons/fa';
+import {
+  FaUser,
+  FaUserTie,
+  FaSearch,
+  FaFilter,
+  FaTruck,
+  FaMoneyBill,
+  FaHistory
+} from 'react-icons/fa';
+import { X } from 'lucide-react';
+
+// Unificación Deudas + Cobranzas en una sola pantalla   - 14-07-2026
+import DeudaClienteModal from '../../Components/Cobranzas/DeudaClienteModal';
+import SeleccionarClienteDeudaModal from '../../Components/Cobranzas/SeleccionarClienteDeudaModal';
+import CobranzasClientesListado from '../../Components/Cobranzas/CobranzasClientesListado';
 
 import { listVentas } from '../../api/ventas';
 import { listVendedores } from '../../api/vendedores';
@@ -68,6 +83,17 @@ const badgeEstadoClasses = {
 
 const VentasDeudasPage = () => {
   const { userLevel } = useAuth(); // por si después limitás acceso
+  const navigate = useNavigate();
+
+  // ======================================================
+  //   - 14-07-2026
+  // Acciones de cobranza unificadas en esta misma pantalla
+  // (antes vivían en AdminPageCobranzas, ahora fusionadas acá).
+  // ======================================================
+  const [selectClienteModalOpen, setSelectClienteModalOpen] = useState(false);
+  const [deudaModalOpen, setDeudaModalOpen] = useState(false);
+  const [deudaClienteId, setDeudaClienteId] = useState(null);
+  const [cobranzasListadoOpen, setCobranzasListadoOpen] = useState(false);
 
   // ======================================================
   //  - 25-02-2026
@@ -528,7 +554,7 @@ const VentasDeudasPage = () => {
               transition={{ duration: 0.6 }}
               className="text-3xl sm:text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
             >
-              Gestión de Deudas
+              Gestión de Deudas y Cobranzas
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 10 }}
@@ -536,8 +562,9 @@ const VentasDeudasPage = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
             >
-              Visualizá rápidamente las deudas pendientes. Podés alternar la
-              fuente:
+              Consultá clientes con deuda, visualizá el saldo pendiente,
+              registrá cobros y revisá el historial de cobranzas, todo desde
+              un mismo lugar. Podés alternar la fuente:
               <span className="font-semibold text-white"> Ventas</span> (saldo
               por venta) o{' '}
               <span className="font-semibold text-white">
@@ -545,6 +572,23 @@ const VentasDeudasPage = () => {
               </span>{' '}
               (deuda real consolidada, incluye saldo previo).
             </motion.p>
+
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectClienteModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
+              >
+                <FaMoneyBill /> Registrar cobro
+              </button>
+              <button
+                type="button"
+                onClick={() => setCobranzasListadoOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+              >
+                <FaHistory /> Historial de cobranzas
+              </button>
+            </div>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
@@ -1214,6 +1258,86 @@ const VentasDeudasPage = () => {
           </div>
         </div>
       </section>
+
+      {/* Modal para seleccionar cliente con deuda (registrar cobro) */}
+      <SeleccionarClienteDeudaModal
+        open={selectClienteModalOpen}
+        onClose={() => setSelectClienteModalOpen(false)}
+        onSelect={(clienteId) => {
+          setDeudaClienteId(clienteId);
+          setSelectClienteModalOpen(false);
+          setDeudaModalOpen(true);
+        }}
+      />
+
+      {/* Modal: detalle de deuda del cliente y registro de cobranza */}
+      <DeudaClienteModal
+        open={deudaModalOpen}
+        clienteId={deudaClienteId}
+        onClose={() => {
+          setDeudaModalOpen(false);
+          setDeudaClienteId(null);
+        }}
+        onVerVenta={(ventaId) => {
+          if (!ventaId) return;
+          setDeudaModalOpen(false);
+          navigate('/dashboard/ventas/ventas', {
+            state: { ventaIdDetalle: ventaId, from: 'cobranzas' }
+          });
+        }}
+      />
+
+      {/* Modal fullscreen para listado de cobranzas */}
+      <AnimatePresence>
+        {cobranzasListadoOpen && (
+          <motion.div
+            className="fixed inset-0 z-[58] flex items-center justify-center p-3 sm:p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div
+              className="absolute inset-0 bg-black/75 backdrop-blur-md"
+              onClick={() => setCobranzasListadoOpen(false)}
+            />
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 230, damping: 26 }}
+              className="relative w-full max-w-6xl max-h-[90vh] rounded-3xl border border-white/15
+                         bg-slate-950/95 shadow-[0_0_50px_rgba(248,250,252,0.15)] flex flex-col overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-slate-900/80">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-orange-300/80">
+                    Cobranzas
+                  </p>
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-50">
+                    Historial de Cobranzas
+                  </h2>
+                  <p className="text-[11px] text-slate-300/80">
+                    Revisá todas las cobranzas registradas, filtrá por cliente y
+                    fecha, y abrí el detalle cuando lo necesites.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCobranzasListadoOpen(false)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-2xl
+                             bg-white/5 border border-white/20 hover:bg-white/10 transition"
+                  aria-label="Cerrar historial de cobranzas"
+                >
+                  <X className="h-5 w-5 text-slate-100" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4">
+                <CobranzasClientesListado />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

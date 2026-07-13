@@ -9,9 +9,19 @@ import NavbarStaff from '../Dash/NavbarStaff';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
 
-import { listVentas, getVenta, anularVenta } from '../../api/ventas';
+import {
+  listVentas,
+  getVenta,
+  anularVenta,
+  createVenta,
+  createVentasRepartoMasiva
+} from '../../api/ventas';
 import { moneyAR } from '../../utils/money';
 import { useLocation } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import VentaFormModal from '../../Components/Ventas/VentaFormModal';
+import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
+import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
 
 // ======================================================
 //  - 17-01-2026
@@ -28,6 +38,10 @@ import {
   FaUserTie,
   FaMoneyBillWave,
   FaExclamationTriangle,
+  FaUsers,
+  FaChartLine,
+  FaFileExport,
+  FaCashRegister,
   // ======================================================
   //  - 17-01-2026
   // Icono para reparto
@@ -63,6 +77,76 @@ const VentasHistorialPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const location = useLocation();
+
+  // ------------ acciones sobre el listado (antes en AdminPageVentas) ------------
+  const [ventaModalOpen, setVentaModalOpen] = useState(false);
+  const [ventasRepartoModalOpen, setVentasRepartoModalOpen] = useState(false);
+  const [exportarModalOpen, setExportarModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [creatingMasiva, setCreatingMasiva] = useState(false);
+
+  const handleNuevaVenta = async ({ venta, items }) => {
+    try {
+      setCreating(true);
+      await createVenta({ ...venta, items });
+      Swal.fire({
+        icon: 'success',
+        title: 'Venta creada',
+        text: 'La venta se registró correctamente.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      setVentaModalOpen(false);
+      await fetchVentas();
+    } catch (err) {
+      console.error('Error creando venta:', err);
+      const msg =
+        err?.response?.data?.mensajeError ||
+        err?.message ||
+        'No se pudo crear la venta.';
+      Swal.fire({ icon: 'error', title: 'Error', text: msg });
+      throw err;
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleVentasRepartoMasiva = async (payload) => {
+    try {
+      setCreatingMasiva(true);
+      const resp = await createVentasRepartoMasiva(payload);
+      const cant =
+        resp?.meta?.ventasCreadas ??
+        (Array.isArray(resp?.ventas) ? resp.ventas.length : 0);
+      const total = resp?.meta?.totalGeneral;
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Ventas generadas',
+        html:
+          cant && total != null
+            ? `Se generaron <b>${cant}</b> venta(s) por reparto.<br/>Total general: <b>${moneyAR(
+                total
+              )}</b>.`
+            : 'Las ventas por reparto se registraron correctamente.',
+        timer: 2800,
+        showConfirmButton: false
+      });
+
+      setVentasRepartoModalOpen(false);
+      await fetchVentas();
+    } catch (err) {
+      console.error('Error generando ventas por reparto:', err);
+      const msg =
+        err?.response?.data?.mensajeError ||
+        err?.message ||
+        'No se pudieron generar las ventas por reparto.';
+      Swal.fire({ icon: 'error', title: 'Error', text: msg });
+      throw err;
+    } finally {
+      setCreatingMasiva(false);
+    }
+  };
 
   // filtros
   const [filtros, setFiltros] = useState({
@@ -335,6 +419,51 @@ const VentasHistorialPage = () => {
                   Consultá tus ventas, filtrá por cliente, fechas, tipo y
                   estado. Abrí el detalle para ver ítems, cliente y vendedor.
                 </motion.p>
+              </div>
+
+              {/* Acciones centralizadas del módulo de Ventas */}
+              <div className="flex flex-wrap gap-2 md:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setVentaModalOpen(true)}
+                  disabled={creating}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-60 transition"
+                >
+                  <FaPlus /> {creating ? 'Creando…' : 'Nueva venta'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVentasRepartoModalOpen(true)}
+                  disabled={creatingMasiva}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 disabled:opacity-60 transition"
+                >
+                  <FaCashRegister /> {creatingMasiva ? 'Generando…' : 'Carga masiva'}
+                </button>
+                <Link
+                  to="/dashboard/ventas/saldo-previo"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+                >
+                  <FaMoneyBillWave /> Saldo previo
+                </Link>
+                <Link
+                  to="/dashboard/ventas/deudas"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+                >
+                  <FaUsers /> Deudas
+                </Link>
+                <Link
+                  to="/dashboard/ventas/reportes"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+                >
+                  <FaChartLine /> Reportes
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setExportarModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
+                >
+                  <FaFileExport /> Exportar
+                </button>
               </div>
             </div>
 
@@ -1089,8 +1218,25 @@ const VentasHistorialPage = () => {
           )}
         </AnimatePresence>
       </section>
+
+      <VentaFormModal
+        open={ventaModalOpen}
+        onClose={() => setVentaModalOpen(false)}
+        onSubmit={handleNuevaVenta}
+      />
+
+      <VentaRepartoFormModal
+        open={ventasRepartoModalOpen}
+        onClose={() => setVentasRepartoModalOpen(false)}
+        onSubmit={handleVentasRepartoMasiva}
+      />
+
+      <ExportarVentasModal
+        open={exportarModalOpen}
+        onClose={() => setExportarModalOpen(false)}
+      />
     </>
   );
-};;
+};
 
 export default VentasHistorialPage;
