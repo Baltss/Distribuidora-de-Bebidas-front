@@ -7,11 +7,24 @@ import {
   formContainerV,
   fieldV
 } from '../../ui/animHelpers';
-import { X, Truck, Calendar, FileText, Wallet, Plus, Trash2 } from 'lucide-react';
+import {
+  X,
+  Truck,
+  Calendar,
+  FileText,
+  Wallet,
+  Plus,
+  Trash2,
+  UserPlus,
+  PackagePlus
+} from 'lucide-react';
 import SearchableSelect from '../Common/SearchableSelect';
-import { listProveedores } from '../../api/proveedores.js';
-import { listProductos } from '../../api/productos.js';
+import { listProveedores, createProveedor } from '../../api/proveedores.js';
+import { listProductos, createProducto } from '../../api/productos.js';
 import moneyAR from '../../utils/money';
+import ProveedorFormModal from '../Proveedores/ProveedorFormModal';
+import ProductoFormModal from '../Productos/ProductoFormModal';
+import { showErrorSwal } from '../../ui/swal';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -27,10 +40,29 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     fecha: todayISO(),
     nro_factura: '',
     tipo_pago: 'cuenta_corriente',
+    monto_abonado: '',
     observaciones: ''
   });
   const [items, setItems] = useState([emptyItem()]);
   const [errors, setErrors] = useState({});
+
+  // Alta rápida desde los selectores
+  const [provModalOpen, setProvModalOpen] = useState(false);
+  const [prodModalItemIdx, setProdModalItemIdx] = useState(null);
+
+  const cargarProveedores = async () => {
+    const resp = await listProveedores({ estado: 'activo', limit: 200 });
+    const rows = resp?.data || [];
+    setProveedores(rows);
+    return rows;
+  };
+
+  const cargarProductos = async () => {
+    const resp = await listProductos({ estado: 'activo', limit: 500 });
+    const rows = Array.isArray(resp) ? resp : resp?.data || [];
+    setProductos(rows);
+    return rows;
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -39,6 +71,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       fecha: todayISO(),
       nro_factura: '',
       tipo_pago: 'cuenta_corriente',
+      monto_abonado: '',
       observaciones: ''
     });
     setItems([emptyItem()]);
@@ -46,13 +79,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
 
     (async () => {
       try {
-        const [provResp, prodResp] = await Promise.all([
-          listProveedores({ estado: 'activo', limit: 200 }),
-          listProductos({ estado: 'activo', limit: 500 })
-        ]);
-        setProveedores(provResp?.data || []);
-        const prodRows = Array.isArray(prodResp) ? prodResp : prodResp?.data || [];
-        setProductos(prodRows);
+        await Promise.all([cargarProveedores(), cargarProductos()]);
       } catch {
         // silencioso: los selects quedan vacíos si falla
       }
@@ -68,11 +95,26 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     [items]
   );
 
+  const esCuentaCorriente = form.tipo_pago === 'cuenta_corriente';
+  const abonado = Number(form.monto_abonado) || 0;
+  const saldoPendiente = Math.max(0, total - abonado);
+
   const setItem = (idx, patch) => {
     setItems((arr) => arr.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   };
 
-  const addItem = () => setItems((arr) => [...arr, emptyItem()]);
+  // Al elegir un producto, precargamos el costo con su último costo de compra.
+  const onSelectProducto = (idx, productoId, lista = productos) => {
+    const prod = lista.find((p) => String(p.id) === String(productoId));
+    const patch = { producto_id: productoId };
+    if (prod && prod.ultimo_costo_compra != null) {
+      patch.costo_unit = String(prod.ultimo_costo_compra);
+    }
+    setItem(idx, patch);
+  };
+
+  // Ítems nuevos arriba del listado
+  const addItem = () => setItems((arr) => [emptyItem(), ...arr]);
   const removeItem = (idx) =>
     setItems((arr) => (arr.length > 1 ? arr.filter((_, i) => i !== idx) : arr));
 
@@ -104,6 +146,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       fecha: form.fecha,
       nro_factura: form.nro_factura?.trim() || null,
       tipo_pago: form.tipo_pago,
+      monto_abonado: esCuentaCorriente ? abonado : 0,
       observaciones: form.observaciones?.trim() || null,
       items: items.map((it) => ({
         producto_id: Number(it.producto_id),
@@ -118,6 +161,44 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       onClose();
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Alta rápida de proveedor: crea y autoselecciona
+  const onCrearProveedor = async (payload) => {
+    try {
+      const resp = await createProveedor(payload);
+      const nuevo = resp?.proveedor;
+      await cargarProveedores();
+      if (nuevo?.id) setForm((f) => ({ ...f, proveedor_id: String(nuevo.id) }));
+    } catch (err) {
+      const { mensajeError, tips } = err || {};
+      await showErrorSwal({
+        title: 'No se pudo crear el proveedor',
+        text: mensajeError || 'Ocurrió un error inesperado',
+        tips
+      });
+      throw err; // que el modal no cierre si falló
+    }
+  };
+
+  // Alta rápida de producto: crea, recarga y lo selecciona en el ítem que lo pidió
+  const onCrearProducto = async (payload) => {
+    try {
+      const resp = await createProducto(payload);
+      const nuevo = resp?.producto;
+      const lista = await cargarProductos();
+      if (nuevo?.id && prodModalItemIdx != null) {
+        onSelectProducto(prodModalItemIdx, String(nuevo.id), lista);
+      }
+    } catch (err) {
+      const { mensajeError, tips } = err || {};
+      await showErrorSwal({
+        title: 'No se pudo crear el producto',
+        text: mensajeError || 'Ocurrió un error inesperado',
+        tips
+      });
+      throw err;
     }
   };
 
@@ -170,9 +251,18 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Truck className="h-4 w-4 text-gray-400" />
-                      Proveedor <span className="text-cyan-300">*</span>
+                    <label className="flex items-center justify-between gap-2 text-sm font-medium text-gray-200 mb-2">
+                      <span className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-gray-400" />
+                        Proveedor <span className="text-cyan-300">*</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setProvModalOpen(true)}
+                        className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-cyan-400/40 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/20 transition"
+                      >
+                        <UserPlus className="h-3.5 w-3.5" /> Nuevo
+                      </button>
                     </label>
                     <SearchableSelect
                       items={proveedores}
@@ -242,6 +332,34 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                   </motion.div>
                 </div>
 
+                {/* Monto abonado (solo cuenta corriente) */}
+                {esCuentaCorriente && (
+                  <motion.div variants={fieldV}>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                      <Wallet className="h-4 w-4 text-gray-400" />
+                      Monto abonado ahora (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.monto_abonado}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, monto_abonado: e.target.value }))
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
+                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      placeholder="0.00"
+                    />
+                    <p className="mt-1 text-xs text-gray-300/80">
+                      Saldo que quedará en cuenta corriente:{' '}
+                      <span className="font-semibold text-white">
+                        {moneyAR(saldoPendiente)}
+                      </span>
+                    </p>
+                  </motion.div>
+                )}
+
                 <motion.div variants={fieldV}>
                   <label className="flex items-center justify-between text-sm font-medium text-gray-200 mb-2">
                     <span>Ítems de la compra</span>
@@ -260,30 +378,42 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       return (
                         <div
                           key={idx}
-                          className="grid grid-cols-1 sm:grid-cols-[1fr,110px,130px,auto] gap-2 items-start rounded-xl border border-white/10 bg-white/5 p-3"
+                          className="grid grid-cols-1 sm:grid-cols-[1fr,110px,140px,auto] gap-2 items-start rounded-xl border border-white/10 bg-white/5 p-3"
                         >
                           <div>
+                            <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+                              Producto
+                            </label>
                             <SearchableSelect
                               items={productos}
                               value={it.producto_id}
-                              onChange={(id) => setItem(idx, { producto_id: id })}
+                              onChange={(id) => onSelectProducto(idx, id)}
                               getOptionLabel={(p) => `${p?.nombre ?? ''} (${p?.codigo_sku ?? ''})`}
                               getOptionValue={(p) => p?.id}
                               placeholder="Producto…"
                               portal
                             />
+                            <button
+                              type="button"
+                              onClick={() => setProdModalItemIdx(idx)}
+                              className="mt-1 inline-flex items-center gap-1 text-[11px] text-cyan-200 hover:text-cyan-100 transition"
+                            >
+                              <PackagePlus className="h-3.5 w-3.5" /> Nuevo producto
+                            </button>
                             {ie.producto_id && (
                               <p className="mt-1 text-xs text-rose-300">{ie.producto_id}</p>
                             )}
                           </div>
                           <div>
+                            <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+                              Cantidad
+                            </label>
                             <input
                               type="number"
                               min="1"
                               step="1"
                               value={it.cantidad}
                               onChange={(e) => setItem(idx, { cantidad: e.target.value })}
-                              placeholder="Cant."
                               className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-white
                                          focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
                             />
@@ -292,13 +422,15 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                             )}
                           </div>
                           <div>
+                            <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+                              Costo unitario
+                            </label>
                             <input
                               type="number"
                               min="0"
                               step="0.01"
                               value={it.costo_unit}
                               onChange={(e) => setItem(idx, { costo_unit: e.target.value })}
-                              placeholder="Costo unit."
                               className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-white
                                          focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
                             />
@@ -306,15 +438,17 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                               <p className="mt-1 text-xs text-rose-300">{ie.costo_unit}</p>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeItem(idx)}
-                            disabled={items.length === 1}
-                            className="justify-self-end sm:justify-self-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-rose-300 hover:bg-rose-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
-                            title="Quitar ítem"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-end h-full">
+                            <button
+                              type="button"
+                              onClick={() => removeItem(idx)}
+                              disabled={items.length === 1}
+                              className="justify-self-end sm:justify-self-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-rose-300 hover:bg-rose-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                              title="Quitar ítem"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       );
                     })}
@@ -364,6 +498,22 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
               </motion.form>
             </div>
           </motion.div>
+
+          {/* Alta rápida de proveedor */}
+          <ProveedorFormModal
+            open={provModalOpen}
+            onClose={() => setProvModalOpen(false)}
+            onSubmit={onCrearProveedor}
+            initial={null}
+          />
+
+          {/* Alta rápida de producto */}
+          <ProductoFormModal
+            open={prodModalItemIdx != null}
+            onClose={() => setProdModalItemIdx(null)}
+            onSubmit={onCrearProducto}
+            initial={null}
+          />
         </motion.div>
       )}
     </AnimatePresence>

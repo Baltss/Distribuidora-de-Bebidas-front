@@ -12,7 +12,6 @@ import {
   FaPhone,
   FaEnvelope,
   FaMapMarkerAlt,
-  FaWallet,
   FaFileInvoiceDollar
 } from 'react-icons/fa';
 import DetailViewModal from '../Common/DetailViewModal';
@@ -74,11 +73,6 @@ export default function ProveedorCard({
 
   const isInactive = (item?.estado || '').toLowerCase() !== 'activo';
 
-  const condicionLabel = useMemo(() => {
-    const c = (item?.condicion_pago || '').toLowerCase();
-    return c === 'contado' ? 'Contado' : 'Cuenta corriente';
-  }, [item?.condicion_pago]);
-
   const buildViewProps = (p) => {
     const activo = (p?.estado || '').toLowerCase() === 'activo';
     return {
@@ -101,7 +95,6 @@ export default function ProveedorCard({
           cols: 2,
           rows: [
             { label: 'CUIT', icon: <FaIdCard />, key: 'cuit' },
-            { label: 'Condición de pago', value: condicionLabel, icon: <FaWallet /> },
             { label: 'Estado', value: activo ? 'Activo' : 'Inactivo' }
           ]
         },
@@ -171,7 +164,7 @@ export default function ProveedorCard({
                 <StatusPill active={!isInactive} />
               </div>
               <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                ID {item?.id} • {condicionLabel}
+                ID {item?.id}
               </div>
             </div>
           </div>

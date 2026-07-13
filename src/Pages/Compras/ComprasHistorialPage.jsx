@@ -6,7 +6,7 @@ import '../../Styles/staff/background.css';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
 import { motion } from 'framer-motion';
-import { FaPlus, FaBan } from 'react-icons/fa';
+import { FaPlus, FaBan, FaSearch } from 'react-icons/fa';
 
 import CompraFormModal from '../../Components/Compras/CompraFormModal';
 import { listCompras, createCompra, anularCompra } from '../../api/compras.js';
@@ -18,6 +18,15 @@ import {
 } from '../../ui/swal';
 import moneyAR from '../../utils/money';
 
+const useDebounce = (value, ms = 300) => {
+  const [deb, setDeb] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDeb(value), ms);
+    return () => clearTimeout(id);
+  }, [value, ms]);
+  return deb;
+};
+
 export default function ComprasHistorialPage() {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -25,10 +34,23 @@ export default function ComprasHistorialPage() {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // Filtros de búsqueda
+  const [q, setQ] = useState('');
+  const dq = useDebounce(q);
+  const [desde, setDesde] = useState('');
+  const [hasta, setHasta] = useState('');
+  const [tipoPago, setTipoPago] = useState(''); // '' | contado | cuenta_corriente
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const resp = await listCompras({ page, limit: 15 });
+      const params = { page, limit: 15 };
+      if (dq) params.q = dq;
+      if (desde) params.desde = desde;
+      if (hasta) params.hasta = hasta;
+      if (tipoPago) params.tipo_pago = tipoPago;
+
+      const resp = await listCompras(params);
       setRows(resp?.data || []);
       setMeta(resp?.meta || null);
     } catch (e) {
@@ -41,7 +63,12 @@ export default function ComprasHistorialPage() {
 
   useEffect(() => {
     fetchData(); // eslint-disable-next-line
-  }, [page]);
+  }, [page, dq, desde, hasta, tipoPago]);
+
+  // Al cambiar un filtro, volvemos a la página 1
+  useEffect(() => {
+    setPage(1);
+  }, [dq, desde, hasta, tipoPago]);
 
   const onSubmit = async (payload) => {
     try {
@@ -114,10 +141,54 @@ export default function ComprasHistorialPage() {
           </div>
 
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-            <div className="flex justify-end">
+            {/* Filtros + acción */}
+            <div className="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+                <div className="relative sm:col-span-2 lg:col-span-1">
+                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder="N° factura o proveedor…"
+                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white
+                               placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wide text-gray-300 mb-1">Desde</label>
+                  <input
+                    type="date"
+                    value={desde}
+                    onChange={(e) => setDesde(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wide text-gray-300 mb-1">Hasta</label>
+                  <input
+                    type="date"
+                    value={hasta}
+                    onChange={(e) => setHasta(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-wide text-gray-300 mb-1">Tipo de pago</label>
+                  <select
+                    value={tipoPago}
+                    onChange={(e) => setTipoPago(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                  >
+                    <option value="" className="text-black">Todos</option>
+                    <option value="contado" className="text-black">Contado</option>
+                    <option value="cuenta_corriente" className="text-black">Cuenta corriente</option>
+                  </select>
+                </div>
+              </div>
+
               <button
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold hover:brightness-110 transition"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold hover:brightness-110 transition shrink-0"
               >
                 <FaPlus /> Nueva compra
               </button>

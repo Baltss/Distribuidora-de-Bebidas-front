@@ -140,6 +140,14 @@ export default function ProductCard({
               icon: <FaMoneyBill />
             },
             {
+              label: 'ÚLTIMO COSTO DE COMPRA',
+              value:
+                p?.ultimo_costo_compra != null
+                  ? moneyAR(p.ultimo_costo_compra)
+                  : '—',
+              icon: <FaMoneyBill />
+            },
+            {
               label: 'IVA (%)',
               value: p?.iva_porcentaje ?? '—',
               icon: <FaPercent />

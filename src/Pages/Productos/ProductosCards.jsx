@@ -6,11 +6,12 @@ import '../../Styles/staff/background.css';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
 import { motion } from 'framer-motion';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaLayerGroup } from 'react-icons/fa';
 
 import ProductCard from '../../Components/Productos/ProductCard';
 import ProductoFormModal from '../../Components/Productos/ProductoFormModal';
 import StockMovimientosModal from '../../Components/Stock/StockMovimientosModal';
+import CategoriasManagerModal from '../../Components/Categorias/CategoriasManagerModal';
 
 import {
   listProductos,
@@ -59,6 +60,7 @@ export default function ProductosCards() {
 
   const [stockMap, setStockMap] = useState({});
   const [stockModalProducto, setStockModalProducto] = useState(null);
+  const [categoriasModalOpen, setCategoriasModalOpen] = useState(false);
 
   const fetchStock = async () => {
     try {
@@ -404,6 +406,13 @@ export default function ProductosCards() {
                 >
                   <FaPlus /> Nuevo Producto
                 </button>
+
+                <button
+                  onClick={() => setCategoriasModalOpen(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+                >
+                  <FaLayerGroup /> Nueva Categoría
+                </button>
               </div>
             </div>
           </div>
@@ -456,6 +465,12 @@ export default function ProductosCards() {
         producto={stockModalProducto}
         onClose={() => setStockModalProducto(null)}
         onChanged={fetchStock}
+      />
+
+      <CategoriasManagerModal
+        open={categoriasModalOpen}
+        onClose={() => setCategoriasModalOpen(false)}
+        onChanged={cargarCategorias}
       />
     </>
   );

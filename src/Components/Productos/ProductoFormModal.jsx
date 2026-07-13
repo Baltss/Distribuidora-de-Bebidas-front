@@ -20,7 +20,8 @@ import {
   Power,
   Layers,
   Plus,
-  Check
+  Check,
+  DollarSign
 } from 'lucide-react';
 import { listCategorias, createCategoria } from '../../api/categorias';
 import { showErrorSwal } from '../../ui/swal';
@@ -63,6 +64,7 @@ export default function ProductoFormModal({
     contenido: '',
     barra_ean13: '',
     pre_prod: '',
+    ultimo_costo_compra: '',
     iva_porcentaje: 21,
     estado: 'activo', // activo | inactivo
     notas: ''
@@ -129,6 +131,7 @@ export default function ProductoFormModal({
         contenido: initial?.contenido ?? '',
         barra_ean13: initial?.barra_ean13 ?? '',
         pre_prod: initial?.pre_prod ?? '',
+        ultimo_costo_compra: initial?.ultimo_costo_compra ?? '',
         iva_porcentaje: initial?.iva_porcentaje ?? 21,
         estado: initial?.estado ?? 'activo',
         notas: initial?.notas ?? ''
@@ -208,6 +211,10 @@ export default function ProductoFormModal({
         form.pre_prod === ''
           ? null
           : Math.round(Number(form.pre_prod) * 100) / 100,
+      ultimo_costo_compra:
+        form.ultimo_costo_compra === ''
+          ? null
+          : Math.round(Number(form.ultimo_costo_compra) * 100) / 100,
       iva_porcentaje: Number(form.iva_porcentaje) || 21,
       estado: form.estado,
       notas: form.notas?.trim() || null
@@ -610,6 +617,24 @@ export default function ProductoFormModal({
                     )}
                   </motion.div>
                 </div>
+
+                {/* Último costo de compra */}
+                <motion.div variants={fieldV}>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <DollarSign className="h-4 w-4 text-gray-400" />
+                    Último costo de compra (opcional)
+                  </label>
+                  <input
+                    name="ultimo_costo_compra"
+                    type="number"
+                    step="0.01"
+                    value={form.ultimo_costo_compra}
+                    onChange={handle}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
+                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    placeholder="Se precarga en las compras y se actualiza al comprar"
+                  />
+                </motion.div>
 
                 <motion.div variants={fieldV}>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">

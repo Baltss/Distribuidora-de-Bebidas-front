@@ -14,7 +14,6 @@ import {
   Phone,
   Mail,
   MapPin,
-  Wallet,
   StickyNote,
   Power
 } from 'lucide-react';
@@ -31,7 +30,6 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
     telefono: '',
     email: '',
     direccion: '',
-    condicion_pago: 'cuenta_corriente',
     estado: 'activo',
     notas: ''
   });
@@ -46,7 +44,6 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
         telefono: initial?.telefono ?? '',
         email: initial?.email ?? '',
         direccion: initial?.direccion ?? '',
-        condicion_pago: initial?.condicion_pago ?? 'cuenta_corriente',
         estado: initial?.estado ?? 'activo',
         notas: initial?.notas ?? ''
       });
@@ -80,7 +77,6 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
       telefono: form.telefono?.trim() || null,
       email: form.email?.trim() || null,
       direccion: form.direccion?.trim() || null,
-      condicion_pago: form.condicion_pago,
       estado: form.estado,
       notas: form.notas?.trim() || null
     };
@@ -254,41 +250,22 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                   </motion.div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Wallet className="h-4 w-4 text-gray-400" />
-                      Condición de pago
-                    </label>
-                    <select
-                      name="condicion_pago"
-                      value={form.condicion_pago}
-                      onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
-                                 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
-                    >
-                      <option value="cuenta_corriente">Cuenta corriente</option>
-                      <option value="contado">Contado</option>
-                    </select>
-                  </motion.div>
-
-                  <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Power className="h-4 w-4 text-gray-400" />
-                      Estado
-                    </label>
-                    <select
-                      name="estado"
-                      value={form.estado}
-                      onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
-                                 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
-                    >
-                      <option value="activo">Activo</option>
-                      <option value="inactivo">Inactivo</option>
-                    </select>
-                  </motion.div>
-                </div>
+                <motion.div variants={fieldV}>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <Power className="h-4 w-4 text-gray-400" />
+                    Estado
+                  </label>
+                  <select
+                    name="estado"
+                    value={form.estado}
+                    onChange={handle}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
+                               focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                  >
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                  </select>
+                </motion.div>
 
                 <motion.div variants={fieldV}>
                   <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
