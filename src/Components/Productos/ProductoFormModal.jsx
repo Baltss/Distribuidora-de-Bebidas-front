@@ -26,13 +26,6 @@ import {
 import { listCategorias, createCategoria } from '../../api/categorias';
 import { showErrorSwal } from '../../ui/swal';
 
-/*
- * Programador: Benjamin Orellana
- * Fecha: 10/11/2025
- * Descripción:
- * - Modal para crear/editar productos.
- * - Validamos lo justo: nombre y SKU obligatorios; coherencia de presentación/pack; IVA 0–27; EAN numérico 8–13 si viene.
- */
 
 const UM_OPTS = [
   { value: 'u', label: 'Unidad (u)' },
