@@ -51,6 +51,16 @@ export default function DeudaClienteModal({
   const [savingCobro, setSavingCobro] = useState(false);
 
   // ======================================================
+  //   - 16-07-2026
+  // NUEVO: modo "monto único" — el usuario tipea un solo monto y el
+  // sistema lo reparte solo (ventas más antiguas primero, después saldo
+  // previo, el resto queda como crédito a favor). 'detalle' es el modo
+  // anterior, venta por venta.
+  // ======================================================
+  const [modoCobro, setModoCobro] = useState('unico'); // 'unico' | 'detalle'
+  const [montoUnico, setMontoUnico] = useState('');
+
+  // ======================================================
   //  - 25-02-2026
   // NUEVO: cobro para saldo previo (deuda histórica)
   // IMPORTANTE: se enviará como aplicación explícita { venta_id: null, monto_aplicado }
@@ -74,6 +84,8 @@ export default function DeudaClienteModal({
           setCobros({});
           setObservaciones('');
           setCobroSaldoPrevio('');
+          setModoCobro('unico');
+          setMontoUnico('');
         }
       } catch (err) {
         console.error('Error cargando deuda cliente:', err);
@@ -120,6 +132,76 @@ export default function DeudaClienteModal({
     };
   }, [ventasPendientes, data?.total_deuda, saldoPrevioTotal]);
 
+  // ======================================================
+  //   - 16-07-2026
+  // Reparto FIFO en el front (mismo orden que usa el backend cuando no
+  // se mandan aplicaciones explícitas: fecha ASC, id ASC), extendido
+  // para también cubrir saldo previo con lo que sobre. Se manda siempre
+  // como aplicaciones explícitas para que el excedente no se pierda ni
+  // quede fuera de saldo previo.
+  // ======================================================
+  const ventasOrdenadasFifo = useMemo(() => {
+    return [...ventasPendientes].sort((a, b) => {
+      const fa = new Date(a.fecha).getTime();
+      const fb = new Date(b.fecha).getTime();
+      if (fa !== fb) return fa - fb;
+      return Number(a.id) - Number(b.id);
+    });
+  }, [ventasPendientes]);
+
+  const montoUnicoNumber = useMemo(() => {
+    const raw = String(montoUnico || '').replace(',', '.').trim();
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? Number(n.toFixed(2)) : 0;
+  }, [montoUnico]);
+
+  const allocation = useMemo(() => {
+    const porVenta = new Map(); // ventaId -> monto
+    let restante = montoUnicoNumber;
+
+    for (const v of ventasOrdenadasFifo) {
+      if (restante <= 0.009) break;
+      const saldo = Number(v.saldo || 0);
+      if (saldo <= 0) continue;
+      const aplicar = Number(Math.min(restante, saldo).toFixed(2));
+      if (aplicar <= 0) continue;
+      porVenta.set(v.id, aplicar);
+      restante = Number((restante - aplicar).toFixed(2));
+    }
+
+    const maxSaldoPrevio = Number(resumen.saldoPrevioTotal || 0);
+    let aSaldoPrevio = 0;
+    if (restante > 0.009 && maxSaldoPrevio > 0) {
+      aSaldoPrevio = Number(Math.min(restante, maxSaldoPrevio).toFixed(2));
+      restante = Number((restante - aSaldoPrevio).toFixed(2));
+    }
+
+    const excedente = restante > 0.009 ? Number(restante.toFixed(2)) : 0;
+
+    const totalVentas = Number(
+      Array.from(porVenta.values())
+        .reduce((acc, m) => acc + m, 0)
+        .toFixed(2)
+    );
+
+    const ventasCompletas = Array.from(porVenta.entries()).filter(
+      ([ventaId, monto]) => {
+        const v = ventasOrdenadasFifo.find((x) => x.id === ventaId);
+        return v && Math.abs(Number(v.saldo || 0) - monto) < 0.01;
+      }
+    ).length;
+    const ventasParciales = porVenta.size - ventasCompletas;
+
+    return {
+      porVenta,
+      totalVentas,
+      aSaldoPrevio,
+      excedente,
+      ventasCompletas,
+      ventasParciales
+    };
+  }, [montoUnicoNumber, ventasOrdenadasFifo, resumen.saldoPrevioTotal]);
+
   // Total que el usuario decidió cobrar ahora (VENTAS)
   const totalCobrarVentasAhora = useMemo(() => {
     if (!ventasPendientes.length) return 0;
@@ -155,11 +237,26 @@ export default function DeudaClienteModal({
     );
   }, [totalCobrarVentasAhora, totalCobrarSaldoPrevioAhora]);
 
+  // ======================================================
+  //   - 16-07-2026
+  // Valores "efectivos": según el modo activo, toman los del reparto
+  // automático (monto único) o los del detalle manual venta por venta.
+  // ======================================================
+  const totalCobrarVentasEfectivo =
+    modoCobro === 'unico' ? allocation.totalVentas : totalCobrarVentasAhora;
+  const totalCobrarSaldoPrevioEfectivo =
+    modoCobro === 'unico' ? allocation.aSaldoPrevio : totalCobrarSaldoPrevioAhora;
+  const excedenteEfectivo = modoCobro === 'unico' ? allocation.excedente : 0;
+  const totalCobrarAhoraEfectivo =
+    modoCobro === 'unico' ? montoUnicoNumber : totalCobrarAhora;
+
   const saldoPostCobro = useMemo(() => {
-    const diff =
-      Number(resumen.totalDeuda || 0) - Number(totalCobrarAhora || 0);
+    const aplicadoADeuda =
+      Number(totalCobrarVentasEfectivo || 0) +
+      Number(totalCobrarSaldoPrevioEfectivo || 0);
+    const diff = Number(resumen.totalDeuda || 0) - aplicadoADeuda;
     return diff > 0 ? Number(diff.toFixed(2)) : 0;
-  }, [resumen.totalDeuda, totalCobrarAhora]);
+  }, [resumen.totalDeuda, totalCobrarVentasEfectivo, totalCobrarSaldoPrevioEfectivo]);
 
   const hasVentasPendientes = !loading && !error && ventasPendientes.length > 0;
   const hasSaldoPrevio =
@@ -186,6 +283,11 @@ export default function DeudaClienteModal({
   };
 
   const handleCobrarTodo = () => {
+    if (modoCobro === 'unico') {
+      setMontoUnico(String(Number(resumen.totalDeuda || 0)));
+      return;
+    }
+
     const next = {};
     ventasPendientes.forEach((v) => {
       const saldo = Number(v.saldo || 0);
@@ -211,45 +313,77 @@ export default function DeudaClienteModal({
     // guard anti-doble click
     if (savingCobro) return;
 
-    const total = Number(totalCobrarAhora || 0);
+    const total = Number(totalCobrarAhoraEfectivo || 0);
     if (!total || total <= 0.009) return;
 
     const clienteNombre = data?.cliente?.nombre || 'el cliente seleccionado';
 
     // ======================================================
-    //  - 25-02-2026
-    // Armamos aplicaciones EXPLÍCITAS:
+    //  - 25-02-2026 (modo detalle) /  - 16-07-2026 (modo único)
+    // Siempre armamos aplicaciones EXPLÍCITAS (nunca dejamos que el
+    // backend haga FIFO implícito) para tener control total y que el
+    // preview que ve el usuario coincida exactamente con lo que se
+    // registra:
     // - aplicaciones a ventas (venta_id)
-    // - + una aplicación "crédito suelto" (venta_id: null, aplica_a: 'CREDITO')
     // - + una aplicación a saldo previo (venta_id: null, aplica_a: 'SALDO_PREVIO')
-    // Esto evita que el backend ejecute FIFO automáticamente.
+    // - + una aplicación "crédito suelto" (venta_id: null, aplica_a: 'CREDITO')
     // ======================================================
-    const appsVentas = ventasPendientes
-      .map((v) => {
-        const monto = Number(cobros[v.id] || 0);
-        return {
-          venta_id: v.id,
-          monto_aplicado: Number.isFinite(monto) ? Number(monto.toFixed(2)) : 0
-        };
-      })
-      .filter((a) => a.monto_aplicado > 0);
+    let apps;
+    if (modoCobro === 'unico') {
+      apps = [
+        ...Array.from(allocation.porVenta.entries()).map(
+          ([venta_id, monto_aplicado]) => ({ venta_id, monto_aplicado })
+        ),
+        ...(allocation.aSaldoPrevio > 0
+          ? [
+              {
+                venta_id: null,
+                monto_aplicado: allocation.aSaldoPrevio,
+                aplica_a: 'SALDO_PREVIO'
+              }
+            ]
+          : []),
+        ...(allocation.excedente > 0
+          ? [
+              {
+                venta_id: null,
+                monto_aplicado: allocation.excedente,
+                aplica_a: 'CREDITO'
+              }
+            ]
+          : [])
+      ];
+    } else {
+      const appsVentas = ventasPendientes
+        .map((v) => {
+          const monto = Number(cobros[v.id] || 0);
+          return {
+            venta_id: v.id,
+            monto_aplicado: Number.isFinite(monto)
+              ? Number(monto.toFixed(2))
+              : 0
+          };
+        })
+        .filter((a) => a.monto_aplicado > 0);
 
-    const apps = [...appsVentas];
+      apps = [...appsVentas];
 
-    if (totalCobrarSaldoPrevioAhora > 0) {
-      apps.push({
-        venta_id: null,
-        monto_aplicado: Number(totalCobrarSaldoPrevioAhora.toFixed(2)),
-        //  - 25-02-2026 - Distingue pago a saldo previo de crédito suelto en backend/GET deuda
-        aplica_a: 'SALDO_PREVIO'
-      });
+      if (totalCobrarSaldoPrevioAhora > 0) {
+        apps.push({
+          venta_id: null,
+          monto_aplicado: Number(totalCobrarSaldoPrevioAhora.toFixed(2)),
+          //  - 25-02-2026 - Distingue pago a saldo previo de crédito suelto en backend/GET deuda
+          aplica_a: 'SALDO_PREVIO'
+        });
+      }
     }
 
     if (!apps.length) return;
 
     const totalFmt = formatMoneyARS(total);
-    const totalVentasFmt = formatMoneyARS(totalCobrarVentasAhora);
-    const totalSaldoPrevioFmt = formatMoneyARS(totalCobrarSaldoPrevioAhora);
+    const totalVentasFmt = formatMoneyARS(totalCobrarVentasEfectivo);
+    const totalSaldoPrevioFmt = formatMoneyARS(totalCobrarSaldoPrevioEfectivo);
+    const excedenteFmt = formatMoneyARS(excedenteEfectivo);
 
     const result = await Swal.fire({
       title: 'Confirmar cobranza',
@@ -259,6 +393,11 @@ export default function DeudaClienteModal({
         <p>Monto a cobrar: <b>${totalFmt}</b></p>
         <p>Aplicado a ventas: <b>${totalVentasFmt}</b></p>
         <p>Aplicado a saldo previo: <b>${totalSaldoPrevioFmt}</b></p>
+        ${
+          excedenteEfectivo > 0
+            ? `<p>Excedente (queda como crédito a favor del cliente): <b>${excedenteFmt}</b></p>`
+            : ''
+        }
         ${
           observaciones?.trim()
             ? `<p>Observaciones:<br/><i>${observaciones
@@ -300,6 +439,7 @@ export default function DeudaClienteModal({
       setCobros({});
       setObservaciones('');
       setCobroSaldoPrevio('');
+      setMontoUnico('');
 
       const saldoRestante = Number(nuevaDeuda?.total_deuda || 0);
       const saldoFmt = formatMoneyARS(saldoRestante);
@@ -519,6 +659,109 @@ export default function DeudaClienteModal({
                     </div>
                   )}
 
+                {/* Selector de modo de cobro + monto único */}
+                {!loading &&
+                  !error &&
+                  (hasVentasPendientes || hasSaldoPrevio) && (
+                    <motion.div variants={fieldV} className="space-y-3">
+                      <div className="inline-flex rounded-2xl border border-emerald-500/40 bg-slate-950/70 p-1 gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setModoCobro('unico')}
+                          disabled={loading || savingCobro}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition disabled:opacity-50 ${
+                            modoCobro === 'unico'
+                              ? 'bg-emerald-500 text-slate-950'
+                              : 'text-emerald-100/80 hover:bg-emerald-500/10'
+                          }`}
+                        >
+                          Monto único
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setModoCobro('detalle')}
+                          disabled={loading || savingCobro}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition disabled:opacity-50 ${
+                            modoCobro === 'detalle'
+                              ? 'bg-emerald-500 text-slate-950'
+                              : 'text-emerald-100/80 hover:bg-emerald-500/10'
+                          }`}
+                        >
+                          Detalle por venta
+                        </button>
+                      </div>
+
+                      {modoCobro === 'unico' && (
+                        <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/70 px-3.5 py-3 space-y-2.5">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+                            <label className="text-xs sm:text-sm text-emerald-100/85 shrink-0">
+                              Monto a cobrar:
+                            </label>
+                            <input
+                              type="number"
+                              onWheel={blockWheelChange}
+                              min="0"
+                              step="0.01"
+                              value={montoUnico}
+                              onChange={(e) => setMontoUnico(e.target.value)}
+                              disabled={loading || savingCobro}
+                              autoFocus
+                              className="w-full sm:w-40 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2.5 py-1.5
+                                         text-right text-emerald-50 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-400/70
+                                         disabled:opacity-60 disabled:cursor-not-allowed"
+                              placeholder="0.00"
+                            />
+                            <span className="text-[11px] text-emerald-100/70">
+                              Se aplica solo a las ventas más antiguas
+                              primero, después a saldo previo.
+                            </span>
+                          </div>
+
+                          {montoUnicoNumber > 0 && (
+                            <div className="text-[11px] sm:text-xs text-emerald-100/85 border-t border-emerald-500/15 pt-2 space-y-0.5">
+                              {allocation.porVenta.size > 0 && (
+                                <p>
+                                  Cubre {allocation.ventasCompletas} venta
+                                  {allocation.ventasCompletas === 1
+                                    ? ''
+                                    : 's'}{' '}
+                                  completa
+                                  {allocation.ventasCompletas === 1
+                                    ? ''
+                                    : 's'}
+                                  {allocation.ventasParciales > 0
+                                    ? ` + 1 parcial`
+                                    : ''}{' '}
+                                  · Total ventas:{' '}
+                                  <span className="font-semibold text-emerald-50">
+                                    {formatMoneyARS(allocation.totalVentas)}
+                                  </span>
+                                </p>
+                              )}
+                              {allocation.aSaldoPrevio > 0 && (
+                                <p>
+                                  Aplicado a saldo previo:{' '}
+                                  <span className="font-semibold text-emerald-50">
+                                    {formatMoneyARS(allocation.aSaldoPrevio)}
+                                  </span>
+                                </p>
+                              )}
+                              {allocation.excedente > 0 && (
+                                <p className="text-amber-300">
+                                  Excedente (sin deuda que cubrir, queda
+                                  como crédito a favor):{' '}
+                                  <span className="font-semibold">
+                                    {formatMoneyARS(allocation.excedente)}
+                                  </span>
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
                 {/* Saldos previos */}
                 {!loading && !error && hasSaldoPrevio && (
                   <motion.div variants={fieldV} className="space-y-2">
@@ -527,15 +770,17 @@ export default function DeudaClienteModal({
                         Saldos previos (deuda histórica)
                       </h4>
 
-                      <button
-                        type="button"
-                        onClick={handleCobrarTodoSaldoPrevio}
-                        disabled={loading || savingCobro}
-                        className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-400/60
-                                   text-emerald-50 bg-slate-950/70 hover:bg-emerald-500/15 transition disabled:opacity-50"
-                      >
-                        Cobrar saldo previo
-                      </button>
+                      {modoCobro === 'detalle' && (
+                        <button
+                          type="button"
+                          onClick={handleCobrarTodoSaldoPrevio}
+                          disabled={loading || savingCobro}
+                          className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-400/60
+                                     text-emerald-50 bg-slate-950/70 hover:bg-emerald-500/15 transition disabled:opacity-50"
+                        >
+                          Cobrar saldo previo
+                        </button>
+                      )}
                     </div>
 
                     <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/70 overflow-hidden">
@@ -588,21 +833,27 @@ export default function DeudaClienteModal({
                             Cobrar ahora:
                           </span>
 
-                          <input
-                            type="number"
-                            onWheel={blockWheelChange}
-                            min="0"
-                            step="0.01"
-                            value={cobroSaldoPrevio}
-                            onChange={(e) =>
-                              setCobroSaldoPrevio(e.target.value)
-                            }
-                            disabled={loading || savingCobro}
-                            className="w-28 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2 py-1
-                                       text-right text-emerald-50 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
-                                       disabled:opacity-60 disabled:cursor-not-allowed"
-                            placeholder="0.00"
-                          />
+                          {modoCobro === 'unico' ? (
+                            <span className="w-28 text-right text-emerald-50 text-xs font-semibold">
+                              {formatMoneyARS(allocation.aSaldoPrevio)}
+                            </span>
+                          ) : (
+                            <input
+                              type="number"
+                              onWheel={blockWheelChange}
+                              min="0"
+                              step="0.01"
+                              value={cobroSaldoPrevio}
+                              onChange={(e) =>
+                                setCobroSaldoPrevio(e.target.value)
+                              }
+                              disabled={loading || savingCobro}
+                              className="w-28 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2 py-1
+                                         text-right text-emerald-50 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
+                                         disabled:opacity-60 disabled:cursor-not-allowed"
+                              placeholder="0.00"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -621,7 +872,7 @@ export default function DeudaClienteModal({
                         className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-400/60
                                    text-emerald-50 bg-slate-950/70 hover:bg-emerald-500/15 transition disabled:opacity-50"
                       >
-                        Cobrar todo
+                        {modoCobro === 'unico' ? 'Cobrar deuda total' : 'Cobrar todo'}
                       </button>
                     </h4>
                     <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/70 overflow-hidden">
@@ -677,24 +928,34 @@ export default function DeudaClienteModal({
                                   {formatMoneyARS(v.saldo || 0)}
                                 </td>
                                 <td className="px-3 py-2 whitespace-nowrap text-right">
-                                  <input
-                                    type="number"
-                                    onWheel={blockWheelChange}
-                                    min="0"
-                                    step="0.01"
-                                    value={
-                                      cobros[v.id] === undefined
-                                        ? ''
-                                        : cobros[v.id]
-                                    }
-                                    onChange={(e) =>
-                                      handleChangeCobro(v.id, e.target.value)
-                                    }
-                                    disabled={loading || savingCobro}
-                                    className="w-24 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2 py-1
-                                               text-right text-emerald-50 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
-                                               disabled:opacity-60 disabled:cursor-not-allowed"
-                                  />
+                                  {modoCobro === 'unico' ? (
+                                    <span className="inline-block w-24 text-right text-emerald-50 text-xs font-semibold">
+                                      {allocation.porVenta.get(v.id)
+                                        ? formatMoneyARS(
+                                            allocation.porVenta.get(v.id)
+                                          )
+                                        : '—'}
+                                    </span>
+                                  ) : (
+                                    <input
+                                      type="number"
+                                      onWheel={blockWheelChange}
+                                      min="0"
+                                      step="0.01"
+                                      value={
+                                        cobros[v.id] === undefined
+                                          ? ''
+                                          : cobros[v.id]
+                                      }
+                                      onChange={(e) =>
+                                        handleChangeCobro(v.id, e.target.value)
+                                      }
+                                      disabled={loading || savingCobro}
+                                      className="w-24 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2 py-1
+                                                 text-right text-emerald-50 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
+                                                 disabled:opacity-60 disabled:cursor-not-allowed"
+                                    />
+                                  )}
                                 </td>
                                 <td className="px-3 py-2 whitespace-nowrap text-center text-emerald-100/85">
                                   {v.dias_atraso} día(s)
@@ -729,12 +990,20 @@ export default function DeudaClienteModal({
                             Monto a cobrar ahora
                           </p>
                           <p className="text-lg sm:text-xl font-bold text-emerald-50">
-                            {formatMoneyARS(totalCobrarAhora)}
+                            {formatMoneyARS(totalCobrarAhoraEfectivo)}
                           </p>
                           <p className="text-[11px] text-emerald-100/70">
-                            Ventas: {formatMoneyARS(totalCobrarVentasAhora)} ·
+                            Ventas: {formatMoneyARS(totalCobrarVentasEfectivo)} ·
                             Saldo previo:{' '}
-                            {formatMoneyARS(totalCobrarSaldoPrevioAhora)}
+                            {formatMoneyARS(totalCobrarSaldoPrevioEfectivo)}
+                            {excedenteEfectivo > 0 && (
+                              <>
+                                {' · '}
+                                <span className="text-amber-300">
+                                  Excedente: {formatMoneyARS(excedenteEfectivo)}
+                                </span>
+                              </>
+                            )}
                           </p>
                         </div>
                         <div className="text-left sm:text-right">
@@ -787,7 +1056,7 @@ export default function DeudaClienteModal({
                           type="button"
                           onClick={handleRegistrarCobranza}
                           disabled={
-                            savingCobro || loading || totalCobrarAhora <= 0
+                            savingCobro || loading || totalCobrarAhoraEfectivo <= 0
                           }
                           className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-sm font-semibold
                                      hover:bg-emerald-400 transition disabled:opacity-60 disabled:cursor-not-allowed"
