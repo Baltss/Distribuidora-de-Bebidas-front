@@ -23,6 +23,7 @@ import Swal from 'sweetalert2';
 import VentaFormModal from '../../Components/Ventas/VentaFormModal';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
+import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 // ======================================================
 //  - 17-01-2026
@@ -89,14 +90,20 @@ const VentasHistorialPage = () => {
   const handleNuevaVenta = async ({ venta, items }) => {
     try {
       setCreating(true);
-      await createVenta({ ...venta, items });
-      Swal.fire({
+      const creada = await createVenta({ ...venta, items });
+      const result = await Swal.fire({
         icon: 'success',
         title: 'Venta creada',
         text: 'La venta se registró correctamente.',
-        timer: 2000,
-        showConfirmButton: false
+        showDenyButton: !!creada?.id,
+        denyButtonText: 'Imprimir comprobante',
+        denyButtonColor: '#0ea5e9',
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: '#10b981'
       });
+      if (result.isDenied && creada?.id) {
+        window.open(`${API_URL}/ventas/${creada.id}/recibo-pdf`, '_blank');
+      }
       setVentaModalOpen(false);
       await fetchVentas();
     } catch (err) {

@@ -9,8 +9,9 @@ import {
 } from '../../ui/animHelpers';
 import { X, Wallet, Calendar, CreditCard, StickyNote } from 'lucide-react';
 import { createPagoProveedor } from '../../api/pagosProveedores.js';
-import { showErrorSwal, showSuccessSwal, showWarnSwal } from '../../ui/swal';
+import { baseSwal, showErrorSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
+import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -64,14 +65,26 @@ export default function PagoProveedorFormModal({
 
     try {
       setSaving(true);
-      await createPagoProveedor({
+      const resp = await createPagoProveedor({
         proveedor_id: proveedor.id,
         fecha: form.fecha,
         total_pagado: Number(form.monto),
         medio_pago: form.medio_pago?.trim() || null,
         observaciones: form.observaciones?.trim() || null
       });
-      await showSuccessSwal({ title: 'Pago registrado', text: 'El pago se aplicó correctamente.' });
+      const pagoId = resp?.pago?.id;
+      const result = await baseSwal.fire({
+        icon: 'success',
+        title: 'Pago registrado',
+        text: 'El pago se aplicó correctamente.',
+        showDenyButton: !!pagoId,
+        denyButtonText: 'Imprimir recibo',
+        denyButtonColor: '#0ea5e9',
+        confirmButtonText: 'Ok'
+      });
+      if (result.isDenied && pagoId) {
+        window.open(`${API_URL}/pagos-proveedores/${pagoId}/recibo-pdf`, '_blank');
+      }
       onPagoRegistrado?.();
       onClose();
     } catch (err) {

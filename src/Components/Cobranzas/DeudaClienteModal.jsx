@@ -16,6 +16,7 @@ import {
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { blockWheelChange } from '../../utils/numberInput';
+import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 function formatMoneyARS(value = 0) {
   return Number(value || 0).toLocaleString('es-AR', {
@@ -444,7 +445,7 @@ export default function DeudaClienteModal({
       const saldoRestante = Number(nuevaDeuda?.total_deuda || 0);
       const saldoFmt = formatMoneyARS(saldoRestante);
 
-      await Swal.fire({
+      const resultOk = await Swal.fire({
         title: 'Cobranza registrada',
         icon: 'success',
         html: `
@@ -456,9 +457,16 @@ export default function DeudaClienteModal({
           <p>Saldo restante del cliente: <b>${saldoFmt}</b></p>
         </div>
       `,
+        showDenyButton: !!resp?.id,
+        denyButtonText: 'Imprimir recibo',
+        denyButtonColor: '#0ea5e9',
         confirmButtonText: 'Aceptar',
         confirmButtonColor: '#10b981'
       });
+
+      if (resultOk.isDenied && resp?.id) {
+        window.open(`${API_URL}/cobranzas-clientes/${resp.id}/recibo-pdf`, '_blank');
+      }
     } catch (err) {
       console.error('Error registrando cobranza:', err);
       const msg =

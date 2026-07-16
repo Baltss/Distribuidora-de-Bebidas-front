@@ -3,22 +3,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { backdropV, panelV } from '../../ui/animHelpers';
 import { X, FileDown } from 'lucide-react';
-import { listVentas } from '../../api/ventas';
-import { moneyAR } from '../../utils/money';
-import { showErrorSwal } from '../../ui/swal';
-
-const csvEscape = (v) => {
-  const s = v === null || v === undefined ? '' : String(v);
-  if (/[",\n;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-  return s;
-};
-
-const fmtFechaCsv = (v) => {
-  if (!v) return '';
-  const d = new Date(v);
-  if (isNaN(d.getTime())) return String(v);
-  return d.toLocaleDateString('es-AR');
-};
+import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 export default function ExportarVentasModal({ open, onClose }) {
   const [tipo, setTipo] = useState(''); // '' | contado | fiado | a_cuenta
@@ -27,83 +12,17 @@ export default function ExportarVentasModal({ open, onClose }) {
   const [estado, setEstado] = useState(''); // '' | confirmada | anulada
   const [exporting, setExporting] = useState(false);
 
-  const exportar = async () => {
+  const exportar = () => {
     setExporting(true);
     try {
-      const params = { page: 1, limit: 5000, orderBy: 'fecha', orderDir: 'DESC' };
-      if (tipo) params.tipo = tipo;
-      if (desde) params.desde = desde;
-      if (hasta) params.hasta = hasta;
-      if (estado) params.estado = estado;
+      const params = new URLSearchParams();
+      if (tipo) params.set('tipo', tipo);
+      if (desde) params.set('desde', desde);
+      if (hasta) params.set('hasta', hasta);
+      if (estado) params.set('estado', estado);
 
-      const resp = await listVentas(params);
-      const rows = resp?.data || [];
-
-      if (!rows.length) {
-        await showErrorSwal({
-          title: 'Sin resultados',
-          text: 'No hay ventas que coincidan con esos filtros.'
-        });
-        return;
-      }
-
-      const headers = [
-        'ID',
-        'Fecha',
-        'Cliente',
-        'Documento',
-        'Vendedor',
-        'Tipo',
-        'Estado',
-        'Total neto',
-        'Monto a cuenta',
-        'Saldo pendiente'
-      ];
-
-      const lines = [headers.map(csvEscape).join(';')];
-
-      for (const v of rows) {
-        const total = Number(v.total_neto || 0);
-        const aCuenta = Number(v.monto_a_cuenta || 0);
-        const saldo = Math.max(0, total - aCuenta);
-        lines.push(
-          [
-            v.id,
-            fmtFechaCsv(v.fecha),
-            v.cliente?.nombre || '',
-            v.cliente?.documento || '',
-            v.vendedor?.nombre || '',
-            v.tipo,
-            v.estado,
-            moneyAR(total),
-            moneyAR(aCuenta),
-            moneyAR(saldo)
-          ]
-            .map(csvEscape)
-            .join(';')
-        );
-      }
-
-      const csvContent = '﻿' + lines.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      const fecha = new Date().toISOString().slice(0, 10);
-      a.href = url;
-      a.download = `ventas_${fecha}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+      window.open(`${API_URL}/ventas/export-pdf?${params.toString()}`, '_blank');
       onClose();
-    } catch (err) {
-      const { mensajeError, tips } = err || {};
-      await showErrorSwal({
-        title: 'No se pudo exportar',
-        text: mensajeError || 'Ocurrió un error inesperado',
-        tips
-      });
     } finally {
       setExporting(false);
     }
@@ -218,7 +137,7 @@ export default function ExportarVentasModal({ open, onClose }) {
                   className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
                              hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
-                  {exporting ? 'Exportando…' : 'Exportar CSV'}
+                  {exporting ? 'Abriendo…' : 'Exportar PDF'}
                 </button>
               </div>
             </div>
