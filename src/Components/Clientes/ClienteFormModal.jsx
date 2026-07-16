@@ -11,6 +11,11 @@ import {
   fieldV
 } from '../../ui/animHelpers';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
+const labelCls = 'block text-sm font-medium text-slate-600 mb-2';
+const errorInputCls = 'ring-2 ring-rose-300 border-rose-300';
+
 // APIs de catálogos (usadas dentro del modal)
 import { listCiudades } from '../../api/ciudades';
 import { listLocalidades } from '../../api/localidades';
@@ -450,7 +455,7 @@ export default function ClienteFormModal({
           aria-modal="true"
         >
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -460,15 +465,15 @@ export default function ClienteFormModal({
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-xl md:max-w-3xl
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -476,7 +481,7 @@ export default function ClienteFormModal({
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-5"
+                className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
               >
                 {isEdit ? 'Editar Cliente' : 'Nuevo Cliente'}
               </motion.h3>
@@ -490,17 +495,15 @@ export default function ClienteFormModal({
               >
                 {/* Tipo de cliente */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Tipo de cliente
-                  </label>
+                  <label className={labelCls}>Tipo de cliente</label>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, tipo: 'local' }))}
                       className={`flex-1 px-3.5 py-3 rounded-xl border text-sm font-medium transition ${
                         form.tipo === 'local'
-                          ? 'border-cyan-300/60 bg-cyan-400/10 text-cyan-100'
-                          : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
+                          ? 'border-teal-300 bg-teal-50 text-teal-700'
+                          : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
                       }`}
                     >
                       Local (mostrador)
@@ -510,14 +513,14 @@ export default function ClienteFormModal({
                       onClick={() => setForm((f) => ({ ...f, tipo: 'reparto' }))}
                       className={`flex-1 px-3.5 py-3 rounded-xl border text-sm font-medium transition ${
                         form.tipo === 'reparto'
-                          ? 'border-cyan-300/60 bg-cyan-400/10 text-cyan-100'
-                          : 'border-white/10 bg-white/5 text-gray-300 hover:bg-white/10'
+                          ? 'border-teal-300 bg-teal-50 text-teal-700'
+                          : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
                       }`}
                     >
                       Reparto
                     </button>
                   </div>
-                  <p className="mt-2 text-xs text-gray-400">
+                  <p className="mt-2 text-xs text-slate-400">
                     {form.tipo === 'local'
                       ? 'Cliente de mostrador: solo se piden nombre, documento, teléfono y email.'
                       : 'Cliente de reparto: requiere ciudad, dirección y reparto asignado.'}
@@ -526,20 +529,18 @@ export default function ClienteFormModal({
 
                 {/* Nombre */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Nombre <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    Nombre <span className="text-teal-600">*</span>
                   </label>
                   <input
                     name="nombre"
                     value={form.nombre}
                     onChange={handle}
-                    className={`w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
-                               ${showError('nombre') ? 'ring-2 ring-rose-400/50 border-rose-400/40' : ''}`}
+                    className={`${inputCls} ${showError('nombre') ? errorInputCls : ''}`}
                     placeholder="Nombre y apellido"
                   />
                   {showError('nombre') && (
-                    <p className="mt-2 text-xs text-rose-200/90">
+                    <p className="mt-2 text-xs text-rose-600">
                       {errors.nombre}
                     </p>
                   )}
@@ -548,44 +549,35 @@ export default function ClienteFormModal({
                 {/* Documento / Teléfono / Email / Estado */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Documento
-                    </label>
+                    <label className={labelCls}>Documento</label>
                     <input
                       name="documento"
                       value={form.documento}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="DNI/CUIT"
                     />
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Teléfono
-                    </label>
+                    <label className={labelCls}>Teléfono</label>
                     <input
                       name="telefono"
                       value={form.telefono}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="+54 9 ..."
                     />
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Email
-                    </label>
+                    <label className={labelCls}>Email</label>
                     <input
                       type="email"
                       name="email"
                       value={form.email}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="correo@dominio.com"
                     />
                   </motion.div>
@@ -601,7 +593,7 @@ export default function ClienteFormModal({
                       />
                       <span
                         className="relative inline-flex h-6 w-11 items-center rounded-full
-                                   bg-white/10 peer-checked:bg-emerald-500/70 transition-colors duration-200"
+                                   bg-slate-200 peer-checked:bg-teal-600 transition-colors duration-200"
                         aria-hidden
                       >
                         <span
@@ -609,7 +601,7 @@ export default function ClienteFormModal({
                                      peer-checked:translate-x-5 transition-transform duration-200"
                         />
                       </span>
-                      <span className="text-sm text-gray-200">
+                      <span className="text-sm text-slate-600">
                         {form.estado === 'activo' ? 'Activo' : 'Inactivo'}
                       </span>
                     </label>
@@ -623,28 +615,24 @@ export default function ClienteFormModal({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* Ciudad */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Ciudad <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      Ciudad <span className="text-teal-600">*</span>
                     </label>
                     <select
                       name="ciudad_id"
                       value={form.ciudad_id}
                       onChange={handleCiudad}
-                      className={`w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
-                                 ${showError('ciudad_id') ? 'ring-2 ring-rose-400/50 border-rose-400/40' : ''}`}
+                      className={`${inputCls} ${showError('ciudad_id') ? errorInputCls : ''}`}
                     >
-                      <option className="text-black" value="">
-                        Seleccionar…
-                      </option>
+                      <option value="">Seleccionar…</option>
                       {ciudades.map((c) => (
-                        <option className="text-black" key={c.id} value={c.id}>
+                        <option key={c.id} value={c.id}>
                           {c.nombre}
                         </option>
                       ))}
                     </select>
                     {showError('ciudad_id') && (
-                      <p className="mt-2 text-xs text-rose-200/90">
+                      <p className="mt-2 text-xs text-rose-600">
                         {errors.ciudad_id}
                       </p>
                     )}
@@ -653,13 +641,13 @@ export default function ClienteFormModal({
                   {/* Localidad (filtrada por ciudad) */}
                   <motion.div variants={fieldV}>
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <label className="block text-sm font-medium text-gray-200">
+                      <label className="block text-sm font-medium text-slate-600">
                         Localidad
                       </label>
                       <button
                         type="button"
                         onClick={() => setShowGeoDetail((v) => !v)}
-                        className="text-xs text-gray-200/80 hover:text-gray-100 underline underline-offset-4"
+                        className="text-xs text-slate-500 hover:text-slate-700 underline underline-offset-4"
                       >
                         {showGeoDetail
                           ? 'Ocultar detalle'
@@ -672,10 +660,9 @@ export default function ClienteFormModal({
                       value={form.localidad_id}
                       onChange={handleLocalidad}
                       disabled={!form.ciudad_id || !showGeoDetail}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={`${inputCls} disabled:opacity-60`}
                     >
-                      <option className="text-black" value="">
+                      <option value="">
                         {form.ciudad_id
                           ? showGeoDetail
                             ? 'Seleccionar…'
@@ -683,7 +670,7 @@ export default function ClienteFormModal({
                           : '(Elegí ciudad primero)'}
                       </option>
                       {localidadesFiltradas.map((l) => (
-                        <option className="text-black" key={l.id} value={l.id}>
+                        <option key={l.id} value={l.id}>
                           {l.nombre}
                         </option>
                       ))}
@@ -692,24 +679,21 @@ export default function ClienteFormModal({
 
                   {/* Barrio (filtrado por localidad) */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Barrio
-                    </label>
+                    <label className={labelCls}>Barrio</label>
                     <select
                       name="barrio_id"
                       value={form.barrio_id}
                       onChange={handleBarrio}
                       disabled={!form.localidad_id || !showGeoDetail}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={`${inputCls} disabled:opacity-60`}
                     >
-                      <option className="text-black" value="">
+                      <option value="">
                         {form.localidad_id && showGeoDetail
                           ? 'Seleccionar…'
                           : '(Opcional)'}
                       </option>
                       {barriosFiltrados.map((b) => (
-                        <option className="text-black" key={b.id} value={b.id}>
+                        <option key={b.id} value={b.id}>
                           {b.nombre}
                         </option>
                       ))}
@@ -719,8 +703,8 @@ export default function ClienteFormModal({
 
                 {/* Asignación inicial de reparto (desde el modal) */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Reparto <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    Reparto <span className="text-teal-600">*</span>
                   </label>
 
                   <select
@@ -728,11 +712,9 @@ export default function ClienteFormModal({
                     value={form.reparto_id}
                     onChange={handleReparto}
                     disabled={!form.ciudad_id || repartosLoading}
-                    className={`w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
-                               ${showError('reparto_id') ? 'ring-2 ring-rose-400/50 border-rose-400/40' : ''}`}
+                    className={`${inputCls} disabled:opacity-60 ${showError('reparto_id') ? errorInputCls : ''}`}
                   >
-                    <option className="text-black" value="">
+                    <option value="">
                       {!form.ciudad_id
                         ? '(Elegí ciudad primero)'
                         : repartosLoading
@@ -741,14 +723,14 @@ export default function ClienteFormModal({
                     </option>
 
                     {repartosFiltrados.map((r) => (
-                      <option className="text-black" key={r.id} value={r.id}>
+                      <option key={r.id} value={r.id}>
                         {r.nombre} ({r.rango_min}–{r.rango_max})
                       </option>
                     ))}
                   </select>
 
                   {showError('reparto_id') && (
-                    <p className="mt-2 text-xs text-rose-200/90">
+                    <p className="mt-2 text-xs text-rose-600">
                       {errors.reparto_id}
                     </p>
                   )}
@@ -756,24 +738,24 @@ export default function ClienteFormModal({
                   {!!form.ciudad_id &&
                     !repartosLoading &&
                     repartosFiltrados.length === 0 && (
-                      <p className="mt-2 text-xs text-gray-200/75">
+                      <p className="mt-2 text-xs text-slate-400">
                         No hay repartos activos para la ciudad seleccionada.
                       </p>
                     )}
 
                   {repartoSeleccionado && (
-                    <div className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3.5 py-3">
-                      <div className="text-sm text-gray-100">
+                    <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3">
+                      <div className="text-sm text-slate-700">
                         <span className="font-semibold">
                           {repartoSeleccionado.nombre}
                         </span>{' '}
-                        <span className="text-gray-200/80">
+                        <span className="text-slate-500">
                           {repartoSeleccionado?.ciudad?.nombre
                             ? `- ${repartoSeleccionado.ciudad.nombre}`
                             : ''}
                         </span>
                       </div>
-                      <div className="text-xs text-gray-200/75 mt-1">
+                      <div className="text-xs text-slate-400 mt-1">
                         Rango de clientes: {repartoSeleccionado.rango_min}–
                         {repartoSeleccionado.rango_max}
                       </div>
@@ -783,21 +765,16 @@ export default function ClienteFormModal({
 
                 {/* Vendedor preferido */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Vendedor preferido
-                  </label>
+                  <label className={labelCls}>Vendedor preferido</label>
                   <select
                     name="vendedor_preferido_id"
                     value={form.vendedor_preferido_id}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                   >
-                    <option className="text-black" value="">
-                      (Sin asignar)
-                    </option>
+                    <option value="">(Sin asignar)</option>
                     {vendedores.map((v) => (
-                      <option className="text-black" key={v.id} value={v.id}>
+                      <option key={v.id} value={v.id}>
                         {v.nombre}
                         {v.estado === 'inactivo' ? ' (inactivo)' : ''}
                       </option>
@@ -808,55 +785,44 @@ export default function ClienteFormModal({
                 {/* Dirección */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Calle
-                    </label>
+                    <label className={labelCls}>Calle</label>
                     <input
                       name="direccion_calle"
                       value={form.direccion_calle}
                       onChange={handle}
-                      className={`w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
-                                 ${showError('direccion_calle') ? 'ring-2 ring-rose-400/50 border-rose-400/40' : ''}`}
+                      className={`${inputCls} ${showError('direccion_calle') ? errorInputCls : ''}`}
                       placeholder="Ej: San Martín"
                     />
                     {showError('direccion_calle') && (
-                      <p className="mt-2 text-xs text-rose-200/90">
+                      <p className="mt-2 text-xs text-rose-600">
                         {errors.direccion_calle}
                       </p>
                     )}
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Número
-                    </label>
+                    <label className={labelCls}>Número</label>
                     <input
                       name="direccion_numero"
                       value={form.direccion_numero}
                       onChange={handle}
-                      className={`w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
-                                 ${showError('direccion_numero') ? 'ring-2 ring-rose-400/50 border-rose-400/40' : ''}`}
+                      className={`${inputCls} ${showError('direccion_numero') ? errorInputCls : ''}`}
                       placeholder="1234"
                     />
                     {showError('direccion_numero') && (
-                      <p className="mt-2 text-xs text-rose-200/90">
+                      <p className="mt-2 text-xs text-rose-600">
                         {errors.direccion_numero}
                       </p>
                     )}
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Piso / Dpto
-                    </label>
+                    <label className={labelCls}>Piso / Dpto</label>
                     <input
                       name="direccion_piso_dpto"
                       value={form.direccion_piso_dpto}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="2° B"
                     />
                   </motion.div>
@@ -864,15 +830,12 @@ export default function ClienteFormModal({
 
                 {/* Referencia */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Referencia
-                  </label>
+                  <label className={labelCls}>Referencia</label>
                   <input
                     name="referencia"
                     value={form.referencia}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Frente a..., cerca de..."
                   />
                 </motion.div>
@@ -887,15 +850,15 @@ export default function ClienteFormModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={!canSave || saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold
+                               hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving
                       ? 'Guardando…'
