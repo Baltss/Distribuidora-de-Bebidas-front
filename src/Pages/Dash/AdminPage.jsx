@@ -310,9 +310,9 @@ const AdminPage = () => {
               />
 
               <DashboardTile
-                title="Gastos"
-                description="Cargá y controlá los gastos operativos por categoría, con resumen gráfico."
-                to="/dashboard/gastos"
+                title="Caja y Finanzas"
+                description="Saldo de caja, ingresos y egresos unificados: cobros, pagos, gastos y ventas/compras de contado."
+                to="/dashboard/caja"
                 icon={Receipt}
                 delay={0.34}
               />

@@ -54,7 +54,8 @@ import VentasSaldoPrevioPage from './Pages/Ventas/VentasSaldoPrevioPage.jsx';
 //  - 09/07/2026 - Stock, Proveedores, Compras y Gastos
 import ProveedoresCards from './Pages/Proveedores/ProveedoresCards.jsx';
 import ComprasHistorialPage from './Pages/Compras/ComprasHistorialPage.jsx';
-import GastosPage from './Pages/Gastos/GastosPage.jsx';
+//  - 16/07/2026 - Gastos se renombra y amplía a "Caja y Finanzas"
+import CajaPage from './Pages/Caja/CajaPage.jsx';
 
 function AppContent() {
   return (
@@ -272,11 +273,21 @@ function AppContent() {
             }
           />
           <Ruta
+            path="/dashboard/caja"
+            element={
+              <ProtectedRoute>
+                {' '}
+                <CajaPage />{' '}
+              </ProtectedRoute>
+            }
+          />
+          {/*  - 16/07/2026 - Alias: "Gastos" pasó a llamarse "Caja y Finanzas" */}
+          <Ruta
             path="/dashboard/gastos"
             element={
               <ProtectedRoute>
                 {' '}
-                <GastosPage />{' '}
+                <CajaPage />{' '}
               </ProtectedRoute>
             }
           />
