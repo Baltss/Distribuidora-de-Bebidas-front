@@ -215,7 +215,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
 
           <motion.div
             variants={panelV}
@@ -224,21 +224,21 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
             exit="exit"
             className="relative w-full max-w-[95vw] sm:max-w-3xl
                        max-h-[90vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5 text-slate-500" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
               <div className="mb-5 sm:mb-6 flex items-center gap-3">
                 <Truck className="h-6 w-6 text-gray-300 shrink-0" />
-                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                   Nueva compra
                 </h3>
               </div>
@@ -252,15 +252,15 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center justify-between gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <label className="flex items-center justify-between gap-2 text-sm font-medium text-slate-600 mb-2">
                       <span className="flex items-center gap-2">
                         <Truck className="h-4 w-4 text-gray-400" />
-                        Proveedor <span className="text-cyan-300">*</span>
+                        Proveedor <span className="text-teal-600">*</span>
                       </span>
                       <button
                         type="button"
                         onClick={() => setProvModalOpen(true)}
-                        className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-cyan-400/40 bg-cyan-400/10 text-cyan-200 hover:bg-cyan-400/20 transition"
+                        className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 transition"
                       >
                         <UserPlus className="h-3.5 w-3.5" /> Nuevo
                       </button>
@@ -280,16 +280,16 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
                       <Calendar className="h-4 w-4 text-gray-400" />
-                      Fecha <span className="text-cyan-300">*</span>
+                      Fecha <span className="text-teal-600">*</span>
                     </label>
                     <input
                       type="date"
                       value={form.fecha}
                       onChange={(e) => setForm((f) => ({ ...f, fecha: e.target.value }))}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                     />
                     {errors.fecha && (
                       <p className="mt-1 text-sm text-rose-300">{errors.fecha}</p>
@@ -299,7 +299,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
                       <FileText className="h-4 w-4 text-gray-400" />
                       N° de factura (opcional)
                     </label>
@@ -308,14 +308,14 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       onChange={(e) =>
                         setForm((f) => ({ ...f, nro_factura: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                       placeholder="0001-00001234"
                     />
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
                       <Wallet className="h-4 w-4 text-gray-400" />
                       Tipo de pago
                     </label>
@@ -324,8 +324,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       onChange={(e) =>
                         setForm((f) => ({ ...f, tipo_pago: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                     >
                       <option value="cuenta_corriente">Cuenta corriente</option>
                       <option value="contado">Contado</option>
@@ -336,7 +336,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                 {/* Monto abonado (solo cuenta corriente) */}
                 {esCuentaCorriente && (
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
+                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
                       <Wallet className="h-4 w-4 text-gray-400" />
                       Monto abonado ahora (opcional)
                     </label>
@@ -349,13 +349,13 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       onChange={(e) =>
                         setForm((f) => ({ ...f, monto_abonado: e.target.value }))
                       }
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                       placeholder="0.00"
                     />
                     <p className="mt-1 text-xs text-gray-300/80">
                       Saldo que quedará en cuenta corriente:{' '}
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-slate-900">
                         {moneyAR(saldoPendiente)}
                       </span>
                     </p>
@@ -363,12 +363,12 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                 )}
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center justify-between text-sm font-medium text-gray-200 mb-2">
+                  <label className="flex items-center justify-between text-sm font-medium text-slate-600 mb-2">
                     <span>Ítems de la compra</span>
                     <button
                       type="button"
                       onClick={addItem}
-                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition"
+                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                     >
                       <Plus className="h-3.5 w-3.5" /> Agregar ítem
                     </button>
@@ -380,7 +380,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       return (
                         <div
                           key={idx}
-                          className="grid grid-cols-1 sm:grid-cols-[1fr,110px,140px,auto] gap-2 items-start rounded-xl border border-white/10 bg-white/5 p-3"
+                          className="grid grid-cols-1 sm:grid-cols-[1fr,110px,140px,auto] gap-2 items-start rounded-xl border border-slate-200 bg-slate-50 p-3"
                         >
                           <div>
                             <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
@@ -398,7 +398,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                             <button
                               type="button"
                               onClick={() => setProdModalItemIdx(idx)}
-                              className="mt-1 inline-flex items-center gap-1 text-[11px] text-cyan-200 hover:text-cyan-100 transition"
+                              className="mt-1 inline-flex items-center gap-1 text-[11px] text-teal-600 hover:text-teal-700 transition"
                             >
                               <PackagePlus className="h-3.5 w-3.5" /> Nuevo producto
                             </button>
@@ -417,8 +417,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                               step="1"
                               value={it.cantidad}
                               onChange={(e) => setItem(idx, { cantidad: e.target.value })}
-                              className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-white
-                                         focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                         focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                             />
                             {ie.cantidad && (
                               <p className="mt-1 text-xs text-rose-300">{ie.cantidad}</p>
@@ -435,8 +435,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                               step="1"
                               value={it.costo_unit}
                               onChange={(e) => setItem(idx, { costo_unit: e.target.value })}
-                              className="w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-white
-                                         focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
+                              className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                         focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                             />
                             {ie.costo_unit && (
                               <p className="mt-1 text-xs text-rose-300">{ie.costo_unit}</p>
@@ -447,7 +447,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                               type="button"
                               onClick={() => removeItem(idx)}
                               disabled={items.length === 1}
-                              className="justify-self-end sm:justify-self-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-rose-300 hover:bg-rose-500/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                              className="justify-self-end sm:justify-self-auto inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-200 text-rose-500 hover:bg-rose-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
                               title="Quitar ítem"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -458,14 +458,14 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                     })}
                   </div>
 
-                  <div className="mt-3 flex justify-end text-white">
+                  <div className="mt-3 flex justify-end text-slate-900">
                     <span className="text-sm text-gray-300 mr-2">Total:</span>
                     <span className="text-lg font-extrabold">{moneyAR(total)}</span>
                   </div>
                 </motion.div>
 
                 <motion.div variants={fieldV}>
-                  <label className="text-sm font-medium text-gray-200 mb-2 block">
+                  <label className="text-sm font-medium text-slate-600 mb-2 block">
                     Observaciones (opcional)
                   </label>
                   <textarea
@@ -474,8 +474,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                     onChange={(e) =>
                       setForm((f) => ({ ...f, observaciones: e.target.value }))
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent resize-y"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent resize-y"
                   />
                 </motion.div>
 
@@ -486,14 +486,14 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
+                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold
                                hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving ? 'Guardando…' : 'Registrar compra'}

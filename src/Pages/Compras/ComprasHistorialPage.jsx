@@ -1,12 +1,9 @@
 // src/Pages/Compras/ComprasHistorialPage.jsx
 import React, { useEffect, useState } from 'react';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
-import ParticlesBackground from '../../Components/ParticlesBackground';
-import ButtonBack from '../../Components/ButtonBack';
+import { useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { motion } from 'framer-motion';
-import { FaPlus, FaBan, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaBan, FaSearch, FaArrowLeft } from 'react-icons/fa';
 
 import CompraFormModal from '../../Components/Compras/CompraFormModal';
 import { listCompras, createCompra, anularCompra } from '../../api/compras.js';
@@ -20,6 +17,7 @@ import moneyAR from '../../utils/money';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 export default function ComprasHistorialPage() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -106,176 +104,177 @@ export default function ComprasHistorialPage() {
   };
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        <div className="min-h-screen bg-gradient-to-b from-[#001219] via-[#013a2e] to-[#05684f]">
-          <ParticlesBackground />
-          <ButtonBack />
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+        </div>
 
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
-            >
-              Compras a proveedores
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
-            >
-              Cada compra suma stock automáticamente y, si es a cuenta corriente, genera deuda con el proveedor.
-            </motion.p>
-          </div>
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Compras a proveedores
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-1 text-sm text-slate-500"
+        >
+          Cada compra suma stock automáticamente y, si es a cuenta corriente, genera deuda con el proveedor.
+        </motion.p>
 
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-            {/* Filtros + acción */}
-            <div className="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
-                <div className="relative sm:col-span-2 lg:col-span-1">
-                  <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    value={q}
-                    onChange={(e) => setQ(e.target.value)}
-                    placeholder="N° factura o proveedor…"
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white
-                               placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wide text-gray-300 mb-1">Desde</label>
-                  <input
-                    type="date"
-                    value={desde}
-                    onChange={(e) => setDesde(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wide text-gray-300 mb-1">Hasta</label>
-                  <input
-                    type="date"
-                    value={hasta}
-                    onChange={(e) => setHasta(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wide text-gray-300 mb-1">Tipo de pago</label>
-                  <select
-                    value={tipoPago}
-                    onChange={(e) => setTipoPago(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40"
-                  >
-                    <option value="" className="text-black">Todos</option>
-                    <option value="contado" className="text-black">Contado</option>
-                    <option value="cuenta_corriente" className="text-black">Cuenta corriente</option>
-                  </select>
-                </div>
+        <div className="mt-6 space-y-6">
+          {/* Filtros + acción */}
+          <div className="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+              <div className="relative sm:col-span-2 lg:col-span-1">
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="N° factura o proveedor…"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800
+                             placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                />
               </div>
-
-              <button
-                onClick={() => setModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold hover:brightness-110 transition shrink-0"
-              >
-                <FaPlus /> Nueva compra
-              </button>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wide text-slate-400 mb-1">Desde</label>
+                <input
+                  type="date"
+                  value={desde}
+                  onChange={(e) => setDesde(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wide text-slate-400 mb-1">Hasta</label>
+                <input
+                  type="date"
+                  value={hasta}
+                  onChange={(e) => setHasta(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] uppercase tracking-wide text-slate-400 mb-1">Tipo de pago</label>
+                <select
+                  value={tipoPago}
+                  onChange={(e) => setTipoPago(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                >
+                  <option value="">Todos</option>
+                  <option value="contado">Contado</option>
+                  <option value="cuenta_corriente">Cuenta corriente</option>
+                </select>
+              </div>
             </div>
 
-            {loading ? (
-              <div className="text-center text-white/80 py-16">Cargando…</div>
-            ) : rows.length === 0 ? (
-              <div className="text-center text-white/80 py-16">No hay compras registradas.</div>
-            ) : (
-              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
-                <table className="w-full text-sm text-left text-gray-100">
-                  <thead className="bg-white/10 text-xs uppercase text-gray-300">
-                    <tr>
-                      <th className="px-4 py-3">#</th>
-                      <th className="px-4 py-3">Proveedor</th>
-                      <th className="px-4 py-3">Fecha</th>
-                      <th className="px-4 py-3">Factura</th>
-                      <th className="px-4 py-3">Pago</th>
-                      <th className="px-4 py-3 text-right">Total</th>
-                      <th className="px-4 py-3">Estado</th>
-                      <th className="px-4 py-3 text-right">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((c) => (
-                      <tr key={c.id} className="border-t border-white/10">
-                        <td className="px-4 py-3">{c.id}</td>
-                        <td className="px-4 py-3">{c.proveedor?.razon_social || '—'}</td>
-                        <td className="px-4 py-3">
-                          {c.fecha ? new Date(c.fecha).toLocaleDateString() : '—'}
-                        </td>
-                        <td className="px-4 py-3">{c.nro_factura || '—'}</td>
-                        <td className="px-4 py-3">
-                          {c.tipo_pago === 'contado' ? 'Contado' : 'Cta. cte.'}
-                        </td>
-                        <td className="px-4 py-3 text-right">{moneyAR(c.total)}</td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              c.estado === 'anulada'
-                                ? 'bg-rose-500/20 text-rose-300'
-                                : 'bg-emerald-500/20 text-emerald-300'
-                            }`}
-                          >
-                            {c.estado === 'anulada' ? 'Anulada' : 'Confirmada'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {c.estado !== 'anulada' && (
-                            <button
-                              onClick={() => onAnular(c)}
-                              className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-rose-300/30 text-rose-300 hover:bg-rose-500/10 transition"
-                            >
-                              <FaBan /> Anular
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {meta && meta.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <button
-                  disabled={!meta.hasPrev}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-white disabled:opacity-40"
-                >
-                  Anterior
-                </button>
-                <span className="text-white/80 text-sm">
-                  Página {meta.page} de {meta.totalPages}
-                </span>
-                <button
-                  disabled={!meta.hasNext}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-white disabled:opacity-40"
-                >
-                  Siguiente
-                </button>
-              </div>
-            )}
+            <button
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition shrink-0"
+            >
+              <FaPlus /> Nueva compra
+            </button>
           </div>
+
+          {loading ? (
+            <div className="text-center text-slate-400 py-16">Cargando…</div>
+          ) : rows.length === 0 ? (
+            <div className="text-center text-slate-400 py-16">No hay compras registradas.</div>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+              <table className="w-full text-sm text-left text-slate-700">
+                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">#</th>
+                    <th className="px-4 py-3">Proveedor</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3">Factura</th>
+                    <th className="px-4 py-3">Pago</th>
+                    <th className="px-4 py-3 text-right">Total</th>
+                    <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((c) => (
+                    <tr key={c.id} className="border-t border-slate-100">
+                      <td className="px-4 py-3">{c.id}</td>
+                      <td className="px-4 py-3">{c.proveedor?.razon_social || '—'}</td>
+                      <td className="px-4 py-3">
+                        {c.fecha ? new Date(c.fecha).toLocaleDateString() : '—'}
+                      </td>
+                      <td className="px-4 py-3">{c.nro_factura || '—'}</td>
+                      <td className="px-4 py-3">
+                        {c.tipo_pago === 'contado' ? 'Contado' : 'Cta. cte.'}
+                      </td>
+                      <td className="px-4 py-3 text-right">{moneyAR(c.total)}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs border ${
+                            c.estado === 'anulada'
+                              ? 'bg-rose-50 text-rose-700 border-rose-200'
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}
+                        >
+                          {c.estado === 'anulada' ? 'Anulada' : 'Confirmada'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {c.estado !== 'anulada' && (
+                          <button
+                            onClick={() => onAnular(c)}
+                            className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
+                          >
+                            <FaBan /> Anular
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {meta && meta.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button
+                disabled={!meta.hasPrev}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <span className="text-slate-500 text-sm">
+                Página {meta.page} de {meta.totalPages}
+              </span>
+              <button
+                disabled={!meta.hasNext}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
         </div>
-      </section>
+      </div>
 
       <CompraFormModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={onSubmit}
       />
-    </>
+    </AppShell>
   );
 }
