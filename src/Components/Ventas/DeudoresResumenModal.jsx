@@ -101,7 +101,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[96vw] sm:max-w-4xl lg:max-w-5xl
-                       max-h-[92vh] overflow-hidden rounded-3xl border border-slate-200
+                       max-h-[92vh] overflow-y-auto overscroll-contain rounded-3xl border border-slate-200
                        bg-white shadow-2xl"
           >
             <button

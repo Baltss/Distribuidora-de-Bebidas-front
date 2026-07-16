@@ -512,7 +512,7 @@ export default function DeudaClienteModal({
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[94vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh]
-                       overflow-hidden rounded-3xl border border-slate-200
+                       overflow-y-auto overscroll-contain rounded-3xl border border-slate-200
                        bg-white
                        shadow-2xl"
           >
