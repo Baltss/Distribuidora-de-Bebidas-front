@@ -46,18 +46,16 @@ const panelV = {
 
 const KpiChip = ({ label, value, tone = 'emerald' }) => {
   const tones = {
-    emerald: 'from-emerald-500/80 to-emerald-600/90',
-    amber: 'from-amber-400/85 to-amber-500/95',
-    sky: 'from-sky-400/85 to-sky-500/95',
-    rose: 'from-rose-500/85 to-rose-600/95'
+    emerald: 'text-emerald-600',
+    amber: 'text-amber-600',
+    sky: 'text-sky-600',
+    rose: 'text-rose-600'
   };
-  const grad = tones[tone] || tones.emerald;
+  const color = tones[tone] || tones.emerald;
   return (
-    <div className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md px-3.5 py-2 flex flex-col gap-0.5 text-xs text-white">
-      <span className="opacity-70">{label}</span>
-      <span
-        className={`inline-flex items-baseline gap-1 text-sm font-semibold bg-gradient-to-r ${grad} bg-clip-text text-transparent`}
-      >
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 flex flex-col gap-0.5 text-xs text-slate-500">
+      <span>{label}</span>
+      <span className={`inline-flex items-baseline gap-1 text-sm font-semibold ${color}`}>
         {value}
       </span>
     </div>
@@ -176,11 +174,11 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
 
   const Pager =
     meta && (meta.hasPrev || meta.hasNext) ? (
-      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-white/80">
+      <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500">
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={!meta.hasPrev}
-          className="px-3 py-1.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 disabled:opacity-40"
+          className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40"
         >
           ← Anterior
         </button>
@@ -190,7 +188,7 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
         <button
           onClick={() => setPage((p) => (meta.hasNext ? p + 1 : p))}
           disabled={!meta.hasNext}
-          className="px-3 py-1.5 rounded-xl border border-white/20 bg-white/10 hover:bg-white/20 disabled:opacity-40"
+          className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40"
         >
           Siguiente →
         </button>
@@ -209,7 +207,7 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
         >
           {/* Backdrop */}
           <div
-            className="flex-1 bg-black/60 backdrop-blur-sm"
+            className="flex-1 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -219,21 +217,20 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-xl bg-gradient-to-b from-[#001219] via-[#003049] to-[#005f73] border-l border-white/15 shadow-2xl flex flex-col"
+            className="relative w-full max-w-xl bg-white border-l border-slate-200 shadow-2xl flex flex-col"
           >
             {/* Header */}
-            <div className="relative px-5 py-4 sm:px-6 sm:py-5 border-b border-white/15">
-              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_#38bdf8,_transparent_55%)]" />
-              <div className="relative flex items-start justify-between gap-3">
+            <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-slate-200">
+              <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-xs text-teal-200/80 uppercase tracking-[0.18em]">
-                    <FaUsers className="text-teal-300" />
+                  <div className="flex items-center gap-2 text-xs text-teal-600 uppercase tracking-[0.18em]">
+                    <FaUsers />
                     Clientes del reparto
                   </div>
-                  <h2 className="mt-1 text-xl sm:text-2xl font-bold text-white leading-tight">
+                  <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
                     {nombreReparto}
                   </h2>
-                  <div className="mt-1 text-xs text-teal-100/80 flex flex-wrap items-center gap-2">
+                  <div className="mt-1 text-xs text-slate-500 flex flex-wrap items-center gap-2">
                     {ciudadNombre && (
                       <span className="inline-flex items-center gap-1">
                         <FaMapMarkerAlt className="text-[10px]" />
@@ -247,7 +244,7 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
                 </div>
                 <button
                   onClick={onClose}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 border border-white/20 hover:bg-white/20 text-white transition"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-500 transition"
                   aria-label="Cerrar"
                 >
                   <FaTimes className="w-4 h-4" />
@@ -255,7 +252,7 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
               </div>
 
               {/* KPIs */}
-              <div className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <KpiChip
                   label="Asignados"
                   value={totalAsignados ?? 0}
@@ -279,10 +276,10 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
             <div className="flex-1 overflow-y-auto px-4 sm:px-5 py-4 space-y-3">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="h-8 w-8 border-4 border-white/40 border-t-teal-400 rounded-full animate-spin" />
+                  <div className="h-8 w-8 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
                 </div>
               ) : !rows.length ? (
-                <div className="text-center text-sm text-white/80 py-10">
+                <div className="text-center text-sm text-slate-500 py-10">
                   Este reparto todavía no tiene clientes asignados.
                 </div>
               ) : (
@@ -299,19 +296,19 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
                   return (
                     <div
                       key={asig.id}
-                      className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md p-3.5 sm:p-4 flex flex-col gap-2"
+                      className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4 flex flex-col gap-2"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-xs font-bold text-slate-900">
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-700">
                               {c?.nombre?.[0]?.toUpperCase?.() || 'C'}
                             </span>
                             <div className="min-w-0">
-                              <div className="truncate text-sm font-semibold text-white">
+                              <div className="truncate text-sm font-semibold text-slate-900">
                                 {c?.nombre || 'Cliente'}
                               </div>
-                              <div className="text-[11px] text-teal-100/80 flex flex-wrap gap-1">
+                              <div className="text-[11px] text-slate-500 flex flex-wrap gap-1">
                                 <span className="inline-flex items-center gap-1">
                                   <FaHashtag className="text-[9px]" />
                                   N° rango {asig.numero_rango}
@@ -330,15 +327,15 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
                         <button
                           onClick={() => onRemove(asig)}
                           className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-[11px] font-semibold
-                                     bg-gradient-to-r from-rose-500/85 to-rose-600/95 text-white border border-white/20
-                                     hover:brightness-110 hover:scale-[1.02] transition"
+                                     bg-rose-600 text-white
+                                     hover:bg-rose-700 transition"
                         >
                           <FaUserMinus className="text-[10px]" />
                           Quitar
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-white/85">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
                         <div className="inline-flex items-center gap-1.5">
                           <FaPhoneAlt className="text-[10px] opacity-80" />
                           <span>{c?.telefono || 'Sin teléfono'}</span>
@@ -359,10 +356,10 @@ export default function RepartoClientesSlideover({ open, onClose, reparto }) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 sm:px-5 py-3 border-t border-white/10 flex items-center justify-end">
+            <div className="px-4 sm:px-5 py-3 border-t border-slate-200 flex items-center justify-end">
               <button
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-white/20 bg-white/5 text-sm text-white hover:bg-white/10 transition"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 transition"
               >
                 Cerrar
               </button>

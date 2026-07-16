@@ -327,7 +327,7 @@ export default function RepartoAsignarClientesModal({
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={handleClose}
           />
 
@@ -338,18 +338,17 @@ export default function RepartoAsignarClientesModal({
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[96vw] sm:max-w-5xl max-h-[90vh]
-                       overflow-y-auto rounded-3xl border border-teal-400/40
-                       bg-gradient-to-br from-slate-950/90 via-slate-900/95 to-teal-950/90
-                       shadow-[0_0_45px_rgba(45,212,191,0.45)]"
+                       overflow-y-auto rounded-3xl border border-slate-200
+                       bg-white shadow-2xl"
           >
             {/* Cerrar */}
             <button
               onClick={handleClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-xl
-                         bg-white/5 border border-white/15 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-teal-50" />
+              <X className="h-5 w-5" />
             </button>
 
             {/* Contenido scrollable */}
@@ -363,53 +362,53 @@ export default function RepartoAsignarClientesModal({
               >
                 <motion.h3
                   variants={fieldV}
-                  className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-teal-50 flex flex-wrap items-center gap-2"
+                  className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-900 flex flex-wrap items-center gap-2"
                 >
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-teal-500/20 border border-teal-300/40">
-                    <Users className="h-5 w-5 text-teal-300" />
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200">
+                    <Users className="h-5 w-5 text-teal-600" />
                   </span>
                   <span className="titulo uppercase text-xl">
                     Asignar clientes al reparto
                   </span>
-                  <span className="text-teal-300">
+                  <span className="text-teal-600">
                     “{reparto.nombre || 'Reparto'}”
                   </span>
                 </motion.h3>
 
                 <motion.div
                   variants={fieldV}
-                  className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-xs sm:text-sm text-teal-50/90"
+                  className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-xs sm:text-sm text-slate-600"
                 >
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-teal-200/80">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
                       Ciudad
                     </span>
-                    <span className="font-medium">{ciudadNombre}</span>
+                    <span className="font-medium text-slate-800">{ciudadNombre}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-teal-200/80">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
                       Rango de clientes
                     </span>
-                    <span className="font-medium">
+                    <span className="font-medium text-slate-800">
                       {reparto.rango_min} – {reparto.rango_max}
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-teal-200/80">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
                       Capacidad
                     </span>
-                    <span className="font-medium">
+                    <span className="font-medium text-slate-800">
                       {capacidad || '—'} cliente(s)
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-teal-200/80">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
                       Ocupados / Libres
                     </span>
-                    <span className="font-medium">
+                    <span className="font-medium text-slate-800">
                       {ocupados} ocupados
                       {libres != null && (
-                        <span className="ml-1 text-teal-300">
+                        <span className="ml-1 text-teal-600">
                           · {libres} libre(s)
                         </span>
                       )}
@@ -425,25 +424,25 @@ export default function RepartoAsignarClientesModal({
                   variants={formContainerV}
                   initial="hidden"
                   animate="visible"
-                  className="rounded-2xl border border-teal-500/30 bg-slate-900/60 backdrop-blur-md p-3 sm:p-4 flex flex-col"
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4 flex flex-col"
                 >
                   <div className="flex items-center justify-between mb-3 gap-2">
                     <div>
-                      <div className="text-xs uppercase tracking-widest text-teal-200/80">
+                      <div className="text-xs uppercase tracking-widest text-slate-400">
                         Clientes asignados
                       </div>
-                      <div className="text-sm text-teal-50/90">
+                      <div className="text-sm text-slate-600">
                         {assignedRows.length} en este reparto
                       </div>
                     </div>
                     {loadingAssigned && (
-                      <div className="h-6 w-6 rounded-full border-2 border-teal-300/50 border-t-transparent animate-spin" />
+                      <div className="h-6 w-6 rounded-full border-2 border-slate-300 border-t-teal-500 animate-spin" />
                     )}
                   </div>
 
                   <div className="flex-1 min-h-[160px] max-h-[320px] sm:max-h-[360px] overflow-y-auto space-y-2 pr-1">
                     {assignedRows.length === 0 && !loadingAssigned ? (
-                      <div className="text-xs text-teal-100/70 italic">
+                      <div className="text-xs text-slate-400 italic">
                         Este reparto aún no tiene clientes asignados.
                       </div>
                     ) : (
@@ -457,17 +456,17 @@ export default function RepartoAsignarClientesModal({
                         return (
                           <div
                             key={rc.id}
-                            className="flex items-center justify-between gap-2 rounded-xl border border-teal-500/30 bg-slate-900/80 px-3 py-2"
+                            className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2"
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-teal-500/20 border border-teal-400/60 text-[11px] font-bold text-teal-50">
+                              <span className="inline-flex items-center justify-center h-7 w-7 rounded-lg bg-teal-50 border border-teal-200 text-[11px] font-bold text-teal-700">
                                 {rc.numero_rango}
                               </span>
                               <div className="min-w-0">
-                                <div className="text-xs font-semibold text-teal-50 truncate">
+                                <div className="text-xs font-semibold text-slate-800 truncate">
                                   {nombre}
                                 </div>
-                                <div className="text-[11px] text-teal-100/70 truncate">
+                                <div className="text-[11px] text-slate-400 truncate">
                                   {documento && (
                                     <span>DNI: {documento} · </span>
                                   )}
@@ -479,10 +478,10 @@ export default function RepartoAsignarClientesModal({
                             </div>
                             <button
                               onClick={() => handleRemoveAssigned(rc)}
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/15 border border-rose-500/50 hover:bg-rose-500/30 transition"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 border border-rose-200 hover:bg-rose-100 transition"
                               title="Quitar del reparto"
                             >
-                              <Trash2 className="h-3.5 w-3.5 text-rose-200" />
+                              <Trash2 className="h-3.5 w-3.5 text-rose-600" />
                             </button>
                           </div>
                         );
@@ -496,7 +495,7 @@ export default function RepartoAsignarClientesModal({
                   variants={formContainerV}
                   initial="hidden"
                   animate="visible"
-                  className="rounded-2xl border border-cyan-400/40 bg-slate-900/60 backdrop-blur-md p-3 sm:p-4 flex flex-col min-h-0"
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4 flex flex-col min-h-0"
                 >
                   {/* Filtros */}
                   <motion.div
@@ -504,7 +503,7 @@ export default function RepartoAsignarClientesModal({
                     className="flex flex-col sm:flex-row gap-2 sm:items-center mb-3"
                   >
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-cyan-200/70" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <input
                         value={qClientes}
                         onChange={(e) => {
@@ -512,10 +511,10 @@ export default function RepartoAsignarClientesModal({
                           setQClientes(e.target.value);
                         }}
                         placeholder="Buscar por nombre, teléfono, email o documento…"
-                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950/70 border border-cyan-500/40 text-sm text-cyan-50 placeholder-cyan-200/60 focus:outline-none focus:ring-2 focus:ring-cyan-400/60"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                       />
                     </div>
-                    <div className="text-[11px] text-cyan-100/80">
+                    <div className="text-[11px] text-slate-500">
                       {selectedIds.size > 0 ? (
                         <span>
                           {selectedIds.size} cliente(s) seleccionado(s)
@@ -530,19 +529,19 @@ export default function RepartoAsignarClientesModal({
 
                   {/* Lista de clientes (SCROLL) */}
                   <div
-                    className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 rounded-xl border border-cyan-400/25 bg-slate-950/60"
+                    className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-1 rounded-xl border border-slate-200 bg-white"
                     style={{ WebkitOverflowScrolling: 'touch' }}
                   >
                     {loadingClientes ? (
                       <div className="flex items-center justify-center py-16">
-                        <div className="h-9 w-9 rounded-full border-2 border-cyan-300/60 border-t-transparent animate-spin" />
+                        <div className="h-9 w-9 rounded-full border-2 border-slate-200 border-t-teal-500 animate-spin" />
                       </div>
                     ) : clientesFiltrados.length === 0 ? (
-                      <div className="py-10 text-center text-xs text-cyan-100/75 px-3">
+                      <div className="py-10 text-center text-xs text-slate-400 px-3">
                         No se encontraron clientes con esos filtros.
                       </div>
                     ) : (
-                      <ul className="divide-y divide-slate-700/70">
+                      <ul className="divide-y divide-slate-200">
                         {clientesFiltrados.map((c) => {
                           const id = c.id;
                           const checked = selectedIds.has(id);
@@ -555,8 +554,8 @@ export default function RepartoAsignarClientesModal({
                             <li
                               key={id}
                               className={`px-3 py-2.5 text-xs sm:text-[13px] flex items-center gap-3 cursor-pointer
-                         hover:bg-slate-900/80 ${
-                           checked ? 'bg-teal-900/70' : 'bg-transparent'
+                         hover:bg-slate-50 ${
+                           checked ? 'bg-teal-50' : 'bg-transparent'
                          }`}
                               onClick={() => toggleSelect(id)}
                             >
@@ -565,20 +564,20 @@ export default function RepartoAsignarClientesModal({
                                 checked={checked}
                                 onChange={() => toggleSelect(id)}
                                 onClick={(e) => e.stopPropagation()}
-                                className="h-4 w-4 rounded border-cyan-400/70 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                                className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
                               />
                               <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                  <span className="font-semibold text-cyan-50 truncate">
+                                  <span className="font-semibold text-slate-800 truncate">
                                     {c.nombre}
                                   </span>
                                   {c.documento && (
-                                    <span className="text-[11px] text-cyan-200/80">
+                                    <span className="text-[11px] text-slate-500">
                                       · {c.documento}
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-cyan-100/75 truncate">
+                                <div className="text-[11px] text-slate-400 truncate">
                                   {barrio && loc
                                     ? `${barrio} (${loc})`
                                     : barrio || loc || ciudad || '—'}
@@ -594,7 +593,7 @@ export default function RepartoAsignarClientesModal({
 
                   {/* Paginador + botón asignar */}
                   <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-2 justify-between">
-                    <div className="flex items-center gap-2 text-[11px] text-cyan-100/80">
+                    <div className="flex items-center gap-2 text-[11px] text-slate-500">
                       <button
                         onClick={() =>
                           setPageClientes((p) =>
@@ -602,7 +601,7 @@ export default function RepartoAsignarClientesModal({
                           )
                         }
                         disabled={!clientesMeta?.hasPrev}
-                        className="px-2.5 py-1.5 rounded-lg border border-cyan-400/50 bg-slate-950/80 disabled:opacity-40 text-xs"
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white disabled:opacity-40 text-xs"
                       >
                         ← Anterior
                       </button>
@@ -617,7 +616,7 @@ export default function RepartoAsignarClientesModal({
                           )
                         }
                         disabled={!clientesMeta?.hasNext}
-                        className="px-2.5 py-1.5 rounded-lg border border-cyan-400/50 bg-slate-950/80 disabled:opacity-40 text-xs"
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white disabled:opacity-40 text-xs"
                       >
                         Siguiente →
                       </button>
@@ -628,7 +627,7 @@ export default function RepartoAsignarClientesModal({
                         <button
                           type="button"
                           onClick={clearSelection}
-                          className="px-3 py-2 rounded-xl border border-slate-600 bg-slate-900/70 text-[12px] text-slate-100 hover:bg-slate-800/90 transition"
+                          className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-100 transition"
                         >
                           Limpiar selección
                         </button>
@@ -638,8 +637,8 @@ export default function RepartoAsignarClientesModal({
                         onClick={handleAsignar}
                         disabled={selectedIds.size === 0}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                   bg-gradient-to-r from-teal-500 to-cyan-400 text-white text-[13px] font-semibold
-                   hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                   bg-teal-600 text-white text-[13px] font-semibold
+                   hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       >
                         <CheckCircle2 className="h-4 w-4" />
                         Asignar seleccionados
@@ -648,9 +647,6 @@ export default function RepartoAsignarClientesModal({
                   </div>
                 </motion.div>
               </div>
-
-              {/* Línea inferior decorativa */}
-              <div className="mt-4 h-[3px] w-full rounded-full bg-gradient-to-r from-teal-400/60 via-cyan-300/70 to-teal-400/60 opacity-70" />
             </div>
           </motion.div>
         </motion.div>

@@ -294,7 +294,7 @@ export default function RepartoAsignarUsuariosModal({
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -304,36 +304,33 @@ export default function RepartoAsignarUsuariosModal({
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/15
-                       bg-gradient-to-b from-[#001219]/95 via-[#003049]/95 to-[#001219]/98 shadow-2xl"
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200
+                       bg-white shadow-2xl"
           >
             {/* Cerrar */}
             <button
               onClick={onClose}
               className="z-10 absolute top-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-full
-                         bg-white/10 border border-white/20 hover:bg-white/20 text-white transition"
+                         bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-500 transition"
               aria-label="Cerrar"
             >
               <X className="h-5 w-5" />
             </button>
 
             {/* Header */}
-            <div className="px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-white/10 relative">
-              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_#38bdf8,_transparent_55%)]" />
-              <div className="relative">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-teal-200/80 flex items-center gap-2">
-                  <FaUserCog className="text-xs" />
-                  Asignar usuarios al reparto
-                </div>
-                <h2 className="mt-1 text-xl sm:text-2xl font-bold text-white leading-tight">
-                  {titulo}
-                </h2>
-                {reparto?.ciudad_nombre && (
-                  <p className="mt-1 text-xs text-teal-100/80">
-                    Ciudad: {reparto.ciudad_nombre}
-                  </p>
-                )}
+            <div className="px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-slate-200">
+              <div className="text-[11px] uppercase tracking-[0.2em] text-teal-600 flex items-center gap-2">
+                <FaUserCog className="text-xs" />
+                Asignar usuarios al reparto
               </div>
+              <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+                {titulo}
+              </h2>
+              {reparto?.ciudad_nombre && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Ciudad: {reparto.ciudad_nombre}
+                </p>
+              )}
             </div>
 
             {/* Body */}
@@ -341,10 +338,10 @@ export default function RepartoAsignarUsuariosModal({
               {/* Formulario alta rápida */}
               <form
                 onSubmit={onSubmit}
-                className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md p-3.5 sm:p-4 space-y-3"
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4 space-y-3"
               >
-                <div className="text-sm font-medium text-white/90 flex items-center gap-2 mb-1">
-                  <FaUserPlus className="text-teal-300" />
+                <div className="text-sm font-medium text-slate-700 flex items-center gap-2 mb-1">
+                  <FaUserPlus className="text-teal-600" />
                   Nueva asignación
                 </div>
 
@@ -375,17 +372,17 @@ export default function RepartoAsignarUsuariosModal({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-teal-100 uppercase tracking-[0.16em] mb-2">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-[0.16em] mb-2">
                       Rol
                     </label>
                     <select
                       value={rol}
                       onChange={(e) => setRol(e.target.value)}
-                      className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white
-                                 focus:outline-none focus:ring-2 focus:ring-teal-400/60"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800
+                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                     >
                       {roles.map((r) => (
-                        <option className='text-black' key={r.value} value={r.value}>
+                        <option key={r.value} value={r.value}>
                           {r.label}
                         </option>
                       ))}
@@ -397,7 +394,7 @@ export default function RepartoAsignarUsuariosModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/20 text-sm text-white/90 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-100 transition"
                   >
                     Cerrar
                   </button>
@@ -405,8 +402,8 @@ export default function RepartoAsignarUsuariosModal({
                     type="submit"
                     disabled={saving || !selectedUsuario}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold
-                               bg-gradient-to-r from-teal-500 to-sky-500 text-white border border-white/10
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                               bg-teal-600 text-white
+                               hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     <FaUserPlus className="text-xs" />
                     {saving ? 'Asignando…' : 'Asignar'}
@@ -415,17 +412,17 @@ export default function RepartoAsignarUsuariosModal({
               </form>
 
               {/* Lista de asignaciones */}
-              <div className="space-y-2 z-5">
-                <div className="text-xs font-semibold text-teal-100 uppercase tracking-[0.16em]">
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-[0.16em]">
                   Usuarios asignados
                 </div>
 
                 {loadingAsignaciones ? (
                   <div className="flex items-center justify-center py-6">
-                    <div className="h-8 w-8 border-4 border-white/40 border-t-teal-400 rounded-full animate-spin" />
+                    <div className="h-8 w-8 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
                   </div>
                 ) : !asignaciones.length ? (
-                  <div className="text-sm text-white/80 py-4">
+                  <div className="text-sm text-slate-500 py-4">
                     Aún no hay usuarios asignados a este reparto.
                   </div>
                 ) : (
@@ -436,24 +433,24 @@ export default function RepartoAsignarUsuariosModal({
                       return (
                         <div
                           key={a.id}
-                          className="rounded-2xl border border-white/15 bg-white/5 backdrop-blur-md px-3.5 py-3
+                          className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3
                                      flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="h-9 w-9 rounded-full bg-white/90 text-slate-900 flex items-center justify-center text-sm font-bold">
+                            <div className="h-9 w-9 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold">
                               {(u.nombre || 'U')[0]?.toUpperCase?.() || 'U'}
                             </div>
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-semibold text-white truncate max-w-[180px] sm:max-w-[220px]">
+                                <span className="text-sm font-semibold text-slate-900 truncate max-w-[180px] sm:max-w-[220px]">
                                   {u.nombre || 'Usuario'}
                                 </span>
                                 <span
                                   className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border
                                     ${
                                       activo
-                                        ? 'bg-emerald-50/10 text-emerald-200 border-emerald-300/40'
-                                        : 'bg-zinc-200/10 text-zinc-200 border-zinc-300/40'
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : 'bg-zinc-100 text-zinc-700 border-zinc-300'
                                     }`}
                                 >
                                   {activo ? (
@@ -465,7 +462,7 @@ export default function RepartoAsignarUsuariosModal({
                                 </span>
                               </div>
                               {u.email && (
-                                <div className="text-[11px] text-teal-100/80">
+                                <div className="text-[11px] text-slate-500">
                                   {u.email}
                                 </div>
                               )}
@@ -476,8 +473,8 @@ export default function RepartoAsignarUsuariosModal({
                             <select
                               value={a.rol}
                               onChange={(e) => onChangeRol(a, e.target.value)}
-                              className="rounded-xl border border-white/20 bg-white/10 text-xs text-white px-2.5 py-1.5
-                                         focus:outline-none focus:ring-2 focus:ring-teal-400/60"
+                              className="rounded-xl border border-slate-200 bg-white text-xs text-slate-700 px-2.5 py-1.5
+                                         focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                             >
                               {roles.map((r) => (
                                 <option key={r.value} value={r.value}>
@@ -488,8 +485,8 @@ export default function RepartoAsignarUsuariosModal({
 
                             <button
                               onClick={() => onToggleActivo(a)}
-                              className="px-3 py-1.5 rounded-xl text-[11px] font-semibold border border-white/20 text-white
-                                         bg-white/10 hover:bg-white/20 transition"
+                              className="px-3 py-1.5 rounded-xl text-[11px] font-semibold border border-slate-200 text-slate-600
+                                         bg-white hover:bg-slate-100 transition"
                             >
                               {activo ? 'Desactivar' : 'Activar'}
                             </button>
@@ -497,8 +494,8 @@ export default function RepartoAsignarUsuariosModal({
                             <button
                               onClick={() => onRemove(a)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-semibold
-                                         bg-gradient-to-r from-rose-500/85 to-rose-600/95 text-white border border-white/15
-                                         hover:brightness-110 transition"
+                                         bg-rose-600 text-white
+                                         hover:bg-rose-700 transition"
                             >
                               <FaTrash className="text-[10px]" />
                               Quitar
