@@ -13,6 +13,10 @@ import { baseSwal, showErrorSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent';
+const labelCls = 'flex items-center gap-2 text-sm font-medium text-slate-600 mb-2';
+
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export default function PagoProveedorFormModal({
@@ -114,7 +118,7 @@ export default function PagoProveedorFormModal({
           role="dialog"
           aria-modal="true"
         >
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
 
           <motion.div
             variants={panelV}
@@ -123,15 +127,15 @@ export default function PagoProveedorFormModal({
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-md
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6">
@@ -140,14 +144,14 @@ export default function PagoProveedorFormModal({
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-5 flex items-center gap-3"
               >
-                <Wallet className="h-6 w-6 text-gray-300 shrink-0" />
-                <h3 className="text-xl font-bold tracking-tight text-white">
+                <Wallet className="h-6 w-6 text-emerald-600 shrink-0" />
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">
                   Registrar pago
                 </h3>
               </motion.div>
 
-              <p className="text-sm text-gray-300 mb-4">
-                Proveedor: <strong>{proveedor?.razon_social}</strong>
+              <p className="text-sm text-slate-500 mb-4">
+                Proveedor: <strong className="text-slate-700">{proveedor?.razon_social}</strong>
               </p>
 
               <motion.form
@@ -158,9 +162,9 @@ export default function PagoProveedorFormModal({
                 className="space-y-4"
               >
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Wallet className="h-4 w-4 text-gray-400" />
-                    Monto a pagar <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    <Wallet className="h-4 w-4 text-slate-400" />
+                    Monto a pagar <span className="text-emerald-600">*</span>
                   </label>
                   <input
                     name="monto"
@@ -169,51 +173,48 @@ export default function PagoProveedorFormModal({
                     step="0.01"
                     value={form.monto}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="0.00"
                   />
                   {errors.monto && (
-                    <p className="mt-1 text-sm text-rose-300">{errors.monto}</p>
+                    <p className="mt-1 text-sm text-rose-600">{errors.monto}</p>
                   )}
                 </motion.div>
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    Fecha <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    Fecha <span className="text-emerald-600">*</span>
                   </label>
                   <input
                     name="fecha"
                     type="date"
                     value={form.fecha}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                    className={inputCls}
                   />
                   {errors.fecha && (
-                    <p className="mt-1 text-sm text-rose-300">{errors.fecha}</p>
+                    <p className="mt-1 text-sm text-rose-600">{errors.fecha}</p>
                   )}
                 </motion.div>
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <CreditCard className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <CreditCard className="h-4 w-4 text-slate-400" />
                     Medio de pago (opcional)
                   </label>
                   <input
                     name="medio_pago"
                     value={form.medio_pago}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Efectivo, transferencia…"
                   />
                 </motion.div>
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <StickyNote className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <StickyNote className="h-4 w-4 text-slate-400" />
                     Observaciones (opcional)
                   </label>
                   <textarea
@@ -221,8 +222,7 @@ export default function PagoProveedorFormModal({
                     rows={2}
                     value={form.observaciones}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent resize-y"
+                    className={`${inputCls} resize-y`}
                   />
                 </motion.div>
 
@@ -233,15 +233,15 @@ export default function PagoProveedorFormModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold
+                               disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving ? 'Guardando…' : 'Registrar pago'}
                   </button>

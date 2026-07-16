@@ -18,6 +18,10 @@ import {
   Power
 } from 'lucide-react';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent';
+const labelCls = 'flex items-center gap-2 text-sm font-medium text-slate-600 mb-2';
+
 export default function ProveedorFormModal({ open, onClose, onSubmit, initial }) {
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial?.id;
@@ -104,23 +108,8 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
           aria-labelledby={titleId}
         >
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
-          />
-
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-[0.16]"
-            style={{
-              backgroundImage:
-                'linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px)',
-              backgroundSize: '36px 36px'
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-24 -left-20 size-[22rem] sm:size-[28rem] rounded-full blur-3xl opacity-45
-                       bg-[conic-gradient(from_180deg_at_50%_50%,rgba(16,185,129,0.14),rgba(6,182,212,0.12),rgba(99,102,241,0.12),transparent,rgba(16,185,129,0.12))]"
           />
 
           <motion.div
@@ -130,15 +119,15 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-xl md:max-w-lg
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -148,10 +137,10 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
                 className="mb-5 sm:mb-6 flex items-center gap-3"
               >
-                <Truck className="h-6 w-6 text-gray-300 shrink-0" />
+                <Truck className="h-6 w-6 text-emerald-600 shrink-0" />
                 <h3
                   id={titleId}
-                  className="text-xl sm:text-2xl font-bold tracking-tight text-white"
+                  className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900"
                 >
                   {isEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}
                 </h3>
@@ -166,50 +155,47 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                 className="space-y-5 sm:space-y-6"
               >
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Truck className="h-4 w-4 text-gray-400" />
-                    Razón social <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    <Truck className="h-4 w-4 text-slate-400" />
+                    Razón social <span className="text-emerald-600">*</span>
                   </label>
                   <input
                     name="razon_social"
                     value={form.razon_social}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder='Ej: "Distribuidora XYZ S.A."'
                   />
                   {errors.razon_social && (
-                    <p className="mt-1 text-sm text-rose-300">{errors.razon_social}</p>
+                    <p className="mt-1 text-sm text-rose-600">{errors.razon_social}</p>
                   )}
                 </motion.div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <IdCard className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <IdCard className="h-4 w-4 text-slate-400" />
                       CUIT (opcional)
                     </label>
                     <input
                       name="cuit"
                       value={form.cuit}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="20-12345678-9"
                     />
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Phone className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Phone className="h-4 w-4 text-slate-400" />
                       Teléfono
                     </label>
                     <input
                       name="telefono"
                       value={form.telefono}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="Ej: 381-1234567"
                     />
                   </motion.div>
@@ -217,50 +203,47 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Mail className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Mail className="h-4 w-4 text-slate-400" />
                       Email
                     </label>
                     <input
                       name="email"
                       value={form.email}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="contacto@proveedor.com"
                     />
                     {errors.email && (
-                      <p className="mt-1 text-sm text-rose-300">{errors.email}</p>
+                      <p className="mt-1 text-sm text-rose-600">{errors.email}</p>
                     )}
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <MapPin className="h-4 w-4 text-slate-400" />
                       Dirección
                     </label>
                     <input
                       name="direccion"
                       value={form.direccion}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="Calle 123"
                     />
                   </motion.div>
                 </div>
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Power className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <Power className="h-4 w-4 text-slate-400" />
                     Estado
                   </label>
                   <select
                     name="estado"
                     value={form.estado}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
-                               focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent"
+                    className={inputCls}
                   >
                     <option value="activo">Activo</option>
                     <option value="inactivo">Inactivo</option>
@@ -268,8 +251,8 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                 </motion.div>
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <StickyNote className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <StickyNote className="h-4 w-4 text-slate-400" />
                     Notas (opcional)
                   </label>
                   <textarea
@@ -277,8 +260,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                     rows={3}
                     value={form.notas}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300/40 focus:border-transparent resize-y"
+                    className={`${inputCls} resize-y`}
                     placeholder="Observaciones internas…"
                   />
                 </motion.div>
@@ -290,23 +272,21 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold
+                               disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear'}
                   </button>
                 </motion.div>
               </motion.form>
             </div>
-
-            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-400/70 via-cyan-200/70 to-emerald-400/70 opacity-40 rounded-b-2xl" />
           </motion.div>
         </motion.div>
       )}

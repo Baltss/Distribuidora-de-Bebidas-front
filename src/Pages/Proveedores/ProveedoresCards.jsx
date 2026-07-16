@@ -1,12 +1,9 @@
 // src/Pages/Proveedores/ProveedoresCards.jsx
 import React, { useEffect, useState } from 'react';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
-import ParticlesBackground from '../../Components/ParticlesBackground';
-import ButtonBack from '../../Components/ButtonBack';
+import { useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { motion } from 'framer-motion';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaArrowLeft } from 'react-icons/fa';
 
 import ProveedorCard from '../../Components/Proveedores/ProveedorCard';
 import ProveedorFormModal from '../../Components/Proveedores/ProveedorFormModal';
@@ -29,6 +26,7 @@ import {
 } from '../../ui/swal';
 
 export default function ProveedoresCards() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -171,116 +169,117 @@ export default function ProveedoresCards() {
   };
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        <div className="min-h-screen bg-gradient-to-b from-[#001219] via-[#013a2e] to-[#05684f]">
-          <ParticlesBackground />
-          <ButtonBack />
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+        </div>
 
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
-            >
-              Proveedores
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
-            >
-              Gestioná tus proveedores y su cuenta corriente.
-            </motion.p>
-          </div>
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Proveedores
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-1 text-sm text-slate-500"
+        >
+          Gestioná tus proveedores y su cuenta corriente.
+        </motion.p>
 
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-              <div className="relative flex-1 max-w-md">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  value={q}
-                  onChange={(e) => {
-                    setPage(1);
-                    setQ(e.target.value);
-                  }}
-                  placeholder="Buscar por razón social o CUIT…"
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-white/10 bg-white/10 text-white
-                             placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-300/40"
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <select
-                  value={filtroEstado}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroEstado(e.target.value);
-                  }}
-                  className="rounded-xl border border-white/10 bg-white/10 px-3 py-2.5 text-white"
-                >
-                  <option value="todos" className="text-black">Todos</option>
-                  <option value="activos" className="text-black">Activos</option>
-                  <option value="inactivos" className="text-black">Inactivos</option>
-                </select>
-
-                <button
-                  onClick={onNew}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold hover:brightness-110 transition"
-                >
-                  <FaPlus /> Nuevo proveedor
-                </button>
-              </div>
+        <div className="mt-6 space-y-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+            <div className="relative flex-1 max-w-md">
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={q}
+                onChange={(e) => {
+                  setPage(1);
+                  setQ(e.target.value);
+                }}
+                placeholder="Buscar por razón social o CUIT…"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800
+                           placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
+              />
             </div>
 
-            {loading ? (
-              <div className="text-center text-white/80 py-16">Cargando…</div>
-            ) : rows.length === 0 ? (
-              <div className="text-center text-white/80 py-16">
-                No hay proveedores para mostrar.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {rows.map((item) => (
-                  <ProveedorCard
-                    key={item.id}
-                    item={item}
-                    onEdit={onEdit}
-                    onToggleActivo={onToggleActivo}
-                    onDelete={onDelete}
-                    onVerCuenta={(p) => setDeudaProveedor(p)}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="flex gap-2">
+              <select
+                value={filtroEstado}
+                onChange={(e) => {
+                  setPage(1);
+                  setFiltroEstado(e.target.value);
+                }}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-800"
+              >
+                <option value="todos">Todos</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
 
-            {meta && meta.totalPages > 1 && (
-              <div className="flex items-center justify-center gap-3 pt-4">
-                <button
-                  disabled={!meta.hasPrev}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-white disabled:opacity-40"
-                >
-                  Anterior
-                </button>
-                <span className="text-white/80 text-sm">
-                  Página {meta.page} de {meta.totalPages}
-                </span>
-                <button
-                  disabled={!meta.hasNext}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-white disabled:opacity-40"
-                >
-                  Siguiente
-                </button>
-              </div>
-            )}
+              <button
+                onClick={onNew}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition"
+              >
+                <FaPlus /> Nuevo proveedor
+              </button>
+            </div>
           </div>
+
+          {loading ? (
+            <div className="text-center text-slate-400 py-16">Cargando…</div>
+          ) : rows.length === 0 ? (
+            <div className="text-center text-slate-400 py-16">
+              No hay proveedores para mostrar.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {rows.map((item) => (
+                <ProveedorCard
+                  key={item.id}
+                  item={item}
+                  onEdit={onEdit}
+                  onToggleActivo={onToggleActivo}
+                  onDelete={onDelete}
+                  onVerCuenta={(p) => setDeudaProveedor(p)}
+                />
+              ))}
+            </div>
+          )}
+
+          {meta && meta.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <button
+                disabled={!meta.hasPrev}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <span className="text-slate-500 text-sm">
+                Página {meta.page} de {meta.totalPages}
+              </span>
+              <button
+                disabled={!meta.hasNext}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
         </div>
-      </section>
+      </div>
 
       <ProveedorFormModal
         open={modalOpen}
@@ -298,6 +297,6 @@ export default function ProveedoresCards() {
         onClose={() => setDeudaProveedor(null)}
         onPagoRegistrado={fetchData}
       />
-    </>
+    </AppShell>
   );
 }

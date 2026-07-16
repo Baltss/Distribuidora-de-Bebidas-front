@@ -59,7 +59,7 @@ export default function DeudaProveedorModal({
           role="dialog"
           aria-modal="true"
         >
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
 
           <motion.div
             variants={panelV}
@@ -68,54 +68,54 @@ export default function DeudaProveedorModal({
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-2xl
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
               <div className="mb-5 flex items-center gap-3">
-                <FaFileInvoiceDollar className="h-6 w-6 text-gray-300 shrink-0" />
+                <FaFileInvoiceDollar className="h-6 w-6 text-emerald-600 shrink-0" />
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                     Cuenta corriente
                   </h3>
-                  <p className="text-sm text-gray-300">{proveedor?.razon_social}</p>
+                  <p className="text-sm text-slate-500">{proveedor?.razon_social}</p>
                 </div>
               </div>
 
               {loading ? (
-                <div className="text-center text-white/80 py-10">Cargando…</div>
+                <div className="text-center text-slate-400 py-10">Cargando…</div>
               ) : (
                 <>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 mb-5 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gray-200">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-5 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-slate-600">
                       <FaWallet className="opacity-70" />
                       <span className="text-sm">Deuda total</span>
                     </div>
-                    <span className="text-2xl font-extrabold text-white">
+                    <span className="text-2xl font-extrabold text-slate-900">
                       {moneyAR(deuda?.total_deuda ?? 0)}
                     </span>
                   </div>
 
                   <div className="space-y-2 mb-5">
-                    <h4 className="text-sm font-semibold text-gray-200 uppercase tracking-wide">
+                    <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
                       Compras pendientes
                     </h4>
                     {!deuda?.compras_pendientes?.length ? (
-                      <p className="text-sm text-gray-400">
+                      <p className="text-sm text-slate-400">
                         No hay compras pendientes de pago.
                       </p>
                     ) : (
-                      <div className="overflow-x-auto rounded-xl border border-white/10">
-                        <table className="w-full text-sm text-left text-gray-200">
-                          <thead className="bg-white/10 text-xs uppercase text-gray-300">
+                      <div className="overflow-x-auto rounded-xl border border-slate-200">
+                        <table className="w-full text-sm text-left text-slate-700">
+                          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                             <tr>
                               <th className="px-3 py-2">Compra</th>
                               <th className="px-3 py-2">Fecha</th>
@@ -128,7 +128,7 @@ export default function DeudaProveedorModal({
                           </thead>
                           <tbody>
                             {deuda.compras_pendientes.map((c) => (
-                              <tr key={c.id} className="border-t border-white/10">
+                              <tr key={c.id} className="border-t border-slate-100">
                                 <td className="px-3 py-2">#{c.id}</td>
                                 <td className="px-3 py-2">
                                   {c.fecha ? new Date(c.fecha).toLocaleDateString() : '—'}
@@ -151,15 +151,15 @@ export default function DeudaProveedorModal({
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={onClose}
-                      className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                     >
                       Cerrar
                     </button>
                     <button
                       onClick={() => setPagoOpen(true)}
                       disabled={!deuda?.total_deuda}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-semibold
-                                 hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold
+                                 disabled:opacity-50 disabled:cursor-not-allowed transition"
                     >
                       Registrar pago
                     </button>
