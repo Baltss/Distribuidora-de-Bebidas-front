@@ -8,8 +8,6 @@ import {
   formContainerV,
   fieldV
 } from '../../ui/animHelpers';
-//  Ya no usamos listClientes
-// import { listClientes } from '../../api/clientes';
 import { listClientesConDeudaFiado } from '../../api/cobranzasClientes';
 
 export default function SeleccionarClienteDeudaModal({
@@ -91,7 +89,7 @@ export default function SeleccionarClienteDeudaModal({
           aria-modal="true"
         >
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={handleClose}
           />
 
@@ -102,18 +100,17 @@ export default function SeleccionarClienteDeudaModal({
             exit="exit"
             className="relative w-full max-w-[95vw] sm:max-w-lg md:max-w-xl
                        max-h-[90vh] overflow-y-auto overscroll-contain
-                       rounded-3xl border border-white/10 bg-slate-950/95
-                       shadow-[0_0_40px_rgba(248,250,252,0.06)]"
+                       rounded-3xl border border-slate-200 bg-white shadow-2xl"
           >
             {/* Cerrar */}
             <button
               onClick={handleClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-xl
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition disabled:opacity-50"
+                         bg-slate-100 border border-slate-200 hover:bg-slate-200 transition disabled:opacity-50"
               aria-label="Cerrar"
               disabled={loading}
             >
-              <X className="h-5 w-5 text-slate-100" />
+              <X className="h-5 w-5 text-slate-500" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-7">
@@ -126,17 +123,17 @@ export default function SeleccionarClienteDeudaModal({
               >
                 <motion.h2
                   variants={fieldV}
-                  className="titulo uppercase text-xl sm:text-2xl font-bold tracking-tight text-slate-50 flex items-center gap-2"
+                  className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2"
                 >
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500/15 border border-emerald-400/40">
-                    <Users className="h-5 w-5 text-emerald-300" />
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-200">
+                    <Users className="h-5 w-5 text-emerald-600" />
                   </span>
                   Cobrar fiado a cliente
                 </motion.h2>
 
                 <motion.p
                   variants={fieldV}
-                  className="mt-2 text-xs sm:text-sm text-slate-300"
+                  className="mt-2 text-xs sm:text-sm text-slate-500"
                 >
                   Elegí entre los clientes que hoy tienen deuda pendiente.
                 </motion.p>
@@ -150,7 +147,7 @@ export default function SeleccionarClienteDeudaModal({
                 className="space-y-4"
               >
                 <motion.div variants={fieldV} className="relative">
-                  <label className="block text-xs font-medium text-slate-200 mb-1.5">
+                  <label className="block text-xs font-medium text-slate-600 mb-1.5">
                     Cliente
                   </label>
                   <div className="relative">
@@ -162,8 +159,8 @@ export default function SeleccionarClienteDeudaModal({
                       value={q}
                       onChange={(e) => setQ(e.target.value)}
                       placeholder="Buscar por nombre o DNI/CUIT…"
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-white/10 bg-slate-900/80 text-sm text-slate-50
-                                 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-transparent"
+                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
+                                 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent"
                     />
                   </div>
                   <p className="mt-1 text-[11px] text-slate-400">
@@ -174,11 +171,11 @@ export default function SeleccionarClienteDeudaModal({
                 {/* Lista de clientes (solo con deuda) */}
                 <motion.div
                   variants={fieldV}
-                  className="max-h-[260px] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-950/80 px-2 py-2"
+                  className="max-h-[260px] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 px-2 py-2"
                 >
                   {loading ? (
-                    <div className="py-8 flex flex-col items-center gap-2 text-xs text-slate-300">
-                      <div className="h-6 w-6 rounded-full border-2 border-emerald-300/70 border-t-transparent animate-spin" />
+                    <div className="py-8 flex flex-col items-center gap-2 text-xs text-slate-500">
+                      <div className="h-6 w-6 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
                       Cargando clientes con deuda…
                     </div>
                   ) : filtrados.length === 0 ? (
@@ -198,14 +195,14 @@ export default function SeleccionarClienteDeudaModal({
                                         border transition-all flex flex-col gap-0.5
                                         ${
                                           isSelected
-                                            ? 'border-emerald-400 bg-emerald-500/10 shadow-[0_0_0_1px_rgba(52,211,153,0.4)]'
-                                            : 'border-slate-800 bg-slate-900/60 hover:border-emerald-400/70 hover:bg-slate-900'
+                                            ? 'border-emerald-400 bg-emerald-50 ring-1 ring-emerald-300'
+                                            : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50'
                                         }`}
                           >
-                            <span className="font-semibold text-slate-50 truncate">
+                            <span className="font-semibold text-slate-800 truncate">
                               {c.nombre}
                             </span>
-                            <span className="text-[11px] text-slate-300 truncate">
+                            <span className="text-[11px] text-slate-500 truncate">
                               {c.documento
                                 ? `DNI/CUIT: ${c.documento}`
                                 : 'Sin documento'}
@@ -216,7 +213,7 @@ export default function SeleccionarClienteDeudaModal({
                               </span>
                             )}
                             {typeof c.total_pendiente === 'number' && (
-                              <span className="text-[11px] text-emerald-300 truncate">
+                              <span className="text-[11px] text-emerald-600 truncate">
                                 Deuda: $
                                 {c.total_pendiente.toLocaleString('es-AR', {
                                   minimumFractionDigits: 2
@@ -233,9 +230,9 @@ export default function SeleccionarClienteDeudaModal({
                 {/* Seleccionado */}
                 <motion.div
                   variants={fieldV}
-                  className="text-xs text-slate-300"
+                  className="text-xs text-slate-500"
                 >
-                  <span className="font-semibold">Seleccionado: </span>
+                  <span className="font-semibold text-slate-600">Seleccionado: </span>
                   {selectedId
                     ? (() => {
                         const c = clientes.find(
@@ -254,7 +251,7 @@ export default function SeleccionarClienteDeudaModal({
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="px-4 py-2 rounded-xl border border-white/15 text-slate-100 text-sm hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
@@ -262,8 +259,8 @@ export default function SeleccionarClienteDeudaModal({
                     type="button"
                     disabled={!selectedId || loading}
                     onClick={handleConfirm}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-sm font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold
+                               disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     Ver deuda y cobrar
                   </button>
@@ -272,7 +269,7 @@ export default function SeleccionarClienteDeudaModal({
                 {/* Footer mini */}
                 <motion.div
                   variants={fieldV}
-                  className="mt-2 pt-3 border-t border-white/10 flex items-center justify-between gap-3"
+                  className="mt-2 pt-3 border-t border-slate-200 flex items-center justify-between gap-3"
                 >
                   <span className="text-[11px] text-slate-400">
                     Módulo CxC · SodaSale · SoftFusion
@@ -282,7 +279,7 @@ export default function SeleccionarClienteDeudaModal({
                       href="https://www.instagram.com/softfusiontechnologies/"
                       target="_blank"
                       rel="noreferrer"
-                      className="h-7 w-7 flex items-center justify-center rounded-full bg-white/5 border border-white/20 hover:bg-white/15 transition text-[11px] text-slate-50"
+                      className="h-7 w-7 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition text-[11px] text-slate-600"
                     >
                       IG
                     </a>
@@ -290,7 +287,7 @@ export default function SeleccionarClienteDeudaModal({
                       href="https://softfusion.com.ar/"
                       target="_blank"
                       rel="noreferrer"
-                      className="h-7 px-3 flex items-center justify-center rounded-full bg-white/5 border border-white/20 hover:bg-white/15 transition text-[11px] text-slate-50"
+                      className="h-7 px-3 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition text-[11px] text-slate-600"
                     >
                       Web
                     </a>
