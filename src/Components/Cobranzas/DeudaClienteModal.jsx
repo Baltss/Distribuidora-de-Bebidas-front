@@ -501,7 +501,7 @@ export default function DeudaClienteModal({
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-50/40 backdrop-blur-sm"
             onClick={handleClose}
           />
 
@@ -512,19 +512,19 @@ export default function DeudaClienteModal({
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[94vw] sm:max-w-2xl lg:max-w-4xl max-h-[90vh]
-                       overflow-hidden rounded-3xl border border-emerald-300/30
-                       bg-gradient-to-br from-slate-950/95 via-slate-900/95 to-emerald-950/90
-                       shadow-[0_0_40px_rgba(16,185,129,0.55)]"
+                       overflow-hidden rounded-3xl border border-slate-200
+                       bg-white
+                       shadow-2xl"
           >
             {/* Cerrar */}
             <button
               onClick={handleClose}
               disabled={loading || savingCobro}
               className="absolute top-3 right-3 z-50 inline-flex h-9 w-9 items-center justify-center rounded-xl
-                         bg-white/5 border border-white/15 hover:bg-white/10 transition disabled:opacity-40"
+                         bg-slate-100 border border-slate-200 hover:bg-slate-200 transition disabled:opacity-40"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-emerald-50" />
+              <X className="h-5 w-5 text-slate-500" />
             </button>
 
             <div className="relative z-10 p-4 sm:p-6 md:p-8">
@@ -540,16 +540,16 @@ export default function DeudaClienteModal({
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                 >
                   <div>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/50 mb-2">
-                      <AlertTriangle className="h-4 w-4 text-emerald-300" />
-                      <span className="text-[11px] font-semibold text-emerald-100 tracking-wide uppercase">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-300 mb-2">
+                      <AlertTriangle className="h-4 w-4 text-emerald-600" />
+                      <span className="text-[11px] font-semibold text-slate-500 tracking-wide uppercase">
                         Cliente con deuda
                       </span>
                     </div>
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-emerald-50">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-slate-800">
                       {data?.cliente?.nombre || 'Cliente'}
                     </h3>
-                    <p className="text-xs sm:text-sm text-emerald-100/80 mt-1">
+                    <p className="text-xs sm:text-sm text-slate-500/80 mt-1">
                       DNI/CUIT:{' '}
                       <span className="font-medium">
                         {data?.cliente?.documento || '—'}
@@ -564,7 +564,7 @@ export default function DeudaClienteModal({
                       )}
                     </p>
                     {data?.cliente?.email && (
-                      <p className="text-xs sm:text-sm text-emerald-100/80">
+                      <p className="text-xs sm:text-sm text-slate-500/80">
                         Email:{' '}
                         <span className="font-medium">
                           {data.cliente.email}
@@ -575,18 +575,18 @@ export default function DeudaClienteModal({
 
                   {/* Total deuda grande */}
                   <div className="flex flex-col items-end gap-2">
-                    <span className="text-[11px] uppercase tracking-widest text-emerald-200/70">
+                    <span className="text-[11px] uppercase tracking-widest text-slate-400/70">
                       Deuda total
                     </span>
-                    <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500/20 border border-emerald-300/60 px-3.5 py-2.5 shadow-lg">
-                      <BadgeDollarSign className="h-6 w-6 text-emerald-200" />
-                      <span className="text-xl sm:text-2xl md:text-3xl font-extrabold text-emerald-50">
+                    <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-100 border border-emerald-300 px-3.5 py-2.5 shadow-lg">
+                      <BadgeDollarSign className="h-6 w-6 text-slate-400" />
+                      <span className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-800">
                         {formatMoneyARS(resumen.totalDeuda)}
                       </span>
                     </div>
 
                     {/*  - 25-02-2026 - Breakdown deuda */}
-                    <span className="text-[11px] text-emerald-100/80 text-right">
+                    <span className="text-[11px] text-slate-500/80 text-right">
                       Ventas pendientes:{' '}
                       <span className="font-semibold">
                         {formatMoneyARS(resumen.totalDeudaVentas)}
@@ -598,7 +598,7 @@ export default function DeudaClienteModal({
                       </span>
                     </span>
 
-                    <span className="text-[11px] text-emerald-100/80">
+                    <span className="text-[11px] text-slate-500/80">
                       {resumen.cantidadVentas} venta(s) pendientes
                     </span>
                   </div>
@@ -609,14 +609,14 @@ export default function DeudaClienteModal({
                   variants={fieldV}
                   className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm"
                 >
-                  <div className="rounded-2xl border border-emerald-500/40 bg-slate-950/70 px-3 py-2.5 flex items-center justify-between gap-2">
+                  <div className="rounded-2xl border border-emerald-200 bg-slate-50 px-3 py-2.5 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-emerald-300" />
-                      <span className="text-emerald-100/85">
+                      <Clock className="h-4 w-4 text-emerald-600" />
+                      <span className="text-slate-500/85">
                         Venta más vieja
                       </span>
                     </div>
-                    <span className="font-semibold text-emerald-50">
+                    <span className="font-semibold text-slate-800">
                       {ventasPendientes.length
                         ? formatFecha(
                             ventasPendientes[ventasPendientes.length - 1]?.fecha
@@ -624,14 +624,14 @@ export default function DeudaClienteModal({
                         : '—'}
                     </span>
                   </div>
-                  <div className="rounded-2xl border border-emerald-500/40 bg-slate-950/70 px-3 py-2.5 flex items-center justify-between gap-2">
+                  <div className="rounded-2xl border border-emerald-200 bg-slate-50 px-3 py-2.5 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-emerald-300" />
-                      <span className="text-emerald-100/85">
+                      <Clock className="h-4 w-4 text-emerald-600" />
+                      <span className="text-slate-500/85">
                         Máx. días de atraso
                       </span>
                     </div>
-                    <span className="font-semibold text-emerald-50">
+                    <span className="font-semibold text-slate-800">
                       {resumen.maxDiasAtraso} día(s)
                     </span>
                   </div>
@@ -648,7 +648,7 @@ export default function DeudaClienteModal({
                 {/* Mensajes de estado */}
                 {loading && (
                   <div className="flex items-center justify-center py-10">
-                    <div className="h-8 w-8 rounded-full border-2 border-emerald-300/70 border-t-transparent animate-spin" />
+                    <div className="h-8 w-8 rounded-full border-2 border-emerald-300 border-t-transparent animate-spin" />
                   </div>
                 )}
 
@@ -662,7 +662,7 @@ export default function DeudaClienteModal({
                   !error &&
                   !hasVentasPendientes &&
                   !hasSaldoPrevio && (
-                    <div className="rounded-2xl border border-emerald-400/50 bg-emerald-500/10 px-3 py-3 text-xs sm:text-sm text-emerald-50 text-center">
+                    <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-3 py-3 text-xs sm:text-sm text-slate-800 text-center">
                       Este cliente no tiene deuda pendiente.
                     </div>
                   )}
@@ -672,7 +672,7 @@ export default function DeudaClienteModal({
                   !error &&
                   (hasVentasPendientes || hasSaldoPrevio) && (
                     <motion.div variants={fieldV} className="space-y-3">
-                      <div className="inline-flex rounded-2xl border border-emerald-500/40 bg-slate-950/70 p-1 gap-1">
+                      <div className="inline-flex rounded-2xl border border-emerald-200 bg-slate-50 p-1 gap-1">
                         <button
                           type="button"
                           onClick={() => setModoCobro('unico')}
@@ -680,7 +680,7 @@ export default function DeudaClienteModal({
                           className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition disabled:opacity-50 ${
                             modoCobro === 'unico'
                               ? 'bg-emerald-500 text-slate-950'
-                              : 'text-emerald-100/80 hover:bg-emerald-500/10'
+                              : 'text-slate-500/80 hover:bg-emerald-50'
                           }`}
                         >
                           Monto único
@@ -692,7 +692,7 @@ export default function DeudaClienteModal({
                           className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition disabled:opacity-50 ${
                             modoCobro === 'detalle'
                               ? 'bg-emerald-500 text-slate-950'
-                              : 'text-emerald-100/80 hover:bg-emerald-500/10'
+                              : 'text-slate-500/80 hover:bg-emerald-50'
                           }`}
                         >
                           Detalle por venta
@@ -700,9 +700,9 @@ export default function DeudaClienteModal({
                       </div>
 
                       {modoCobro === 'unico' && (
-                        <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/70 px-3.5 py-3 space-y-2.5">
+                        <div className="rounded-2xl border border-emerald-200 bg-slate-50 px-3.5 py-3 space-y-2.5">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
-                            <label className="text-xs sm:text-sm text-emerald-100/85 shrink-0">
+                            <label className="text-xs sm:text-sm text-slate-500/85 shrink-0">
                               Monto a cobrar:
                             </label>
                             <input
@@ -714,19 +714,19 @@ export default function DeudaClienteModal({
                               onChange={(e) => setMontoUnico(e.target.value)}
                               disabled={loading || savingCobro}
                               autoFocus
-                              className="w-full sm:w-40 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2.5 py-1.5
-                                         text-right text-emerald-50 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-400/70
+                              className="w-full sm:w-40 rounded-lg bg-slate-50 border border-emerald-200 px-2.5 py-1.5
+                                         text-right text-slate-800 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-emerald-400/70
                                          disabled:opacity-60 disabled:cursor-not-allowed"
                               placeholder="0.00"
                             />
-                            <span className="text-[11px] text-emerald-100/70">
+                            <span className="text-[11px] text-slate-500/70">
                               Se aplica solo a las ventas más antiguas
                               primero, después a saldo previo.
                             </span>
                           </div>
 
                           {montoUnicoNumber > 0 && (
-                            <div className="text-[11px] sm:text-xs text-emerald-100/85 border-t border-emerald-500/15 pt-2 space-y-0.5">
+                            <div className="text-[11px] sm:text-xs text-slate-500/85 border-t border-emerald-100 pt-2 space-y-0.5">
                               {allocation.porVenta.size > 0 && (
                                 <p>
                                   Cubre {allocation.ventasCompletas} venta
@@ -741,7 +741,7 @@ export default function DeudaClienteModal({
                                     ? ` + 1 parcial`
                                     : ''}{' '}
                                   · Total ventas:{' '}
-                                  <span className="font-semibold text-emerald-50">
+                                  <span className="font-semibold text-slate-800">
                                     {formatMoneyARS(allocation.totalVentas)}
                                   </span>
                                 </p>
@@ -749,7 +749,7 @@ export default function DeudaClienteModal({
                               {allocation.aSaldoPrevio > 0 && (
                                 <p>
                                   Aplicado a saldo previo:{' '}
-                                  <span className="font-semibold text-emerald-50">
+                                  <span className="font-semibold text-slate-800">
                                     {formatMoneyARS(allocation.aSaldoPrevio)}
                                   </span>
                                 </p>
@@ -774,7 +774,7 @@ export default function DeudaClienteModal({
                 {!loading && !error && hasSaldoPrevio && (
                   <motion.div variants={fieldV} className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-sm sm:text-base font-semibold text-emerald-50">
+                      <h4 className="text-sm sm:text-base font-semibold text-slate-800">
                         Saldos previos (deuda histórica)
                       </h4>
 
@@ -783,19 +783,19 @@ export default function DeudaClienteModal({
                           type="button"
                           onClick={handleCobrarTodoSaldoPrevio}
                           disabled={loading || savingCobro}
-                          className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-400/60
-                                     text-emerald-50 bg-slate-950/70 hover:bg-emerald-500/15 transition disabled:opacity-50"
+                          className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-300
+                                     text-slate-800 bg-slate-50 hover:bg-emerald-50 transition disabled:opacity-50"
                         >
                           Cobrar saldo previo
                         </button>
                       )}
                     </div>
 
-                    <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/70 overflow-hidden">
+                    <div className="rounded-2xl border border-emerald-200 bg-slate-50 overflow-hidden">
                       <div className="max-h-[22vh] overflow-y-auto">
                         <table className="min-w-full text-xs sm:text-sm">
-                          <thead className="sticky top-0 bg-slate-900/95 backdrop-blur-sm">
-                            <tr className="text-emerald-100/80">
+                          <thead className="sticky top-0 bg-slate-50/95 backdrop-blur-sm">
+                            <tr className="text-slate-500/80">
                               <th className="px-3 py-2 text-left font-medium">
                                 Fecha
                               </th>
@@ -811,15 +811,15 @@ export default function DeudaClienteModal({
                             {saldosPrevios.map((sp) => (
                               <tr
                                 key={sp.id}
-                                className="border-t border-emerald-500/15 hover:bg-emerald-500/5 transition"
+                                className="border-t border-emerald-100 hover:bg-emerald-50 transition"
                               >
-                                <td className="px-3 py-2 whitespace-nowrap text-emerald-100/90">
+                                <td className="px-3 py-2 whitespace-nowrap text-slate-500/90">
                                   {formatFecha(sp.fecha)}
                                 </td>
-                                <td className="px-3 py-2 text-emerald-100/85">
+                                <td className="px-3 py-2 text-slate-500/85">
                                   {sp.descripcion || '—'}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-right text-emerald-50 font-semibold">
+                                <td className="px-3 py-2 whitespace-nowrap text-right text-slate-800 font-semibold">
                                   {formatMoneyARS(sp.monto || 0)}
                                 </td>
                               </tr>
@@ -828,21 +828,21 @@ export default function DeudaClienteModal({
                         </table>
                       </div>
 
-                      <div className="border-t border-emerald-500/15 px-3 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div className="text-[11px] text-emerald-100/80">
+                      <div className="border-t border-emerald-100 px-3 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="text-[11px] text-slate-500/80">
                           Total saldo previo:{' '}
-                          <span className="font-semibold text-emerald-50">
+                          <span className="font-semibold text-slate-800">
                             {formatMoneyARS(resumen.saldoPrevioTotal)}
                           </span>
                         </div>
 
                         <div className="flex items-center gap-2 justify-end">
-                          <span className="text-[11px] text-emerald-100/80">
+                          <span className="text-[11px] text-slate-500/80">
                             Cobrar ahora:
                           </span>
 
                           {modoCobro === 'unico' ? (
-                            <span className="w-28 text-right text-emerald-50 text-xs font-semibold">
+                            <span className="w-28 text-right text-slate-800 text-xs font-semibold">
                               {formatMoneyARS(allocation.aSaldoPrevio)}
                             </span>
                           ) : (
@@ -856,8 +856,8 @@ export default function DeudaClienteModal({
                                 setCobroSaldoPrevio(e.target.value)
                               }
                               disabled={loading || savingCobro}
-                              className="w-28 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2 py-1
-                                         text-right text-emerald-50 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
+                              className="w-28 rounded-lg bg-slate-50 border border-emerald-200 px-2 py-1
+                                         text-right text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
                                          disabled:opacity-60 disabled:cursor-not-allowed"
                               placeholder="0.00"
                             />
@@ -871,23 +871,23 @@ export default function DeudaClienteModal({
                 {/* Ventas pendientes */}
                 {!loading && !error && hasVentasPendientes && (
                   <motion.div variants={fieldV}>
-                    <h4 className="text-sm sm:text-base font-semibold text-emerald-50 mb-2 flex items-center justify-between gap-2">
+                    <h4 className="text-sm sm:text-base font-semibold text-slate-800 mb-2 flex items-center justify-between gap-2">
                       <span>Detalle de ventas fiadas pendientes</span>
                       <button
                         type="button"
                         onClick={handleCobrarTodo}
                         disabled={loading || savingCobro}
-                        className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-400/60
-                                   text-emerald-50 bg-slate-950/70 hover:bg-emerald-500/15 transition disabled:opacity-50"
+                        className="text-[11px] sm:text-xs px-3 py-1 rounded-full border border-emerald-300
+                                   text-slate-800 bg-slate-50 hover:bg-emerald-50 transition disabled:opacity-50"
                       >
                         {modoCobro === 'unico' ? 'Cobrar deuda total' : 'Cobrar todo'}
                       </button>
                     </h4>
-                    <div className="rounded-2xl border border-emerald-400/40 bg-slate-950/70 overflow-hidden">
+                    <div className="rounded-2xl border border-emerald-200 bg-slate-50 overflow-hidden">
                       <div className="max-h-[38vh] overflow-y-auto">
                         <table className="min-w-full text-xs sm:text-sm">
-                          <thead className="sticky top-0 bg-slate-900/95 backdrop-blur-sm">
-                            <tr className="text-emerald-100/80">
+                          <thead className="sticky top-0 bg-slate-50/95 backdrop-blur-sm">
+                            <tr className="text-slate-500/80">
                               <th className="px-3 py-2 text-left font-medium">
                                 Venta
                               </th>
@@ -918,26 +918,26 @@ export default function DeudaClienteModal({
                             {ventasPendientes.map((v) => (
                               <tr
                                 key={v.id}
-                                className="border-t border-emerald-500/15 hover:bg-emerald-500/5 transition"
+                                className="border-t border-emerald-100 hover:bg-emerald-50 transition"
                               >
-                                <td className="px-3 py-2 whitespace-nowrap text-emerald-50">
+                                <td className="px-3 py-2 whitespace-nowrap text-slate-800">
                                   #{v.id}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-emerald-100/90">
+                                <td className="px-3 py-2 whitespace-nowrap text-slate-500/90">
                                   {formatFecha(v.fecha)}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-right text-emerald-50">
+                                <td className="px-3 py-2 whitespace-nowrap text-right text-slate-800">
                                   {formatMoneyARS(v.total_venta || 0)}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-right text-emerald-100/85">
+                                <td className="px-3 py-2 whitespace-nowrap text-right text-slate-500/85">
                                   {formatMoneyARS(v.cobrado || 0)}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-right text-emerald-50 font-semibold">
+                                <td className="px-3 py-2 whitespace-nowrap text-right text-slate-800 font-semibold">
                                   {formatMoneyARS(v.saldo || 0)}
                                 </td>
                                 <td className="px-3 py-2 whitespace-nowrap text-right">
                                   {modoCobro === 'unico' ? (
-                                    <span className="inline-block w-24 text-right text-emerald-50 text-xs font-semibold">
+                                    <span className="inline-block w-24 text-right text-slate-800 text-xs font-semibold">
                                       {allocation.porVenta.get(v.id)
                                         ? formatMoneyARS(
                                             allocation.porVenta.get(v.id)
@@ -959,13 +959,13 @@ export default function DeudaClienteModal({
                                         handleChangeCobro(v.id, e.target.value)
                                       }
                                       disabled={loading || savingCobro}
-                                      className="w-24 rounded-lg bg-slate-900/80 border border-emerald-500/40 px-2 py-1
-                                                 text-right text-emerald-50 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
+                                      className="w-24 rounded-lg bg-slate-50 border border-emerald-200 px-2 py-1
+                                                 text-right text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-400/70
                                                  disabled:opacity-60 disabled:cursor-not-allowed"
                                     />
                                   )}
                                 </td>
-                                <td className="px-3 py-2 whitespace-nowrap text-center text-emerald-100/85">
+                                <td className="px-3 py-2 whitespace-nowrap text-center text-slate-500/85">
                                   {v.dias_atraso} día(s)
                                 </td>
                                 <td className="px-3 py-2 whitespace-nowrap text-center">
@@ -973,7 +973,7 @@ export default function DeudaClienteModal({
                                     type="button"
                                     onClick={() => onVerVenta?.(v.id)}
                                     className="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-[11px] sm:text-xs
-                                               bg-emerald-500/80 hover:bg-emerald-400 text-slate-950 font-semibold transition"
+                                               bg-emerald-600 hover:bg-emerald-400 text-slate-950 font-semibold transition"
                                   >
                                     Ver venta
                                   </button>
@@ -994,13 +994,13 @@ export default function DeudaClienteModal({
                     <motion.div variants={fieldV} className="space-y-3 mt-2">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                          <p className="text-[11px] text-emerald-100/80 uppercase tracking-wide">
+                          <p className="text-[11px] text-slate-500/80 uppercase tracking-wide">
                             Monto a cobrar ahora
                           </p>
-                          <p className="text-lg sm:text-xl font-bold text-emerald-50">
+                          <p className="text-lg sm:text-xl font-bold text-slate-800">
                             {formatMoneyARS(totalCobrarAhoraEfectivo)}
                           </p>
-                          <p className="text-[11px] text-emerald-100/70">
+                          <p className="text-[11px] text-slate-500/70">
                             Ventas: {formatMoneyARS(totalCobrarVentasEfectivo)} ·
                             Saldo previo:{' '}
                             {formatMoneyARS(totalCobrarSaldoPrevioEfectivo)}
@@ -1015,17 +1015,17 @@ export default function DeudaClienteModal({
                           </p>
                         </div>
                         <div className="text-left sm:text-right">
-                          <p className="text-[11px] text-emerald-100/70">
+                          <p className="text-[11px] text-slate-500/70">
                             Saldo estimado luego del cobro
                           </p>
-                          <p className="text-sm font-semibold text-emerald-100">
+                          <p className="text-sm font-semibold text-slate-500">
                             {formatMoneyARS(saldoPostCobro)}
                           </p>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] sm:text-xs text-emerald-100/80 mb-1">
+                        <label className="block text-[11px] sm:text-xs text-slate-500/80 mb-1">
                           Observaciones del cobro (opcional)
                         </label>
                         <textarea
@@ -1033,8 +1033,8 @@ export default function DeudaClienteModal({
                           value={observaciones}
                           onChange={(e) => setObservaciones(e.target.value)}
                           disabled={loading || savingCobro}
-                          className="w-full rounded-2xl bg-slate-950/70 border border-emerald-500/40 px-3 py-2 text-xs sm:text-sm
-                                   text-emerald-50 resize-y focus:outline-none focus:ring-2 focus:ring-emerald-400/60
+                          className="w-full rounded-2xl bg-slate-50 border border-emerald-200 px-3 py-2 text-xs sm:text-sm
+                                   text-slate-800 resize-y focus:outline-none focus:ring-2 focus:ring-emerald-400/60
                                    disabled:opacity-60 disabled:cursor-not-allowed"
                           placeholder="Ej: Cobro en efectivo, saldo parcial..."
                         />
@@ -1053,8 +1053,8 @@ export default function DeudaClienteModal({
                         type="button"
                         onClick={handleClose}
                         disabled={loading || savingCobro}
-                        className="px-4 py-2 rounded-xl border border-emerald-400/50 text-emerald-50 text-sm
-                                   bg-slate-950/70 hover:bg-slate-900 transition disabled:opacity-50"
+                        className="px-4 py-2 rounded-xl border border-emerald-300 text-slate-800 text-sm
+                                   bg-slate-50 hover:bg-slate-50 transition disabled:opacity-50"
                       >
                         Cerrar
                       </button>
@@ -1076,53 +1076,53 @@ export default function DeudaClienteModal({
                       )}
                     </div>
 
-                    <p className="text-[11px] sm:text-xs text-emerald-100/80 text-right">
+                    <p className="text-[11px] sm:text-xs text-slate-500/80 text-right">
                       Recordá registrar las cobranzas para mantener actualizada
                       la cuenta corriente del cliente.
                     </p>
                   </div>
 
                   {/* Redes SoftFusion */}
-                  <div className="pt-2 border-t border-white/10 flex items-center justify-center gap-3">
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-center gap-3">
                     <a
                       href="https://www.instagram.com/softfusiontechnologies/"
                       target="_blank"
                       rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-white/5 border border-white/20
-                                 hover:bg-white/15 hover:scale-105 transition"
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
+                                 hover:bg-slate-200 hover:scale-105 transition"
                       title="Instagram SoftFusion"
                     >
-                      <FaInstagram className="text-lg text-emerald-100" />
+                      <FaInstagram className="text-lg text-slate-500" />
                     </a>
                     <a
                       href="https://softfusion.com.ar/"
                       target="_blank"
                       rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-white/5 border border-white/20
-                                 hover:bg-white/15 hover:scale-105 transition"
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
+                                 hover:bg-slate-200 hover:scale-105 transition"
                       title="Web SoftFusion"
                     >
-                      <FaGlobe className="text-lg text-emerald-100" />
+                      <FaGlobe className="text-lg text-slate-500" />
                     </a>
                     <a
                       href="https://wa.me/5493815430503"
                       target="_blank"
                       rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-white/5 border border-white/20
-                                 hover:bg-white/15 hover:scale-105 transition"
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
+                                 hover:bg-slate-200 hover:scale-105 transition"
                       title="WhatsApp SoftFusion"
                     >
-                      <FaWhatsapp className="text-lg text-emerald-100" />
+                      <FaWhatsapp className="text-lg text-slate-500" />
                     </a>
                     <a
                       href="https://www.linkedin.com/in/soft-fusionsa/"
                       target="_blank"
                       rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-white/5 border border-white/20
-                                 hover:bg-white/15 hover:scale-105 transition"
+                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
+                                 hover:bg-slate-200 hover:scale-105 transition"
                       title="LinkedIn SoftFusion"
                     >
-                      <FaLinkedin className="text-lg text-emerald-100" />
+                      <FaLinkedin className="text-lg text-slate-500" />
                     </a>
                   </div>
                 </motion.div>
