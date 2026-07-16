@@ -1,17 +1,13 @@
 // src/Pages/Geografia/AdminPageGeografia.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
-import { useAuth } from '../../AuthContext';
-import ParticlesBackground from '../../Components/ParticlesBackground';
+import { Link, useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { motion } from 'framer-motion';
-import ButtonBack from '../../Components/ButtonBack';
+import { FaArrowLeft } from 'react-icons/fa';
 import {
   FaCity,
   FaMap,
-  FaMapMarkerAlt, /* FaHome (opcional) */
+  FaMapMarkerAlt,
   FaTruckPickup
 } from 'react-icons/fa';
 
@@ -34,57 +30,54 @@ const geografiaLinks = [
   {
     to: '/dashboard/geografia/barrios',
     label: 'Barrios',
-    icon: <FaMapMarkerAlt /> // o <FaHome /> si preferís “viviendas/barrio”
+    icon: <FaMapMarkerAlt />
   }
 ];
 
 const AdminPageGeografia = () => {
-  const { userLevel } = useAuth(); // por si necesitás permisos/roles más adelante
+  const navigate = useNavigate();
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        {/* 🎨 Gradiente teal/azul en vez de morado */}
-        <div className="min-h-screen bg-gradient-to-b from-[#001219] via-[#003049] to-[#005f73]">
-          <ParticlesBackground />
-          <ButtonBack />
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl titulo uppercase font-bold text-white mb-8 drop-shadow-md"
-            >
-              Gestión de área geográfica{' '}
-            </motion.h1>
-          </div>
-
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-center">
-              {geografiaLinks.map(({ to, label, icon }, index) => (
-                <Link
-                  to={typeof to === 'string' ? to : to.pathname}
-                  state={typeof to === 'object' ? to.state || {} : {}}
-                  key={label}
-                  className="flex justify-center"
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="bg-white/90 backdrop-blur-xl shadow-lg hover:shadow-teal-400 transition-all duration-300 text-gray-800 font-semibold text-lg rounded-2xl w-full max-w-xs p-6 flex flex-col items-center justify-center border border-white/20 hover:scale-[1.03] gap-3"
-                  >
-                    <span className="text-4xl text-teal-600">{icon}</span>
-                    <span className="text-center">{label}</span>
-                  </motion.div>
-                </Link>
-              ))}
-            </div>
-          </div>
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
         </div>
-      </section>
-    </>
+
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Gestión de área geográfica
+        </motion.h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Elegí una sección para administrar ciudades, localidades y barrios.
+        </p>
+
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+          {geografiaLinks.map(({ to, label, icon }, index) => (
+            <Link to={to} key={label} className="flex">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: index * 0.08 }}
+                className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-slate-700 font-semibold text-base p-6 flex flex-col items-center justify-center gap-3"
+              >
+                <span className="text-3xl text-teal-600">{icon}</span>
+                <span className="text-center text-slate-800">{label}</span>
+              </motion.div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </AppShell>
   );
 };
 
