@@ -97,7 +97,7 @@ export default function CategoriasManagerModal({ open, onClose, onChanged }) {
           role="dialog"
           aria-modal="true"
         >
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
 
           <motion.div
             variants={panelV}
@@ -106,21 +106,21 @@ export default function CategoriasManagerModal({ open, onClose, onChanged }) {
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-md
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <Layers className="h-6 w-6 text-gray-300 shrink-0" />
-                <h3 className="text-xl font-bold tracking-tight text-white">Categorías</h3>
+                <Layers className="h-6 w-6 text-violet-600 shrink-0" />
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">Categorías</h3>
               </div>
 
               {/* Alta */}
@@ -135,14 +135,14 @@ export default function CategoriasManagerModal({ open, onClose, onChanged }) {
                     }
                   }}
                   placeholder="Nombre de la nueva categoría"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-white
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-slate-800
+                             placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-400/40 focus:border-transparent"
                 />
                 <button
                   type="button"
                   onClick={crear}
                   disabled={saving || !nuevoNombre.trim()}
-                  className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                 >
                   <Check className="h-4 w-4" /> {saving ? 'Guardando…' : 'Crear'}
                 </button>
@@ -150,27 +150,27 @@ export default function CategoriasManagerModal({ open, onClose, onChanged }) {
 
               {/* Listado */}
               {loading ? (
-                <div className="text-center text-white/70 py-6">Cargando…</div>
+                <div className="text-center text-slate-400 py-6">Cargando…</div>
               ) : categorias.length === 0 ? (
-                <div className="text-center text-white/70 py-6">Todavía no hay categorías.</div>
+                <div className="text-center text-slate-400 py-6">Todavía no hay categorías.</div>
               ) : (
                 <ul className="space-y-2">
                   {categorias.map((c) => (
                     <li
                       key={c.id}
-                      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2"
+                      className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
                     >
-                      <span className="text-gray-100 inline-flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-gray-400" />
+                      <span className="text-slate-700 inline-flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-slate-400" />
                         {c.nombre}
                         {c.estado === 'inactivo' && (
-                          <span className="text-[10px] uppercase text-amber-300/80">(inactiva)</span>
+                          <span className="text-[10px] uppercase text-amber-600">(inactiva)</span>
                         )}
                       </span>
                       <button
                         type="button"
                         onClick={() => eliminar(c)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-rose-300 hover:bg-rose-500/10 transition"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-rose-500 hover:bg-rose-50 transition"
                         title="Eliminar"
                       >
                         <Trash2 className="h-4 w-4" />

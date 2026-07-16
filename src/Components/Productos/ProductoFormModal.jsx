@@ -36,6 +36,11 @@ const UM_OPTS = [
   { value: 'kg', label: 'Kilogramos (kg)' }
 ];
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 ' +
+  'placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent';
+const labelCls = 'flex items-center gap-2 text-sm font-medium text-slate-700 mb-2';
+
 export default function ProductoFormModal({
   open,
   onClose,
@@ -289,27 +294,11 @@ export default function ProductoFormModal({
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
 
-          {/* Ambient deco */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-[0.16]"
-            style={{
-              backgroundImage:
-                'linear-gradient(to right, rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.06) 1px, transparent 1px)',
-              backgroundSize: '36px 36px'
-            }}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-24 -left-20 size-[22rem] sm:size-[28rem] rounded-full blur-3xl opacity-45
-                       bg-[conic-gradient(from_180deg_at_50%_50%,rgba(59,130,246,0.14),rgba(6,182,212,0.12),rgba(99,102,241,0.12),transparent,rgba(6,182,212,0.12))]"
-          />
-
-          {/* Panel vítreo */}
+          {/* Panel */}
           <motion.div
             variants={panelV}
             initial="hidden"
@@ -317,16 +306,16 @@ export default function ProductoFormModal({
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-xl md:max-w-lg
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             {/* Close */}
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -337,10 +326,10 @@ export default function ProductoFormModal({
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
                 className="mb-5 sm:mb-6 flex items-center gap-3"
               >
-                <Package className="h-6 w-6 text-gray-300 shrink-0" />
+                <Package className="h-6 w-6 text-blue-600 shrink-0" />
                 <h3
                   id={titleId}
-                  className="text-xl sm:text-2xl font-bold tracking-tight text-white"
+                  className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900"
                 >
                   {isEdit ? 'Editar Producto' : 'Nuevo Producto'}
                 </h3>
@@ -357,20 +346,19 @@ export default function ProductoFormModal({
               >
                 {/* Nombre */}
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Package className="h-4 w-4 text-gray-400" />
-                    Nombre <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    <Package className="h-4 w-4 text-slate-400" />
+                    Nombre <span className="text-blue-600">*</span>
                   </label>
                   <input
                     name="nombre"
                     value={form.nombre}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder='Ej: "Soda"'
                   />
                   {errors.nombre && (
-                    <p className="mt-1 text-sm text-rose-300">
+                    <p className="mt-1 text-sm text-rose-600">
                       {errors.nombre}
                     </p>
                   )}
@@ -378,8 +366,8 @@ export default function ProductoFormModal({
 
                 {/* Categoría (dinámica) con alta rápida */}
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Layers className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <Layers className="h-4 w-4 text-slate-400" />
                     Categoría (opcional)
                   </label>
                   <div className="flex gap-2">
@@ -387,12 +375,11 @@ export default function ProductoFormModal({
                       name="categoria_id"
                       value={form.categoria_id}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={`${inputCls} text-slate-800`}
                     >
-                      <option value="" className="text-black">Sin categoría</option>
+                      <option value="">Sin categoría</option>
                       {categorias.map((c) => (
-                        <option key={c.id} value={c.id} className="text-black">
+                        <option key={c.id} value={c.id}>
                           {c.nombre}
                         </option>
                       ))}
@@ -400,7 +387,7 @@ export default function ProductoFormModal({
                     <button
                       type="button"
                       onClick={() => setCatNuevaOpen((v) => !v)}
-                      className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl border border-cyan-400/40 bg-cyan-400/10 text-cyan-200 text-sm hover:bg-cyan-400/20 transition"
+                      className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-sm hover:bg-blue-100 transition"
                       title="Agregar nueva categoría"
                     >
                       <Plus className="h-4 w-4" /> Nueva
@@ -419,14 +406,13 @@ export default function ProductoFormModal({
                           }
                         }}
                         placeholder="Nombre de la nueva categoría"
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-white
-                                   placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                        className={`${inputCls} py-2.5`}
                       />
                       <button
                         type="button"
                         onClick={crearCategoriaRapida}
                         disabled={catSaving || !catNuevaNombre.trim()}
-                        className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white text-sm font-semibold hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        className="shrink-0 inline-flex items-center gap-1 px-3 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       >
                         <Check className="h-4 w-4" /> {catSaving ? 'Guardando…' : 'Crear'}
                       </button>
@@ -437,28 +423,27 @@ export default function ProductoFormModal({
                 {/* SKU + EAN */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Tag className="h-4 w-4 text-gray-400" />
-                      Código SKU <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      <Tag className="h-4 w-4 text-slate-400" />
+                      Código SKU <span className="text-blue-600">*</span>
                     </label>
                     <input
                       name="codigo_sku"
                       value={form.codigo_sku}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent uppercase"
+                      className={`${inputCls} uppercase`}
                       placeholder="SODA-UNI / AGUA-P12"
                     />
                     {errors.codigo_sku && (
-                      <p className="mt-1 text-sm text-rose-300">
+                      <p className="mt-1 text-sm text-rose-600">
                         {errors.codigo_sku}
                       </p>
                     )}
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Barcode className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Barcode className="h-4 w-4 text-slate-400" />
                       EAN (opcional)
                     </label>
                     <input
@@ -466,12 +451,11 @@ export default function ProductoFormModal({
                       value={form.barra_ean13}
                       onChange={handle}
                       inputMode="numeric"
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="8 a 13 dígitos"
                     />
                     {errors.barra_ean13 && (
-                      <p className="mt-1 text-sm text-rose-300">
+                      <p className="mt-1 text-sm text-rose-600">
                         {errors.barra_ean13}
                       </p>
                     )}
@@ -481,8 +465,8 @@ export default function ProductoFormModal({
                 {/* Presentación + Pack */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Boxes className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Boxes className="h-4 w-4 text-slate-400" />
                       Presentación
                     </label>
                     <div className="flex gap-2">
@@ -491,8 +475,8 @@ export default function ProductoFormModal({
                         onClick={() => setPresentacion('unidad')}
                         className={`px-3 py-2 rounded-lg border ${
                           form.presentacion === 'unidad'
-                            ? 'border-cyan-400 bg-cyan-400/10 text-cyan-200'
-                            : 'border-white/10 text-gray-200 hover:bg-white/10'
+                            ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         } transition`}
                       >
                         Unidad
@@ -502,22 +486,22 @@ export default function ProductoFormModal({
                         onClick={() => setPresentacion('pack')}
                         className={`px-3 py-2 rounded-lg border ${
                           form.presentacion === 'pack'
-                            ? 'border-cyan-400 bg-cyan-400/10 text-cyan-200'
-                            : 'border-white/10 text-gray-200 hover:bg-white/10'
+                            ? 'border-blue-400 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                         } transition`}
                       >
                         Pack
                       </button>
                     </div>
-                    <p className="mt-2 text-xs text-gray-300/80">
+                    <p className="mt-2 text-xs text-slate-500">
                       Seleccionado:{' '}
                       <span className="font-medium">{presentacionLabel}</span>
                     </p>
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Hash className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Hash className="h-4 w-4 text-slate-400" />
                       Cantidad por pack
                     </label>
                     <input
@@ -528,17 +512,17 @@ export default function ProductoFormModal({
                       value={form.pack_cantidad}
                       onChange={handle}
                       disabled={form.presentacion === 'unidad'}
-                      className={`w-full rounded-xl border px-3.5 py-3 text-white placeholder-gray-400
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                      className={`w-full rounded-xl border px-3.5 py-3 text-slate-800 placeholder-slate-400
+                                 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent
                                  ${
                                    form.presentacion === 'unidad'
-                                     ? 'bg-white/10 border-white/10 opacity-60 cursor-not-allowed'
-                                     : 'bg-white/5 border-white/10'
+                                     ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
+                                     : 'bg-white border-slate-200'
                                  }`}
                       placeholder="Ej: 12, 24…"
                     />
                     {errors.pack_cantidad && (
-                      <p className="mt-1 text-sm text-rose-300">
+                      <p className="mt-1 text-sm text-rose-600">
                         {errors.pack_cantidad}
                       </p>
                     )}
@@ -548,23 +532,18 @@ export default function ProductoFormModal({
                 {/* Unidad de medida + Contenido */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Ruler className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Ruler className="h-4 w-4 text-slate-400" />
                       Unidad de medida
                     </label>
                     <select
                       name="unidad_medida"
                       value={form.unidad_medida}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                     >
                       {UM_OPTS.map((o) => (
-                        <option
-                          className="text-black"
-                          key={o.value}
-                          value={o.value}
-                        >
+                        <option key={o.value} value={o.value}>
                           {o.label}
                         </option>
                       ))}
@@ -572,8 +551,8 @@ export default function ProductoFormModal({
                   </motion.div>
 
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Ruler className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Ruler className="h-4 w-4 text-slate-400" />
                       Contenido (opcional)
                     </label>
                     <input
@@ -583,8 +562,7 @@ export default function ProductoFormModal({
                       step="0.01"
                       value={form.contenido}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="Ej: 2.25 (si UM=l)"
                     />
                   </motion.div>
@@ -592,8 +570,8 @@ export default function ProductoFormModal({
 
                 {/* Stock mínimo */}
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Boxes className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <Boxes className="h-4 w-4 text-slate-400" />
                     Stock mínimo (opcional)
                   </label>
                   <input
@@ -604,8 +582,7 @@ export default function ProductoFormModal({
                     step="1"
                     value={form.stock_minimo}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Alerta de stock bajo a partir de…"
                   />
                 </motion.div>
@@ -614,17 +591,17 @@ export default function ProductoFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <label className="flex items-center gap-2 text-sm font-medium text-gray-200">
-                        PRECIO PRODUCTO
+                      <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                        Precio producto
                       </label>
-                      <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-0.5 gap-0.5">
+                      <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
                         <button
                           type="button"
                           onClick={() => setModoPrecioSafe('manual')}
                           className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
                             modoPrecio === 'manual'
-                              ? 'bg-cyan-500 text-slate-950'
-                              : 'text-gray-300 hover:bg-white/10'
+                              ? 'bg-blue-600 text-white'
+                              : 'text-slate-500 hover:bg-slate-100'
                           }`}
                         >
                           Manual
@@ -634,8 +611,8 @@ export default function ProductoFormModal({
                           onClick={() => setModoPrecioSafe('margen')}
                           className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
                             modoPrecio === 'margen'
-                              ? 'bg-cyan-500 text-slate-950'
-                              : 'text-gray-300 hover:bg-white/10'
+                              ? 'bg-blue-600 text-white'
+                              : 'text-slate-500 hover:bg-slate-100'
                           }`}
                         >
                           Por margen (%)
@@ -653,17 +630,17 @@ export default function ProductoFormModal({
                           min="0"
                           value={form.margen_pct}
                           onChange={handle}
-                          className="w-24 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white
-                                     placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                          className={`w-24 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800
+                                     placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent`}
                           placeholder="Ej: 30"
                         />
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-slate-500">
                           % sobre el costo
                         </span>
                       </div>
                     )}
                     {errors.margen_pct && (
-                      <p className="mb-2 text-sm text-rose-300">
+                      <p className="mb-2 text-sm text-rose-600">
                         {errors.margen_pct}
                       </p>
                     )}
@@ -677,29 +654,29 @@ export default function ProductoFormModal({
                       onChange={handle}
                       readOnly={modoPrecio === 'margen'}
                       disabled={modoPrecio === 'margen'}
-                      className={`w-full rounded-xl border px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent ${
+                      className={`w-full rounded-xl border px-3.5 py-3 text-slate-800
+                                 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent ${
                                    modoPrecio === 'margen'
-                                     ? 'border-white/5 bg-white/[0.02] opacity-70 cursor-not-allowed'
-                                     : 'border-white/10 bg-white/5'
+                                     ? 'border-slate-100 bg-slate-50 text-slate-500 cursor-not-allowed'
+                                     : 'border-slate-200 bg-white'
                                  }`}
                       placeholder="ingrese el precio"
                     />
                     {modoPrecio === 'margen' && (
-                      <p className="mt-1 text-[11px] text-gray-400">
+                      <p className="mt-1 text-[11px] text-slate-500">
                         Calculado a partir del costo. Se recalcula solo cada
                         vez que entra un costo nuevo por una compra.
                       </p>
                     )}
                     {errors.pre_prod && (
-                      <p className="mt-1 text-sm text-rose-300">
+                      <p className="mt-1 text-sm text-rose-600">
                         {errors.pre_prod}
                       </p>
                     )}
                   </motion.div>
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      <Percent className="h-4 w-4 text-gray-400" />
+                    <label className={labelCls}>
+                      <Percent className="h-4 w-4 text-slate-400" />
                       IVA
                     </label>
                     <input
@@ -711,12 +688,11 @@ export default function ProductoFormModal({
                       max="27"
                       value={form.iva_porcentaje}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="21"
                     />
                     {errors.iva_porcentaje && (
-                      <p className="mt-1 text-sm text-rose-300">
+                      <p className="mt-1 text-sm text-rose-600">
                         {errors.iva_porcentaje}
                       </p>
                     )}
@@ -725,8 +701,8 @@ export default function ProductoFormModal({
 
                 {/* Último costo de compra */}
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <DollarSign className="h-4 w-4 text-slate-400" />
                     Último costo de compra (opcional)
                   </label>
                   <input
@@ -736,23 +712,21 @@ export default function ProductoFormModal({
                     step="0.01"
                     value={form.ultimo_costo_compra}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Se precarga en las compras y se actualiza al comprar"
                   />
                 </motion.div>
 
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <Power className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <Power className="h-4 w-4 text-slate-400" />
                     Estado
                   </label>
                   <select
                     name="estado"
                     value={form.estado}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-black
-                                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                   >
                     <option value="activo">Activo</option>
                     <option value="inactivo">Inactivo</option>
@@ -761,8 +735,8 @@ export default function ProductoFormModal({
 
                 {/* Notas */}
                 <motion.div variants={fieldV}>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                    <StickyNote className="h-4 w-4 text-gray-400" />
+                  <label className={labelCls}>
+                    <StickyNote className="h-4 w-4 text-slate-400" />
                     Notas (opcional)
                   </label>
                   <textarea
@@ -770,8 +744,7 @@ export default function ProductoFormModal({
                     rows={3}
                     value={form.notas}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent resize-y"
+                    className={`${inputCls} resize-y`}
                     placeholder="Observaciones internas…"
                   />
                 </motion.div>
@@ -784,15 +757,15 @@ export default function ProductoFormModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold
+                               hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving
                       ? 'Guardando…'
@@ -803,9 +776,6 @@ export default function ProductoFormModal({
                 </motion.div>
               </motion.form>
             </div>
-
-            {/* Línea base */}
-            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-gray-400/70 via-gray-200/70 to-gray-400/70 opacity-40 rounded-b-2xl" />
           </motion.div>
         </motion.div>
       )}

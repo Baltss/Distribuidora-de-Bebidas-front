@@ -61,11 +61,11 @@ const RowInline = ({ label, children, Icon, multiline }) => (
     variants={fieldV}
     className="grid grid-cols-1 sm:grid-cols-[220px,1fr] gap-2 sm:gap-5"
   >
-    <div className="text-[11px] uppercase tracking-widest text-zinc-400 pt-[2px] sm:text-right">
+    <div className="text-[11px] uppercase tracking-widest text-slate-400 pt-[2px] sm:text-right">
       {label}
     </div>
     <div
-      className={`text-zinc-100 flex items-start gap-2 leading-6 ${
+      className={`text-slate-700 flex items-start gap-2 leading-6 ${
         multiline ? 'whitespace-pre-line' : 'truncate'
       }`}
     >
@@ -84,13 +84,13 @@ const RowInline = ({ label, children, Icon, multiline }) => (
 const FieldCard = ({ label, children, Icon, multiline }) => (
   <motion.div
     variants={fieldV}
-    className="rounded-lg bg-white/5 border border-white/10 px-3.5 py-3"
+    className="rounded-lg bg-slate-50 border border-slate-200 px-3.5 py-3"
   >
-    <div className="text-[10px] uppercase tracking-widest text-zinc-400 mb-1.5">
+    <div className="text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">
       {label}
     </div>
     <div
-      className={`text-zinc-100 flex items-start gap-2 ${
+      className={`text-slate-700 flex items-start gap-2 ${
         multiline ? 'whitespace-pre-line' : 'truncate'
       }`}
       title={typeof children === 'string' ? children : undefined}
@@ -158,7 +158,7 @@ export default function DetailViewModal({
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -169,16 +169,16 @@ export default function DetailViewModal({
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-4xl max-h-[88vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             {/* Cierre */}
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             {/* Banda lateral */}
@@ -192,9 +192,9 @@ export default function DetailViewModal({
               {/* Header */}
               <div className="flex flex-wrap items-center gap-4">
                 {HeaderIcon ? (
-                  <div className="h-14 w-14 rounded-2xl bg-white/90 dark:bg-zinc-800/80 ring-1 ring-white/20 flex items-center justify-center shrink-0">
+                  <div className="h-14 w-14 rounded-2xl bg-slate-100 ring-1 ring-slate-200 flex items-center justify-center shrink-0">
                     {typeof HeaderIcon === 'function' ? (
-                      <HeaderIcon className="text-zinc-800 dark:text-zinc-100" />
+                      <HeaderIcon className="text-slate-700" />
                     ) : (
                       HeaderIcon
                     )}
@@ -202,11 +202,11 @@ export default function DetailViewModal({
                 ) : null}
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-white truncate">
+                  <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 truncate">
                     {title}
                   </h3>
                   {subtitle ? (
-                    <div className="mt-1 text-xs text-zinc-300 truncate">
+                    <div className="mt-1 text-xs text-slate-500 truncate">
                       {subtitle}
                     </div>
                   ) : null}
@@ -214,7 +214,7 @@ export default function DetailViewModal({
 
                 <div className="ml-auto flex items-center gap-2">
                   {headerMeta ? (
-                    <div className="text-[11px] text-zinc-300 hidden sm:block">
+                    <div className="text-[11px] text-slate-500 hidden sm:block">
                       {headerMeta}
                     </div>
                   ) : null}
@@ -240,7 +240,7 @@ export default function DetailViewModal({
                   return (
                     <section key={i} className="space-y-4">
                       {sec.title ? (
-                        <div className="text-[11px] uppercase tracking-[0.2em] text-zinc-400">
+                        <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
                           {sec.title}
                         </div>
                       ) : null}
@@ -285,7 +285,7 @@ export default function DetailViewModal({
                 })}
 
                 {(created || updated) && (
-                  <div className="pt-4 border-t border-white/10 text-[13px] text-zinc-300 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className="pt-4 border-t border-slate-200 text-[13px] text-slate-500 grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>Creado: {fmtDate(created)}</div>
                     <div>Actualizado: {fmtDate(updated)}</div>
                   </div>
@@ -297,14 +297,12 @@ export default function DetailViewModal({
                 {footer}
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                 >
                   Cerrar
                 </button>
               </div>
             </div>
-
-            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-gray-400/70 via-gray-200/70 to-gray-400/70 opacity-40 rounded-b-2xl" />
           </motion.div>
         </motion.div>
       )}
