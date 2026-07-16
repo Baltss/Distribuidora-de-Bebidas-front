@@ -15,13 +15,11 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
+import { useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { useAuth } from '../../AuthContext';
-import ParticlesBackground from '../../Components/ParticlesBackground';
 import { motion } from 'framer-motion';
-import ButtonBack from '../../Components/ButtonBack';
+import { FaArrowLeft } from 'react-icons/fa';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import {
   FaSearch,
@@ -79,6 +77,7 @@ const tipoColor = {
 };
 
 const VentasReportesPage = () => {
+  const navigate = useNavigate();
   const { userLevel } = useAuth();
 
   // --------- Filtros ---------
@@ -253,36 +252,37 @@ const VentasReportesPage = () => {
   }, [ventas]);
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        {/* Fondo tipo ventas / caja */}
-        <div className="min-h-screen bg-gradient-to-b from-[#1b1b2f] via-[#3b1f3f] to-[#b53a1d]">
-          <ParticlesBackground />
-          <ButtonBack />
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+        </div>
 
-          {/* Título + descripción */}
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl sm:text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
-            >
-              Reportes y Análisis de Ventas
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
-            >
-              Explorá la evolución de tus ventas, analizá por tipo y filtrá por
-              vendedor y fechas para tomar mejores decisiones comerciales.
-            </motion.p>
-          </div>
+        {/* Título + descripción */}
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Reportes y Análisis de Ventas
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-1 text-sm text-slate-500 max-w-2xl"
+        >
+          Explorá la evolución de tus ventas, analizá por tipo y filtrá por
+          vendedor y fechas para tomar mejores decisiones comerciales.
+        </motion.p>
 
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <div className="mt-6 space-y-6">
             {/* KPIs */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -290,7 +290,7 @@ const VentasReportesPage = () => {
               transition={{ duration: 0.4, delay: 0.15 }}
               className="grid grid-cols-1 sm:grid-cols-3 gap-4"
             >
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 flex flex-col">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                   Total vendido
                 </span>
@@ -299,7 +299,7 @@ const VentasReportesPage = () => {
                 </span>
               </div>
 
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 flex flex-col">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                   Cantidad de ventas
                 </span>
@@ -308,7 +308,7 @@ const VentasReportesPage = () => {
                 </span>
               </div>
 
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 flex flex-col">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                   Ticket promedio
                 </span>
@@ -323,7 +323,7 @@ const VentasReportesPage = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 p-4 sm:p-5 space-y-4"
+              className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 space-y-4"
             >
               <div className="flex items-center gap-2 text-gray-700 mb-1">
                 <FaFilter className="text-xs" />
@@ -467,7 +467,7 @@ const VentasReportesPage = () => {
               className="grid grid-cols-1 lg:grid-cols-2 gap-6"
             >
               {/* Línea: ventas por fecha */}
-              <div className="rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 p-4 sm:p-5 shadow-sm">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <FaChartLine className="text-orange-500" />
                   <h2 className="text-sm sm:text-base font-semibold text-gray-800">
@@ -510,7 +510,7 @@ const VentasReportesPage = () => {
               </div>
 
               {/* Barras: ventas por tipo */}
-              <div className="rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 p-4 sm:p-5 shadow-sm">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <FaChartBar className="text-sky-500" />
                   <h2 className="text-sm sm:text-base font-semibold text-gray-800">
@@ -573,11 +573,10 @@ const VentasReportesPage = () => {
               </div>
             </motion.div>
 
-            {/* (futuro) Ranking por vendedor / cliente */}
-          </div>
+          {/* (futuro) Ranking por vendedor / cliente */}
         </div>
-      </section>
-    </>
+      </div>
+    </AppShell>
   );
 };
 

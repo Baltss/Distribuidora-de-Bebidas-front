@@ -310,7 +310,7 @@ export default function VentasSaldoPrevioPage() {
         aria-modal="true"
           >
         <div
-          className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
           onClick={handleClose}
         />
 
@@ -321,15 +321,15 @@ export default function VentasSaldoPrevioPage() {
           exit="exit"
           className="relative w-full max-w-[92vw] sm:max-w-2xl md:max-w-4xl
                      max-h-[90vh] overflow-y-auto overscroll-contain
-                     rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                     rounded-2xl border border-slate-200 bg-white shadow-2xl"
         >
           <button
             onClick={handleClose}
             className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                       bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                       bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
             aria-label="Cerrar"
           >
-            <X className="h-5 w-5 text-gray-200" />
+            <X className="h-5 w-5 text-slate-500" />
           </button>
 
           <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -337,7 +337,7 @@ export default function VentasSaldoPrevioPage() {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-              className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-5"
+              className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
             >
               Cargar saldo previo
             </motion.h3>
@@ -351,8 +351,8 @@ export default function VentasSaldoPrevioPage() {
             >
               {/* Fecha */}
               <motion.div variants={fieldV}>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
-                  Fecha <span className="text-cyan-300">*</span>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  Fecha <span className="text-orange-600">*</span>
                 </label>
                 <input
                   type="date"
@@ -362,8 +362,8 @@ export default function VentasSaldoPrevioPage() {
                     setForm((f) => ({ ...f, fecha: e.target.value }));
                   }}
                   disabled={saving || saved}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                             focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                             focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
                              disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </motion.div>
@@ -372,15 +372,15 @@ export default function VentasSaldoPrevioPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Ciudad */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     Ciudad
                   </label>
                   <select
                     value={form.ciudad_id}
                     onChange={handleCiudad}
                     disabled={saving || saved}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
                                disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option className="text-black" value="">
@@ -396,7 +396,7 @@ export default function VentasSaldoPrevioPage() {
 
                 {/* Reparto */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     Reparto (opcional)
                   </label>
                   <select
@@ -405,8 +405,8 @@ export default function VentasSaldoPrevioPage() {
                     disabled={
                       !form.ciudad_id || repartosLoading || saving || saved
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
                                disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option className="text-black" value="">
@@ -426,8 +426,8 @@ export default function VentasSaldoPrevioPage() {
 
                 {/* Cliente */}
                 <motion.div variants={fieldV} className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Cliente <span className="text-cyan-300">*</span>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
+                    Cliente <span className="text-orange-600">*</span>
                   </label>
 
                   <div className={clientesLoading ? 'opacity-80' : ''}>
@@ -442,7 +442,7 @@ export default function VentasSaldoPrevioPage() {
                     />
                   </div>
 
-                  <div className="mt-1 text-[11px] text-gray-300/70">
+                  <div className="mt-1 text-[11px] text-slate-400">
                     {clientesLoading
                       ? 'Cargando clientes…'
                       : !form.ciudad_id
@@ -456,20 +456,20 @@ export default function VentasSaldoPrevioPage() {
 
               {/* Vendedor asignado (informativo) */}
               <motion.div variants={fieldV}>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
+                <label className="block text-sm font-medium text-slate-600 mb-2">
                   Vendedor asignado (informativo)
                 </label>
                 <input
                   value={vendedorLabel || '—'}
                   readOnly
-                  className="w-full rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 text-gray-200"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-3 text-slate-500"
                 />
               </motion.div>
 
               {/* Monto */}
               <motion.div variants={fieldV}>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
-                  Monto de deuda <span className="text-cyan-300">*</span>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  Monto de deuda <span className="text-orange-600">*</span>
                 </label>
                 <input
                   type="number"
@@ -482,19 +482,19 @@ export default function VentasSaldoPrevioPage() {
                     setForm((f) => ({ ...f, monto: e.target.value }));
                   }}
                   disabled={saving || saved}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
                              disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="0.00"
                 />
-                <p className="mt-1 text-[11px] text-gray-300/70">
+                <p className="mt-1 text-[11px] text-slate-400">
                   Registra una deuda histórica del cliente (sin productos).
                 </p>
               </motion.div>
 
               {/* Descripción */}
               <motion.div variants={fieldV}>
-                <label className="block text-sm font-medium text-gray-200 mb-2">
+                <label className="block text-sm font-medium text-slate-600 mb-2">
                   Descripción (opcional)
                 </label>
                 <textarea
@@ -505,8 +505,8 @@ export default function VentasSaldoPrevioPage() {
                     setForm((f) => ({ ...f, descripcion: e.target.value }));
                   }}
                   disabled={saving || saved}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                             placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
                              disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="Ej: Deuda previa a la implementación del sistema"
                 />
@@ -520,7 +520,7 @@ export default function VentasSaldoPrevioPage() {
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                 >
                   Cancelar
                 </button>
@@ -528,7 +528,7 @@ export default function VentasSaldoPrevioPage() {
                 <button
                   type="submit"
                   disabled={!canSave}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
+                  className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold
                              hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
                   {saving ? 'Guardando…' : saved ? 'Cargado' : 'Cargar saldo'}
@@ -537,7 +537,7 @@ export default function VentasSaldoPrevioPage() {
 
               {/* Nota bloqueo */}
               {saved && (
-                <div className="text-[11px] text-emerald-200/90">
+                <div className="text-[11px] text-emerald-600">
                   El saldo previo fue registrado. El formulario quedó bloqueado
                   para evitar duplicados.
                 </div>
