@@ -11,6 +11,10 @@ import {
 import { listCiudades } from '../../api/ciudades';
 import { blockWheelChange } from '../../utils/numberInput';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
+const labelCls = 'block text-sm font-medium text-slate-600 mb-2';
+
 export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
   const [form, setForm] = useState({
     ciudad_id: '',
@@ -134,7 +138,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
           aria-modal="true"
         >
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -144,15 +148,15 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-xl md:max-w-lg
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -160,7 +164,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-5"
+                className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
               >
                 {isEdit ? 'Editar Reparto' : 'Nuevo Reparto'}
               </motion.h3>
@@ -174,16 +178,15 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
               >
                 {/* Ciudad */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Ciudad <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    Ciudad <span className="text-teal-600">*</span>
                   </label>
                   <select
                     name="ciudad_id"
                     value={form.ciudad_id || ''}
                     onChange={handle}
                     disabled={loadingCiudades}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                   >
                     {loadingCiudades && (
                       <option value="">Cargando ciudades…</option>
@@ -195,7 +198,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                     )}
                     {!loadingCiudades &&
                       ciudades.map((c) => (
-                        <option className='text-black' key={c.id} value={c.id}>
+                        <option key={c.id} value={c.id}>
                           {c.nombre} ({c.provincia})
                         </option>
                       ))}
@@ -204,15 +207,14 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
 
                 {/* Nombre */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Nombre del reparto <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    Nombre del reparto <span className="text-teal-600">*</span>
                   </label>
                   <input
                     name="nombre"
                     value={form.nombre}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Concep 1, Monteros 2, etc."
                   />
                 </motion.div>
@@ -223,8 +225,8 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                   className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Rango mínimo <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      Rango mínimo <span className="text-teal-600">*</span>
                     </label>
                     <input
                       type="number"
@@ -232,15 +234,14 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                       name="rango_min"
                       value={form.rango_min}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="0"
                       min="0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Rango máximo <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      Rango máximo <span className="text-teal-600">*</span>
                     </label>
                     <input
                       type="number"
@@ -248,8 +249,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                       name="rango_max"
                       value={form.rango_max}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="300"
                       min="0"
                     />
@@ -258,16 +258,13 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
 
                 {/* Observaciones */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Observaciones
-                  </label>
+                  <label className={labelCls}>Observaciones</label>
                   <textarea
                     name="observaciones"
                     value={form.observaciones}
                     onChange={handle}
                     rows={3}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white text-sm
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent resize-y"
+                    className={`${inputCls} text-sm resize-y`}
                     placeholder="Notas internas sobre este reparto (zona, referencias, etc.)"
                   />
                 </motion.div>
@@ -286,7 +283,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                   />
                   <span
                     className="relative inline-flex h-6 w-11 items-center rounded-full
-                               bg-white/10 peer-checked:bg-emerald-500/70 transition-colors duration-200"
+                               bg-slate-200 peer-checked:bg-teal-600 transition-colors duration-200"
                     aria-hidden
                   >
                     <span
@@ -294,7 +291,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                                  peer-checked:translate-x-5 transition-transform duration-200"
                     />
                   </span>
-                  <span className="text-sm text-gray-200">
+                  <span className="text-sm text-slate-600">
                     {form.estado === 'activo' ? 'Activo' : 'Inactivo'}
                   </span>
                 </motion.label>
@@ -307,15 +304,15 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold
+                               disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving
                       ? 'Guardando…'
@@ -326,8 +323,6 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                 </motion.div>
               </motion.form>
             </div>
-
-            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-400/70 via-emerald-300/70 to-cyan-400/70 opacity-40 rounded-b-2xl" />
           </motion.div>
         </motion.div>
       )}

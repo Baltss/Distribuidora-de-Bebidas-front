@@ -35,11 +35,11 @@ const StatusPill = ({ activo }) => (
 );
 
 const Field = ({ label, children }) => (
-  <div className="rounded-lg bg-zinc-50/70 dark:bg-zinc-900/40 border border-zinc-200/60 dark:border-white/10 px-3 py-2 text-sm">
-    <div className="text-[10px] uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+  <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm">
+    <div className="text-[10px] uppercase tracking-widest text-slate-400">
       {label}
     </div>
-    <div className="mt-0.5 truncate text-zinc-800 dark:text-zinc-100">
+    <div className="mt-0.5 truncate text-slate-700">
       {children || '—'}
     </div>
   </div>
@@ -152,13 +152,9 @@ export default function RepartoCard({
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.28 }}
-        className={`relative overflow-hidden rounded-3xl border border-white/20 shadow-lg backdrop-blur-xl dark:border-white/10
-                 hover:shadow-cyan-500/70 hover:scale-[1.02] transition-all duration-300
-                 ${
-                   inactivo
-                     ? 'bg-zinc-200/60 dark:bg-zinc-800/60 saturate-50'
-                     : 'bg-white/85 dark:bg-zinc-900/70'
-                 }`}
+        className={`relative overflow-hidden rounded-3xl border border-slate-200 shadow-sm
+                 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300
+                 ${inactivo ? 'bg-slate-100 saturate-50' : 'bg-white'}`}
       >
         {/* Banda lateral como "franja de reparto" */}
         <div className="absolute left-0 top-0 h-full w-24 sm:w-28">
@@ -185,20 +181,20 @@ export default function RepartoCard({
         >
           {/* Monograma + cabecera */}
           <div className="flex items-start sm:items-center gap-4">
-            <div className="relative -ml-2 sm:ml-0 h-14 w-14 shrink-0 rounded-2xl ring-1 ring-white/30 bg-white/90 dark:bg-zinc-800/80 flex items-center justify-center">
-              <span className="text-xl font-black text-zinc-900 dark:text-white">
+            <div className="relative -ml-2 sm:ml-0 h-14 w-14 shrink-0 rounded-2xl ring-1 ring-slate-200 bg-slate-100 flex items-center justify-center">
+              <span className="text-xl font-black text-slate-800">
                 {initial}
               </span>
               <FaTruck className="absolute -right-2 -bottom-2 text-cyan-500" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="truncate text-lg font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+                <h3 className="truncate text-lg font-extrabold tracking-tight text-slate-900">
                   {item?.nombre}
                 </h3>
                 <StatusPill activo={item?.estado === 'activo'} />
               </div>
-              <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              <div className="mt-1 text-xs text-slate-400">
                 {ciudadNombre} • Rango {rangoLabel}
               </div>
             </div>
