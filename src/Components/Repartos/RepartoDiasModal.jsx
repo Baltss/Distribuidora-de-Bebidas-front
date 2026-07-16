@@ -168,15 +168,15 @@ export default function RepartoDiasModal({ open, onClose, reparto }) {
   const renderCardDia = (d) => (
     <div
       key={d.value}
-      className="rounded-2xl border border-white/20 bg-white/5 backdrop-blur-md px-4 py-4
-                 flex flex-col gap-3 shadow-sm hover:shadow-amber-500/30 hover:border-amber-300/60 transition
+      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4
+                 flex flex-col gap-3 shadow-sm hover:shadow-md hover:border-amber-200 transition
                  min-h-[130px]"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-100/90">
+        <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
           {d.label}
         </span>
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-black/30 text-amber-100/90 border border-white/10">
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-white text-slate-500 border border-slate-200">
           {d.short}
         </span>
       </div>
@@ -192,8 +192,8 @@ export default function RepartoDiasModal({ open, onClose, reparto }) {
               className={`inline-flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl border text-[10px] sm:text-[11px] transition
                 ${
                   activo
-                    ? 'bg-emerald-500/90 border-emerald-300/80 text-white shadow-sm shadow-emerald-500/40'
-                    : 'bg-white/5 border-white/25 text-white/70 hover:bg-white/10'
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-100'
                 }`}
             >
               {t.icon}
@@ -222,7 +222,7 @@ export default function RepartoDiasModal({ open, onClose, reparto }) {
         >
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={() => onClose?.()}
           />
 
@@ -232,50 +232,46 @@ export default function RepartoDiasModal({ open, onClose, reparto }) {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-white/15
-                       bg-gradient-to-b from-[#001219]/95 via-[#003049]/95 to-[#001219]/98 shadow-2xl"
+            className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200
+                       bg-white shadow-2xl"
           >
             {/* Cerrar */}
             <button
               onClick={() => onClose?.()}
               className="z-10 absolute top-3 right-3 inline-flex h-9 w-9 items-center justify-center rounded-full
-                         bg-white/10 border border-white/20 hover:bg-white/20 text-white transition"
+                         bg-slate-100 border border-slate-200 hover:bg-slate-200 text-slate-500 transition"
               aria-label="Cerrar"
             >
               <X className="h-5 w-5" />
             </button>
 
             {/* Header */}
-            <div className="px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-white/10 relative">
-              <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_#fbbf24,_transparent_55%)]" />
-              <div className="relative">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-amber-100/90 flex items-center gap-2">
-                  <FaCalendarAlt className="text-xs" />
-                  Días y turnos del reparto
-                </div>
-                <h2 className="mt-1 text-xl sm:text-2xl font-bold text-white leading-tight">
-                  {titulo}
-                </h2>
-                {reparto?.ciudad_nombre && (
-                  <p className="mt-1 text-xs text-amber-100/80">
-                    Ciudad: {reparto.ciudad_nombre}
-                  </p>
-                )}
+            <div className="px-5 sm:px-7 pt-5 sm:pt-6 pb-4 border-b border-slate-200">
+              <div className="text-[11px] uppercase tracking-[0.2em] text-amber-600 flex items-center gap-2">
+                <FaCalendarAlt className="text-xs" />
+                Días y turnos del reparto
               </div>
+              <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+                {titulo}
+              </h2>
+              {reparto?.ciudad_nombre && (
+                <p className="mt-1 text-xs text-slate-500">
+                  Ciudad: {reparto.ciudad_nombre}
+                </p>
+              )}
             </div>
 
             {/* Body */}
             <div className="px-5 sm:px-7 py-4 space-y-4">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="h-8 w-8 border-4 border-white/40 border-t-amber-300 rounded-full animate-spin" />
+                  <div className="h-8 w-8 border-4 border-slate-200 border-t-amber-500 rounded-full animate-spin" />
                 </div>
               ) : (
                 <>
-                  <p className="text-xs text-white/80">
+                  <p className="text-xs text-slate-500">
                     Activá los turnos en los que este reparto realiza entregas.
-                    Cada combinación día + turno.{' '}
-                    
+                    Cada combinación día + turno.
                   </p>
 
                   {/* Lunes a Viernes — ahora cards más grandes y menos apretadas */}
@@ -292,10 +288,10 @@ export default function RepartoDiasModal({ open, onClose, reparto }) {
             </div>
 
             {/* Footer */}
-            <div className="px-5 sm:px-7 py-3 border-t border-white/10 flex justify-end">
+            <div className="px-5 sm:px-7 py-3 border-t border-slate-200 flex justify-end">
               <button
                 onClick={() => onClose?.()}
-                className="px-4 py-2 rounded-xl border border-white/20 bg-white/5 text-sm text-white hover:bg-white/10 transition"
+                className="px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 transition"
               >
                 Cerrar
               </button>
