@@ -31,11 +31,10 @@ import {
   ChevronRight,
   FileText
 } from 'lucide-react';
-import { FaInstagram, FaGlobeAmericas } from 'react-icons/fa';
+import { FaInstagram, FaGlobeAmericas, FaArrowLeft } from 'react-icons/fa';
 
-import NavbarStaff from '../Dash/NavbarStaff';
-import ButtonBack from '../../Components/ButtonBack';
-import ParticlesBackground from '../../Components/ParticlesBackground';
+import { useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { useAuth } from '../../AuthContext';
 
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
@@ -62,6 +61,7 @@ const fmtFecha = (iso) => {
 };
 
 export default function ReporteRepartoCobranza() {
+  const navigate = useNavigate();
   const { authToken } = useAuth();
 
   // Filtros
@@ -452,21 +452,23 @@ export default function ReporteRepartoCobranza() {
   })();
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-slate-950 text-slate-50">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-amber-900/70" />
-        <ParticlesBackground />
+    <AppShell>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+            >
+              <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+            </button>
+          </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-          <div className="pt-20 sm:pt-24 flex items-start justify-between gap-4">
-            <ButtonBack />
-            <div className="flex-1 text-center">
+          <div className="text-center">
               <motion.h1
                 initial={{ opacity: 0, y: -16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="text-2xl titulo uppercase sm:text-3xl md:text-4xl font-bold tracking-tight text-amber-100 drop-shadow-md"
+                className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
               >
                 Reporte de Reparto & Cobranza por Zona
               </motion.h1>
@@ -474,14 +476,12 @@ export default function ReporteRepartoCobranza() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="mt-3 text-sm sm:text-base text-amber-50/80 max-w-2xl mx-auto"
+                className="mt-2 text-sm text-slate-500 max-w-2xl mx-auto"
               >
                 Elegí una zona, visualizá la deuda de tus clientes fiados y armá
                 el plan de reparto con los productos que vas a llevar a cada
                 uno.
               </motion.p>
-            </div>
-            <div className="hidden sm:block w-16" />
           </div>
 
           {/* Filtros */}
@@ -489,18 +489,18 @@ export default function ReporteRepartoCobranza() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.15 }}
-            className="mt-8 bg-white/5 backdrop-blur-xl border border-amber-400/30 rounded-3xl shadow-[0_0_35px_rgba(251,191,36,0.25)] p-4 sm:p-6"
+            className="mt-8 bg-white border border-slate-200 rounded-3xl shadow-sm p-4 sm:p-6"
           >
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-400/20 border border-amber-300/70">
-                  <Filter className="h-5 w-5 text-amber-100" />
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200">
+                  <Filter className="h-5 w-5 text-amber-600" />
                 </span>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-amber-200/80">
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
                     Filtros
                   </p>
-                  <p className="text-sm text-amber-50/90">
+                  <p className="text-sm text-slate-600">
                     Zona, fechas y estado de deuda.
                   </p>
                 </div>
@@ -508,7 +508,7 @@ export default function ReporteRepartoCobranza() {
 
               <div className="flex flex-wrap items-center gap-2 justify-end">
                 {loading && (
-                  <span className="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm text-amber-100/80">
+                  <span className="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm text-slate-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Actualizando…
                   </span>
@@ -516,7 +516,7 @@ export default function ReporteRepartoCobranza() {
                 <button
                   type="button"
                   onClick={handleExport}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-300/70 text-amber-100 text-xs sm:text-sm hover:bg-amber-400/10 transition"
+                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-200 text-amber-700 text-xs sm:text-sm hover:bg-amber-50 transition"
                 >
                   <FileDown className="h-4 w-4" />
                   Exportar / Imprimir
@@ -549,7 +549,7 @@ export default function ReporteRepartoCobranza() {
                 <select
                   value={repartoId}
                   onChange={(e) => setRepartoId(e.target.value)}
-                  className="h-9 rounded-xl bg-slate-900/70 border border-slate-700 px-3 text-xs text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                  className="h-9 rounded-xl bg-slate-50/70 border border-slate-700 px-3 text-xs text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
                   disabled={repartosLoading}
                 >
                   {repartosLoading && (
@@ -577,7 +577,7 @@ export default function ReporteRepartoCobranza() {
 
               {/* Fecha desde */}
               <div>
-                <label className="flex items-center gap-2 text-xs font-semibold text-amber-100 mb-1.5">
+                <label className="flex items-center gap-2 text-xs font-semibold text-amber-700 mb-1.5">
                   <CalendarRange className="h-4 w-4" />
                   Fecha desde
                 </label>
@@ -585,13 +585,13 @@ export default function ReporteRepartoCobranza() {
                   type="date"
                   value={fechaDesde}
                   onChange={(e) => setFechaDesde(e.target.value)}
-                  className="w-full rounded-xl border border-amber-300/60 bg-slate-950/70 text-sm px-3 py-2.5 text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
+                  className="w-full rounded-xl border border-amber-200 bg-white text-sm px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
                 />
               </div>
 
               {/* Fecha hasta */}
               <div>
-                <label className="flex items-center gap-2 text-xs font-semibold text-amber-100 mb-1.5">
+                <label className="flex items-center gap-2 text-xs font-semibold text-amber-700 mb-1.5">
                   <CalendarRange className="h-4 w-4" />
                   Fecha hasta
                 </label>
@@ -599,7 +599,7 @@ export default function ReporteRepartoCobranza() {
                   type="date"
                   value={fechaHasta}
                   onChange={(e) => setFechaHasta(e.target.value)}
-                  className="w-full rounded-xl border border-amber-300/60 bg-slate-950/70 text-sm px-3 py-2.5 text-amber-50 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
+                  className="w-full rounded-xl border border-amber-200 bg-white text-sm px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
                 />
               </div>
 
@@ -607,12 +607,12 @@ export default function ReporteRepartoCobranza() {
               <div className="mt-2 md:mt-6">
                 <label
                   htmlFor="solo-deuda"
-                  className="group relative flex w-full items-start justify-between gap-4 rounded-2xl border border-amber-300/30 bg-slate-950/35 px-4 py-3 backdrop-blur-md transition hover:border-amber-300/55 hover:bg-slate-950/45 cursor-pointer"
+                  className="group relative flex w-full items-start justify-between gap-4 rounded-2xl border border-amber-200 bg-white px-4 py-3 backdrop-blur-md transition hover:border-amber-200 hover:bg-slate-50 cursor-pointer"
                 >
                   {/* Texto */}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-amber-50">
+                      <span className="text-xs font-semibold text-slate-800">
                         Solo clientes con deuda &gt; 0
                       </span>
 
@@ -628,7 +628,7 @@ export default function ReporteRepartoCobranza() {
                       </span>
                     </div>
 
-                    <p className="mt-1 text-[11px] leading-snug text-amber-100/70">
+                    <p className="mt-1 text-[11px] leading-snug text-slate-500">
                       Si lo desactivás, verás también clientes saldados (deuda
                       0).
                     </p>
@@ -700,12 +700,12 @@ export default function ReporteRepartoCobranza() {
             transition={{ duration: 0.45, delay: 0.25 }}
             className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3"
           >
-            <div className="rounded-2xl bg-white/5 border border-white/10 px-4 py-3 flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 border border-white/20">
-                <Users className="h-4 w-4 text-amber-200" />
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 flex items-center gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200">
+                <Users className="h-4 w-4 text-slate-500" />
               </span>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-amber-200/80">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
                   Clientes en zona
                 </p>
                 <p className="text-lg font-semibold">
@@ -714,8 +714,8 @@ export default function ReporteRepartoCobranza() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/5 border border-white/10 px-4 py-3 flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 border border-white/20">
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 flex items-center gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200">
                 <DollarSign className="h-4 w-4 text-emerald-300" />
               </span>
               <div>
@@ -728,13 +728,13 @@ export default function ReporteRepartoCobranza() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white/5 border border-white/10 px-4 py-3 flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 border border-white/20">
-                <Truck className="h-4 w-4 text-amber-200" />
+            <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 flex items-center gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200">
+                <Truck className="h-4 w-4 text-slate-500" />
               </span>
               <div className="flex-1 flex justify-between items-center gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-amber-200/80">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
                     Deuda total zona
                   </p>
                   <p className="text-lg font-semibold">
@@ -769,14 +769,14 @@ export default function ReporteRepartoCobranza() {
             {/*  - 18-01-2026
                 Usamos la lista "clientesConDeudaUI" para evitar mostrar saldados (deuda 0 y sin pendientes) */}
             {loading && !clientesConDeudaUI.length && (
-              <div className="py-10 text-center text-sm text-amber-50/80 flex flex-col items-center gap-3">
+              <div className="py-10 text-center text-sm text-slate-500 flex flex-col items-center gap-3">
                 <Loader2 className="h-6 w-6 animate-spin" />
                 Cargando clientes y deudas de la zona...
               </div>
             )}
 
             {!loading && !clientesConDeudaUI.length && (
-              <div className="py-10 text-center text-sm text-amber-50/80">
+              <div className="py-10 text-center text-sm text-slate-500">
                 No se encontraron clientes para el filtro seleccionado.
               </div>
             )}
@@ -787,16 +787,16 @@ export default function ReporteRepartoCobranza() {
                 <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                   <div className="w-full md:max-w-sm">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-100/70" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                       <input
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Buscar por nombre o DNI/CUIT..."
-                        className="w-full pl-9 pr-3 py-2 rounded-2xl bg-slate-950/80 border border-white/15 text-sm text-amber-50 placeholder:text-amber-100/40 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
+                        className="w-full pl-9 pr-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
                       />
                     </div>
-                    <p className="mt-1 text-[11px] text-amber-100/70">
+                    <p className="mt-1 text-[11px] text-slate-500">
                       {totalFiltrados === clientesConDeudaUI.length &&
                       !searchTerm
                         ? `Mostrando ${clientesConDeudaUI.length} cliente(s) del reparto.`
@@ -804,7 +804,7 @@ export default function ReporteRepartoCobranza() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between md:justify-end gap-3 text-[11px] text-amber-100/80">
+                  <div className="flex items-center justify-between md:justify-end gap-3 text-[11px] text-slate-500">
                     <div className="hidden sm:block">
                       {totalFiltrados ? (
                         <span>
@@ -826,7 +826,7 @@ export default function ReporteRepartoCobranza() {
                       type="button"
                       onClick={toggleSelectAllFiltered}
                       disabled={!totalFiltrados}
-                      className="h-8 rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 text-[11px] font-semibold text-amber-100 hover:bg-amber-400/20 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      className="h-8 rounded-xl border border-amber-200 bg-amber-50 px-3 text-[11px] font-semibold text-amber-700 hover:bg-amber-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
                     >
                       {allFilteredSelected ? 'Quitar selección' : 'Seleccionar todos'}
                     </button>
@@ -839,7 +839,7 @@ export default function ReporteRepartoCobranza() {
                           setPageSize(Number(e.target.value) || 5);
                           setCurrentPage(1);
                         }}
-                        className="h-8 rounded-xl bg-slate-950/80 border border-white/20 px-2 text-[11px] text-amber-50 focus:outline-none focus:ring-1 focus:ring-amber-300/80"
+                        className="h-8 rounded-xl bg-white border border-slate-200 px-2 text-[11px] text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-300/80"
                       >
                         <option value={5}>5</option>
                         <option value={10}>10</option>
@@ -851,7 +851,7 @@ export default function ReporteRepartoCobranza() {
 
                 {/* Tarjetas de clientes (paginadas) */}
                 {totalFiltrados === 0 && (
-                  <div className="py-10 text-center text-sm text-amber-50/80">
+                  <div className="py-10 text-center text-sm text-slate-500">
                     Ningún cliente coincide con la búsqueda actual.
                   </div>
                 )}
@@ -882,38 +882,38 @@ export default function ReporteRepartoCobranza() {
                           <motion.div
                             key={cliente.id}
                             layout
-                            className="rounded-3xl bg-white/7 border border-white/10 backdrop-blur-xl shadow-[0_0_30px_rgba(15,23,42,0.6)] p-4 sm:p-5 flex flex-col gap-4"
+                            className="rounded-3xl bg-slate-50 border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col gap-4"
                           >
                             {/* Header cliente + deuda */}
                             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                               <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-2xl bg-amber-400/20 border border-amber-300/70 flex items-center justify-center text-sm font-semibold text-amber-50">
+                                <div className="h-10 w-10 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-sm font-semibold text-slate-800">
                                   {(cliente.nombre || '?')
                                     .trim()
                                     .charAt(0)
                                     .toUpperCase()}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-semibold text-amber-50">
+                                  <p className="text-sm font-semibold text-slate-800">
                                     {cliente.nombre}
                                   </p>
-                                  <p className="text-[11px] text-amber-100/80">
+                                  <p className="text-[11px] text-slate-500">
                                     {cliente.documento
                                       ? `DNI/CUIT: ${cliente.documento}`
                                       : 'Sin documento registrado'}
                                   </p>
                                   {cliente.telefono && (
-                                    <p className="text-[11px] text-amber-100/70">
+                                    <p className="text-[11px] text-slate-500">
                                       Tel: {cliente.telefono}
                                     </p>
                                   )}
                                   {cliente.email && (
-                                    <p className="text-[11px] text-amber-100/70">
+                                    <p className="text-[11px] text-slate-500">
                                       Email: {cliente.email}
                                     </p>
                                   )}
                                   {cliente.direccion_calle && (
-                                    <p className="text-[11px] text-amber-100/70">
+                                    <p className="text-[11px] text-slate-500">
                                       Calle: {cliente.direccion_calle} - Nro:{' '}
                                       {cliente.direccion_numero} - Piso/Dpto:{' '}
                                       {cliente.direccion_piso_dpto} -
@@ -936,9 +936,9 @@ export default function ReporteRepartoCobranza() {
                                         onChange={() =>
                                           toggleSelectCliente(cliente.id)
                                         }
-                                        className="h-4 w-4 rounded border-amber-300 bg-slate-950 text-amber-400 focus:ring-amber-300"
+                                        className="h-4 w-4 rounded border-amber-300 bg-white text-amber-600 focus:ring-amber-300"
                                       />
-                                      <span className="text-[11px] text-amber-100/80">
+                                      <span className="text-[11px] text-slate-500">
                                         Imprimir
                                       </span>
                                     </label>
@@ -950,14 +950,14 @@ export default function ReporteRepartoCobranza() {
                                     </p>
                                   </div>
                                 </div>
-                                <p className="text-[11px] text-amber-100/80">
+                                <p className="text-[11px] text-slate-500">
                                   {resumenFiado.ventas_abiertas} venta(s) fiado
                                   pendiente ·{' '}
                                   {resumenFiado.dias_max_atraso || 0} día(s) de
                                   atraso máx.
                                 </p>
                                 {resumenFiado.fecha_venta_mas_vieja && (
-                                  <p className="text-[11px] text-amber-100/70">
+                                  <p className="text-[11px] text-slate-500">
                                     Venta más vieja:{' '}
                                     {fmtFecha(
                                       resumenFiado.fecha_venta_mas_vieja
@@ -973,12 +973,12 @@ export default function ReporteRepartoCobranza() {
                             {/* Grid: ventas y planeo */}
                             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)] gap-4">
                               {/* Ventas pendientes */}
-                              <div className="rounded-2xl bg-slate-950/70 border border-white/10 px-3 py-3 text-xs max-h-64 overflow-y-auto">
-                                <p className="text-[11px] uppercase tracking-[0.18em] text-amber-200/80 mb-2 flex items-center gap-1.5">
+                              <div className="rounded-2xl bg-white border border-slate-200 px-3 py-3 text-xs max-h-64 overflow-y-auto">
+                                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 mb-2 flex items-center gap-1.5">
                                   Ventas fiado pendientes
                                 </p>
                                 {!ventas_pendientes.length ? (
-                                  <p className="text-[11px] text-amber-100/80">
+                                  <p className="text-[11px] text-slate-500">
                                     Este cliente no tiene ventas fiado
                                     pendientes en el rango filtrado.
                                   </p>
@@ -1003,14 +1003,14 @@ export default function ReporteRepartoCobranza() {
                                       return (
                                         <div
                                           key={v.id}
-                                          className="border border-white/10 rounded-xl px-2 py-1.5 flex justify-between gap-2"
+                                          className="border border-slate-200 rounded-xl px-2 py-1.5 flex justify-between gap-2"
                                         >
-                                          <div className="text-[11px] text-amber-100/90">
+                                          <div className="text-[11px] text-slate-600">
                                             <p className="font-semibold">
                                               Venta #{v.id}
                                             </p>
                                             <p>{fmtFecha(v.fecha)}</p>
-                                            <p className="text-amber-100/70">
+                                            <p className="text-slate-500">
                                               Atraso:{' '}
                                               <span className="font-semibold">
                                                 {diasAtraso !== null
@@ -1019,7 +1019,7 @@ export default function ReporteRepartoCobranza() {
                                               </span>
                                             </p>
                                           </div>
-                                          <div className="text-right text-[11px] text-amber-100/90">
+                                          <div className="text-right text-[11px] text-slate-600">
                                             <p>
                                               Total:{' '}
                                               <span className="font-semibold">
@@ -1034,7 +1034,7 @@ export default function ReporteRepartoCobranza() {
                                                 )}{' '}
                                               </span>
                                             </p>
-                                            <p className="capitalize text-amber-100/70">
+                                            <p className="capitalize text-slate-500">
                                               Estado: {v.estado}
                                             </p>
                                           </div>
@@ -1046,24 +1046,24 @@ export default function ReporteRepartoCobranza() {
                               </div>
 
                               {/* Planeo de reparto */}
-                              <div className="rounded-2xl bg-slate-950/70 border border-white/10 px-3 py-3 text-xs flex flex-col gap-3">
+                              <div className="rounded-2xl bg-white border border-slate-200 px-3 py-3 text-xs flex flex-col gap-3">
                                 <div className="flex items-center justify-between gap-2">
-                                  <p className="text-[11px] uppercase tracking-[0.18em] text-amber-200/80 flex items-center gap-1.5">
+                                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 flex items-center gap-1.5">
                                     <Truck className="h-3 w-3" />
                                     Planeo de reparto
                                   </p>
-                                  <p className="text-[11px] text-amber-100/70">
+                                  <p className="text-[11px] text-slate-500">
                                     Marcá productos y cantidades a entregar.
                                   </p>
                                 </div>
 
                                 {/* Productos sugeridos */}
                                 <div className="space-y-1">
-                                  <p className="text-[11px] text-amber-100/80 mb-1">
+                                  <p className="text-[11px] text-slate-500 mb-1">
                                     Productos sugeridos (historial de fiado):
                                   </p>
                                   {!productos_sugeridos.length ? (
-                                    <p className="text-[11px] text-amber-100/60">
+                                    <p className="text-[11px] text-slate-400">
                                       No hay productos sugeridos para este
                                       cliente en el rango filtrado.
                                     </p>
@@ -1084,7 +1084,7 @@ export default function ReporteRepartoCobranza() {
                                       ${
                                         isSelected
                                           ? 'border-emerald-400 bg-emerald-500/10 shadow-[0_0_0_1px_rgba(52,211,153,0.6)]'
-                                          : 'border-white/15 bg-slate-900/70 hover:border-amber-300/70'
+                                          : 'border-slate-200 bg-slate-50/70 hover:border-amber-200'
                                       }`}
                                           >
                                             <div className="flex items-center justify-between gap-2">
@@ -1098,14 +1098,14 @@ export default function ReporteRepartoCobranza() {
                                                       p
                                                     )
                                                   }
-                                                  className="h-3.5 w-3.5 rounded border-amber-300 bg-slate-950 text-amber-400 focus:ring-amber-300"
+                                                  className="h-3.5 w-3.5 rounded border-amber-300 bg-white text-amber-600 focus:ring-amber-300"
                                                 />
                                                 <div className="text-[11px]">
                                                   <p className="font-semibold">
                                                     {p.nombre}
                                                   </p>
                                                   {p.codigo_sku && (
-                                                    <p className="text-amber-100/60">
+                                                    <p className="text-slate-400">
                                                       SKU: {p.codigo_sku}
                                                     </p>
                                                   )}
@@ -1116,7 +1116,7 @@ export default function ReporteRepartoCobranza() {
                                               </p>
                                             </div>
                                             <div className="flex items-center gap-2 mt-1">
-                                              <span className="text-[11px] text-amber-100/70">
+                                              <span className="text-[11px] text-slate-500">
                                                 Cant:
                                               </span>
                                               <input
@@ -1132,7 +1132,7 @@ export default function ReporteRepartoCobranza() {
                                                     e.target.value
                                                   )
                                                 }
-                                                className="w-16 rounded-lg border border-white/20 bg-slate-950/80 text-[11px] px-1.5 py-1 text-amber-50 focus:outline-none focus:ring-1 focus:ring-emerald-300"
+                                                className="w-16 rounded-lg border border-slate-200 bg-white text-[11px] px-1.5 py-1 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-300"
                                               />
                                             </div>
                                           </label>
@@ -1144,7 +1144,7 @@ export default function ReporteRepartoCobranza() {
 
                                 {/* Observación */}
                                 <div>
-                                  <p className="text-[11px] text-amber-100/80 mb-1">
+                                  <p className="text-[11px] text-slate-500 mb-1">
                                     Observación para el reparto (opcional):
                                   </p>
                                   <textarea
@@ -1157,10 +1157,10 @@ export default function ReporteRepartoCobranza() {
                                     }
                                     rows={2}
                                     maxLength={140}
-                                    className="w-full rounded-2xl border border-white/15 bg-slate-950/80 text-[11px] px-2.5 py-2 text-amber-50 placeholder:text-amber-100/40 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
+                                    className="w-full rounded-2xl border border-slate-200 bg-white text-[11px] px-2.5 py-2 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
                                     placeholder="Ej: dejar en vecino, tocar timbre negro, horario preferido…"
                                   />
-                                  <p className="text-[10px] text-amber-100/60 text-right mt-0.5">
+                                  <p className="text-[10px] text-slate-400 text-right mt-0.5">
                                     {(planCli.observacion || '').length}/140
                                   </p>
                                 </div>
@@ -1173,7 +1173,7 @@ export default function ReporteRepartoCobranza() {
 
                     {/* Paginación */}
                     {totalPages > 1 && (
-                      <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-amber-100/80">
+                      <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
                         <div className="sm:hidden">
                           Mostrando{' '}
                           <span className="font-semibold">
@@ -1192,7 +1192,7 @@ export default function ReporteRepartoCobranza() {
                               setCurrentPage((prev) => Math.max(1, prev - 1))
                             }
                             disabled={paginaActual === 1}
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-white/15 bg-slate-950/80 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ChevronLeft className="h-4 w-4" />
                           </button>
@@ -1205,7 +1205,7 @@ export default function ReporteRepartoCobranza() {
                                 ${
                                   p === paginaActual
                                     ? 'bg-amber-400 text-slate-950 border-amber-400'
-                                    : 'bg-slate-950/80 text-amber-50 border-white/15 hover:bg-white/10'
+                                    : 'bg-white text-slate-800 border-slate-200 hover:bg-slate-100'
                                 }`}
                             >
                               {p}
@@ -1219,7 +1219,7 @@ export default function ReporteRepartoCobranza() {
                               )
                             }
                             disabled={paginaActual === totalPages}
-                            className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-white/15 bg-slate-950/80 hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center justify-center h-8 w-8 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <ChevronRight className="h-4 w-4" />
                           </button>
@@ -1233,31 +1233,31 @@ export default function ReporteRepartoCobranza() {
           </motion.div>
 
           {/* Footer mini */}
-          <div className="mt-10 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-[11px] text-amber-100/80 text-center sm:text-left">
+          <div className="mt-10 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-slate-500 text-center sm:text-left">
               Módulo Reparto &amp; CxC ·{' '}
-              <span className="font-semibold text-amber-200">SodaSale</span> ·
+              <span className="font-semibold text-slate-500">SodaSale</span> ·
               Desarrollado por{' '}
-              <span className="font-semibold text-amber-200">SoftFusion</span>
+              <span className="font-semibold text-slate-500">SoftFusion</span>
             </p>
             <div className="flex items-center gap-2">
               <a
                 href="https://www.instagram.com/softfusiontechnologies/"
                 target="_blank"
                 rel="noreferrer"
-                className="h-8 w-8 flex items-center justify-center rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition"
+                className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
                 title="Instagram SoftFusion"
               >
-                <FaInstagram className="text-sm text-amber-50" />
+                <FaInstagram className="text-sm text-slate-800" />
               </a>
               <a
                 href="https://softfusion.com.ar/"
                 target="_blank"
                 rel="noreferrer"
-                className="h-8 w-8 flex items-center justify-center rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition"
+                className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
                 title="Sitio web SoftFusion"
               >
-                <FaGlobeAmericas className="text-sm text-amber-50" />
+                <FaGlobeAmericas className="text-sm text-slate-800" />
               </a>
             </div>
           </div>
@@ -1270,12 +1270,12 @@ export default function ReporteRepartoCobranza() {
         {selectedClienteIds.length > 0 && (
           <div className="fixed inset-x-0 bottom-0 z-50 pb-[env(safe-area-inset-bottom)]">
             <div className="mx-auto max-w-6xl px-3 sm:px-4">
-              <div className="mb-3 rounded-2xl border border-amber-300/30 bg-slate-950/85 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.35)]">
+              <div className="mb-3 rounded-2xl border border-amber-200 bg-white shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2.5">
                   <div className="flex items-center justify-between sm:justify-start gap-2">
-                    <div className="text-[11px] sm:text-xs text-amber-100/80">
+                    <div className="text-[11px] sm:text-xs text-slate-500">
                       Seleccionados:{' '}
-                      <span className="font-semibold text-amber-100">
+                      <span className="font-semibold text-amber-700">
                         {selectedClienteIds.length}
                       </span>
                     </div>
@@ -1284,7 +1284,7 @@ export default function ReporteRepartoCobranza() {
                     <button
                       type="button"
                       onClick={clearSelection}
-                      className="text-[11px] sm:text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/5 text-amber-100/80 hover:bg-white/10 transition"
+                      className="text-[11px] sm:text-xs px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 transition"
                       title="Limpiar selección"
                     >
                       Limpiar
@@ -1295,7 +1295,7 @@ export default function ReporteRepartoCobranza() {
                     <button
                       type="button"
                       onClick={handleExport}
-                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-300/70 text-amber-100 text-xs sm:text-sm hover:bg-amber-400/10 transition"
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-amber-200 text-amber-700 text-xs sm:text-sm hover:bg-amber-50 transition"
                     >
                       <FileDown className="h-4 w-4" />
                       Exportar seleccionados
@@ -1306,7 +1306,6 @@ export default function ReporteRepartoCobranza() {
             </div>
           </div>
         )}
-      </section>
-    </>
+    </AppShell>
   );
 }
