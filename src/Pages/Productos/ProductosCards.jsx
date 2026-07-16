@@ -1,15 +1,11 @@
 // src/Pages/Productos/ProductosCards.jsx
 import React, { useEffect, useMemo, useState } from 'react';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
-import ParticlesBackground from '../../Components/ParticlesBackground';
-import ButtonBack from '../../Components/ButtonBack';
-import { motion } from 'framer-motion';
-import { FaPlus, FaSearch, FaLayerGroup } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
+import { Search, Plus, Layers, ArrowLeft, X } from 'lucide-react';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 
-import ProductCard from '../../Components/Productos/ProductCard';
+import ProductTableRow from '../../Components/Productos/ProductTableRow';
 import ProductoFormModal from '../../Components/Productos/ProductoFormModal';
 import StockMovimientosModal from '../../Components/Stock/StockMovimientosModal';
 import CategoriasManagerModal from '../../Components/Categorias/CategoriasManagerModal';
@@ -45,7 +41,7 @@ export default function ProductosCards() {
   const [categorias, setCategorias] = useState([]);
 
   const [page, setPage] = useState(1);
-  const limit = 18;
+  const limit = 15;
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -112,7 +108,8 @@ export default function ProductosCards() {
           page: pageNum,
           totalPages,
           hasPrev,
-          hasNext
+          hasNext,
+          total: apiMeta.total ?? apiRows.length
         };
       }
 
@@ -255,10 +252,10 @@ export default function ProductosCards() {
     } catch (err) {
       await fetchData();
 
-      const { code, mensajeError, meta } = err || {};
+      const { code, mensajeError, meta: errMeta } = err || {};
 
       if (code === 'PRODUCT_HAS_SALES') {
-        const ventasCount = meta?.ventasCount ?? null;
+        const ventasCount = errMeta?.ventasCount ?? null;
 
         const r2 = await showConfirmSwal({
           title: 'Producto con ventas asociadas',
@@ -288,158 +285,206 @@ export default function ProductosCards() {
     }
   };
 
-  const Pager = useMemo(() => {
-    if (!meta) return null;
-    return (
-      <div className="flex items-center justify-center gap-2 mt-6">
-        <button
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          disabled={!meta.hasPrev}
-          className="px-3 py-2 rounded-xl border border-white/30 bg-white/70 hover:bg-white disabled:opacity-50"
-        >
-          ← Anterior
-        </button>
-        <span className="text-white/90 text-sm">
-          Página {meta.page} {meta.totalPages ? `/ ${meta.totalPages}` : ''}
-        </span>
-        <button
-          onClick={() => setPage((p) => (meta.hasNext ? p + 1 : p))}
-          disabled={!meta.hasNext}
-          className="px-3 py-2 rounded-xl border border-white/30 bg-white/70 hover:bg-white disabled:opacity-50"
-        >
-          Siguiente →
-        </button>
-      </div>
-    );
-  }, [meta]);
+  const limpiarFiltros = () => {
+    setQ('');
+    setFiltroEstado('todos');
+    setFiltroPresentacion('todas');
+    setFiltroCategoria('');
+    setPage(1);
+  };
+
+  const rangoTexto = useMemo(() => {
+    if (!meta?.total) return null;
+    const desde = (page - 1) * limit + 1;
+    const hasta = Math.min(page * limit, meta.total);
+    return `Mostrando ${desde} a ${hasta} de ${meta.total} productos`;
+  }, [meta, page]);
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        <div className="min-h-screen bg-gradient-to-b from-[#001219] via-[#003049] to-[#005f73]">
-          <ParticlesBackground />
-          <ButtonBack />
-
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
-            >
+    <AppShell>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-slate-900">
               Productos
-            </motion.h1>
-            <p className="text-white/80">Gestioná productos.</p>
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">Gestión de productos.</p>
           </div>
 
-          {/* Barra de acciones */}
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-              <div className="relative flex-1">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  value={q}
-                  onChange={(e) => {
-                    setPage(1);
-                    setQ(e.target.value);
-                  }}
-                  placeholder="Buscar por nombre o SKU…"
-                  className="w-full pl-10 pr-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+            >
+              <ArrowLeft className="h-4 w-4" /> Volver
+            </Link>
+            <button
+              onClick={() => setCategoriasModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 text-sm font-semibold text-white hover:bg-violet-700 transition"
+            >
+              <Layers className="h-4 w-4" /> Nueva Categoría
+            </button>
+            <button
+              onClick={onNew}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white hover:bg-blue-700 transition"
+            >
+              <Plus className="h-4 w-4" /> Nuevo Producto
+            </button>
+          </div>
+        </div>
 
+        {/* Filtros */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="relative lg:col-span-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                value={q}
+                onChange={(e) => {
+                  setPage(1);
+                  setQ(e.target.value);
+                }}
+                placeholder="Buscar por nombre o SKU…"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
+                           focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent"
+              />
+            </div>
+
+            <select
+              value={filtroCategoria}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroCategoria(e.target.value);
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700
+                         focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            >
+              <option value="">Todas las categorías</option>
+              {categorias.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroPresentacion}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroPresentacion(e.target.value);
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700
+                         focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            >
+              <option value="todas">Todas las presentaciones</option>
+              <option value="unidad">Unidad</option>
+              <option value="pack">Pack</option>
+            </select>
+
+            <select
+              value={filtroEstado}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroEstado(e.target.value);
+              }}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-700
+                         focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+            >
+              <option value="todos">Estado: Todos</option>
+              <option value="activos">Activos</option>
+              <option value="inactivos">Inactivos</option>
+            </select>
+          </div>
+
+          {(q || filtroCategoria || filtroPresentacion !== 'todas' || filtroEstado !== 'todos') && (
+            <div className="mt-3">
+              <button
+                onClick={limpiarFiltros}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition"
+              >
+                <X className="h-3.5 w-3.5" /> Limpiar filtros
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Tabla */}
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wide text-slate-500">
+                  <th className="px-4 py-3 text-left font-medium">ID</th>
+                  <th className="px-4 py-3 text-left font-medium">Imagen</th>
+                  <th className="px-4 py-3 text-left font-medium">Nombre</th>
+                  <th className="px-4 py-3 text-left font-medium">SKU</th>
+                  <th className="px-4 py-3 text-left font-medium">Categoría</th>
+                  <th className="px-4 py-3 text-left font-medium">Presentación</th>
+                  <th className="px-4 py-3 text-left font-medium">UM / Contenido</th>
+                  <th className="px-4 py-3 text-left font-medium">Precio</th>
+                  <th className="px-4 py-3 text-left font-medium">Stock</th>
+                  <th className="px-4 py-3 text-left font-medium">Estado</th>
+                  <th className="px-4 py-3 text-right font-medium">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={11} className="px-4 py-16 text-center text-slate-400">
+                      Cargando…
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="px-4 py-16 text-center text-slate-400">
+                      No hay productos con esos filtros.
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((it) => (
+                    <ProductTableRow
+                      key={it.id}
+                      item={it}
+                      onEdit={onEdit}
+                      onToggleActivo={onToggleActivo}
+                      onDelete={onDeleteDirect}
+                      onVerStock={setStockModalProducto}
+                      stock={stockMap[it.id]}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Paginación */}
+          {meta && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3.5 border-t border-slate-200">
+              <p className="text-xs text-slate-500">{rangoTexto}</p>
               <div className="flex items-center gap-2">
-                <select
-                  value={filtroEstado}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroEstado(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="todos">Todos</option>
-                  <option value="activos">Activos</option>
-                  <option value="inactivos">Inactivos</option>
-                </select>
-
-                <select
-                  value={filtroPresentacion}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroPresentacion(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="todas">Todas</option>
-                  <option value="unidad">Unidad</option>
-                  <option value="pack">Pack</option>
-                </select>
-
-                <select
-                  value={filtroCategoria}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroCategoria(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">Todas las categorías</option>
-                  {categorias.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nombre}
-                    </option>
-                  ))}
-                </select>
-
                 <button
-                  onClick={onNew}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={!meta.hasPrev}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition"
                 >
-                  <FaPlus /> Nuevo Producto
+                  Anterior
                 </button>
-
+                <span className="text-xs text-slate-500">
+                  Página {meta.page} {meta.totalPages ? `de ${meta.totalPages}` : ''}
+                </span>
                 <button
-                  onClick={() => setCategoriasModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+                  onClick={() => setPage((p) => (meta.hasNext ? p + 1 : p))}
+                  disabled={!meta.hasNext}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white transition"
                 >
-                  <FaLayerGroup /> Nueva Categoría
+                  Siguiente
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Grid de cards */}
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {loading ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="h-10 w-10 border-4 border-white/50 border-t-teal-400 rounded-full animate-spin" />
-              </div>
-            ) : rows.length === 0 ? (
-              <div className="text-center text-white/80 py-24">
-                No hay productos con esos filtros.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {rows.map((it) => (
-                  <ProductCard
-                    key={it.id}
-                    item={it}
-                    onEdit={onEdit}
-                    onToggleActivo={onToggleActivo}
-                    onDelete={onDeleteDirect}
-                    onVerStock={setStockModalProducto}
-                    stock={stockMap[it.id]}
-                    color={it.presentacion === 'pack' ? '#a12262' : '#06b6d4'}
-                  />
-                ))}
-              </div>
-            )}
-
-            {Pager}
-          </div>
+          )}
         </div>
-      </section>
+      </div>
 
       {/* Modal de alta/edición */}
       <ProductoFormModal
@@ -464,6 +509,6 @@ export default function ProductosCards() {
         onClose={() => setCategoriasModalOpen(false)}
         onChanged={cargarCategorias}
       />
-    </>
+    </AppShell>
   );
 }
