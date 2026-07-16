@@ -17,13 +17,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import { useNavigate } from 'react-router-dom';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
+import AppShell from '../../Components/Layout/AppShell';
 import { useAuth } from '../../AuthContext';
-import ParticlesBackground from '../../Components/ParticlesBackground';
 import { motion, AnimatePresence } from 'framer-motion';
-import ButtonBack from '../../Components/ButtonBack';
 import {
   FaUser,
   FaUserTie,
@@ -32,7 +28,8 @@ import {
   FaTruck,
   FaMoneyBill,
   FaHistory,
-  FaTimes
+  FaTimes,
+  FaArrowLeft
 } from 'react-icons/fa';
 import { X } from 'lucide-react';
 
@@ -595,60 +592,61 @@ const VentasDeudasPage = () => {
       : `Ventas con deuda (${meta.total} registros)`;
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        {/* Fondo tipo ventas / caja */}
-        <div className="min-h-screen bg-gradient-to-b from-[#1b1b2f] via-[#3b1f3f] to-[#b53a1d]">
-          <ParticlesBackground />
-          <ButtonBack />
+    <AppShell>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+        </div>
 
-          {/* Título + descripción */}
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-3xl sm:text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
-            >
-              Gestión de Deudas y Cobranzas
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
-            >
-              Consultá clientes con deuda, visualizá el saldo pendiente,
-              registrá cobros y revisá el historial de cobranzas, todo desde
-              un mismo lugar. Podés alternar la fuente:
-              <span className="font-semibold text-white"> Ventas</span> (saldo
-              por venta) o{' '}
-              <span className="font-semibold text-white">
-                Cuenta Corriente (CxC)
-              </span>{' '}
-              (deuda real consolidada, incluye saldo previo).
-            </motion.p>
+        {/* Título + descripción */}
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Gestión de Deudas y Cobranzas
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-1 text-sm text-slate-500 max-w-2xl"
+        >
+          Consultá clientes con deuda, visualizá el saldo pendiente,
+          registrá cobros y revisá el historial de cobranzas, todo desde
+          un mismo lugar. Podés alternar la fuente:
+          <span className="font-semibold text-slate-700"> Ventas</span> (saldo
+          por venta) o{' '}
+          <span className="font-semibold text-slate-700">
+            Cuenta Corriente (CxC)
+          </span>{' '}
+          (deuda real consolidada, incluye saldo previo).
+        </motion.p>
 
-            <div className="mt-5 flex flex-wrap justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectClienteModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
-              >
-                <FaMoneyBill /> Registrar cobro
-              </button>
-              <button
-                type="button"
-                onClick={() => setCobranzasListadoOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
-              >
-                <FaHistory /> Historial de cobranzas
-              </button>
-            </div>
-          </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setSelectClienteModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
+          >
+            <FaMoneyBill /> Registrar cobro
+          </button>
+          <button
+            type="button"
+            onClick={() => setCobranzasListadoOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
+          >
+            <FaHistory /> Historial de cobranzas
+          </button>
+        </div>
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+        <div className="mt-6 space-y-6">
             {/* KPIs */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -656,7 +654,7 @@ const VentasDeudasPage = () => {
               transition={{ duration: 0.4, delay: 0.15 }}
               className="grid grid-cols-1 sm:grid-cols-3 gap-4"
             >
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 flex flex-col">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                   Total adeudado
                 </span>
@@ -665,7 +663,7 @@ const VentasDeudasPage = () => {
                 </span>
               </div>
 
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 flex flex-col">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                   {fuente === 'cxc'
                     ? 'Cantidad de clientes'
@@ -676,7 +674,7 @@ const VentasDeudasPage = () => {
                 </span>
               </div>
 
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white/40 p-4 flex flex-col">
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 flex flex-col">
                 <span className="text-xs uppercase tracking-wide text-gray-500 mb-1">
                   {fuente === 'cxc' ? 'Deuda promedio' : 'Ticket promedio'}
                 </span>
@@ -691,7 +689,7 @@ const VentasDeudasPage = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 p-4 sm:p-5 space-y-4"
+              className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5 space-y-4"
             >
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-gray-700 mb-1">
                 <div className="flex items-center gap-2">
@@ -1016,7 +1014,7 @@ const VentasDeudasPage = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
-              className="rounded-2xl bg-white/95 backdrop-blur-xl border border-white/40 p-4 sm:p-5"
+              className="rounded-2xl bg-white border border-slate-200 p-4 sm:p-5"
             >
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-sm sm:text-base font-semibold text-gray-800">
@@ -1315,7 +1313,6 @@ const VentasDeudasPage = () => {
             </motion.div>
           </div>
         </div>
-      </section>
 
       {/* Modal para seleccionar cliente con deuda (registrar cobro) */}
       <SeleccionarClienteDeudaModal
@@ -1355,7 +1352,7 @@ const VentasDeudasPage = () => {
             exit={{ opacity: 0 }}
           >
             <div
-              className="absolute inset-0 bg-black/75 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
               onClick={() => setCobranzasListadoOpen(false)}
             />
             <motion.div
@@ -1363,18 +1360,18 @@ const VentasDeudasPage = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 230, damping: 26 }}
-              className="relative w-full max-w-6xl max-h-[90vh] rounded-3xl border border-white/15
-                         bg-slate-950/95 shadow-[0_0_50px_rgba(248,250,252,0.15)] flex flex-col overflow-hidden"
+              className="relative w-full max-w-6xl max-h-[90vh] rounded-3xl border border-slate-200
+                         bg-white shadow-2xl flex flex-col overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-slate-900/80">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.16em] text-orange-300/80">
+                  <p className="text-[11px] uppercase tracking-[0.16em] text-orange-600">
                     Cobranzas
                   </p>
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-50">
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900">
                     Historial de Cobranzas
                   </h2>
-                  <p className="text-[11px] text-slate-300/80">
+                  <p className="text-[11px] text-slate-500">
                     Revisá todas las cobranzas registradas, filtrá por cliente y
                     fecha, y abrí el detalle cuando lo necesites.
                   </p>
@@ -1382,10 +1379,10 @@ const VentasDeudasPage = () => {
                 <button
                   onClick={() => setCobranzasListadoOpen(false)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-2xl
-                             bg-white/5 border border-white/20 hover:bg-white/10 transition"
+                             bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
                   aria-label="Cerrar historial de cobranzas"
                 >
-                  <X className="h-5 w-5 text-slate-100" />
+                  <X className="h-5 w-5 text-slate-500" />
                 </button>
               </div>
 
@@ -1396,7 +1393,7 @@ const VentasDeudasPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </AppShell>
   );
 };
 
