@@ -5,9 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-import NavbarStaff from '../Dash/NavbarStaff';
-import ParticlesBackground from '../../Components/ParticlesBackground';
-import ButtonBack from '../../Components/ButtonBack';
+import AppShell from '../../Components/Layout/AppShell';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
@@ -431,81 +429,75 @@ const VentasHistorialPage = () => {
 
   // ------------ render ------------
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        <div className="min-h-screen bg-gradient-to-b from-[#1b1b2f] via-[#3b1f3f] to-[#b53a1d]">
-          <ParticlesBackground />
-          <ButtonBack />
+    <AppShell>
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Título + acción rápida */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 mb-1"
+            >
+              Historial de Ventas
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-sm text-slate-500 max-w-2xl"
+            >
+              Consultá tus ventas, filtrá por cliente, fechas, tipo y
+              estado. Abrí el detalle para ver ítems, cliente y vendedor.
+            </motion.p>
+          </div>
 
-          <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10">
-            {/* Título + acción rápida */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-              <div>
-                <motion.h1
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="text-3xl sm:text-4xl titulo uppercase font-bold text-white mb-2 drop-shadow-md"
-                >
-                  Historial de Ventas
-                </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.1 }}
-                  className="text-sm sm:text-base text-gray-200/80 max-w-2xl"
-                >
-                  Consultá tus ventas, filtrá por cliente, fechas, tipo y
-                  estado. Abrí el detalle para ver ítems, cliente y vendedor.
-                </motion.p>
-              </div>
-
-              {/* Acciones centralizadas del módulo de Ventas */}
-              <div className="flex flex-wrap gap-2 md:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setVentaModalOpen(true)}
-                  disabled={creating}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-60 transition"
-                >
-                  <FaPlus /> {creating ? 'Creando…' : 'Nueva venta'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVentasRepartoModalOpen(true)}
-                  disabled={creatingMasiva}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 disabled:opacity-60 transition"
-                >
-                  <FaCashRegister /> {creatingMasiva ? 'Generando…' : 'Carga masiva'}
-                </button>
-                <Link
-                  to="/dashboard/ventas/saldo-previo"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
-                >
-                  <FaMoneyBillWave /> Saldo previo
-                </Link>
-                <Link
-                  to="/dashboard/ventas/deudas"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
-                >
-                  <FaUsers /> Deudas
-                </Link>
-                <Link
-                  to="/dashboard/ventas/reportes"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
-                >
-                  <FaChartLine /> Reportes
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setExportarModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-semibold hover:bg-white/20 transition"
-                >
-                  <FaFileExport /> Exportar
-                </button>
-              </div>
-            </div>
+          {/* Acciones centralizadas del módulo de Ventas */}
+          <div className="flex flex-wrap gap-2 md:justify-end">
+            <button
+              type="button"
+              onClick={() => setVentaModalOpen(true)}
+              disabled={creating}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-60 transition"
+            >
+              <FaPlus /> {creating ? 'Creando…' : 'Nueva venta'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setVentasRepartoModalOpen(true)}
+              disabled={creatingMasiva}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-60 transition"
+            >
+              <FaCashRegister /> {creatingMasiva ? 'Generando…' : 'Carga masiva'}
+            </button>
+            <Link
+              to="/dashboard/ventas/saldo-previo"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
+            >
+              <FaMoneyBillWave /> Saldo previo
+            </Link>
+            <Link
+              to="/dashboard/ventas/deudas"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
+            >
+              <FaUsers /> Deudas
+            </Link>
+            <Link
+              to="/dashboard/ventas/reportes"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
+            >
+              <FaChartLine /> Reportes
+            </Link>
+            <button
+              type="button"
+              onClick={() => setExportarModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
+            >
+              <FaFileExport /> Exportar
+            </button>
+          </div>
+        </div>
 
             {/* KPIs */}
             <motion.div
@@ -514,7 +506,7 @@ const VentasHistorialPage = () => {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6"
             >
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-md flex items-center gap-3">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                   <FaFileInvoiceDollar className="text-orange-600" />
                 </div>
@@ -528,7 +520,7 @@ const VentasHistorialPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-md flex items-center gap-3">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
                   <FaMoneyBillWave className="text-emerald-600" />
                 </div>
@@ -542,7 +534,7 @@ const VentasHistorialPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-md flex items-center gap-3">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
                   <FaExclamationTriangle className="text-amber-600" />
                 </div>
@@ -556,7 +548,7 @@ const VentasHistorialPage = () => {
                 </div>
               </div>
 
-              <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-md flex items-center gap-3">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-sky-100 flex items-center justify-center">
                   <FaMoneyBillWave className="text-sky-600" />
                 </div>
@@ -575,7 +567,7 @@ const VentasHistorialPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
-              className="bg-white/95 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/20 shadow-md mb-6"
+              className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-6"
             >
               {/* Fila principal */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
@@ -738,7 +730,7 @@ const VentasHistorialPage = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 }}
-              className="bg-white/95 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg overflow-hidden"
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
             >
               {loading && (
                 <div className="p-4 text-sm text-gray-600">
@@ -985,7 +977,6 @@ const VentasHistorialPage = () => {
               )}
             </motion.div>
           </div>
-        </div>
 
         {/* Drawer de detalle */}
         <AnimatePresence>
@@ -996,18 +987,18 @@ const VentasHistorialPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="flex-1 bg-black/50" onClick={cerrarDetalle} />
+              <div className="flex-1 bg-slate-900/40" onClick={cerrarDetalle} />
 
               <motion.div
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-                className="w-full max-w-md sm:max-w-lg h-full bg-[#111827] text-white shadow-2xl border-l border-white/10 flex flex-col"
+                className="w-full max-w-md sm:max-w-lg h-full bg-white text-slate-900 shadow-2xl border-l border-slate-200 flex flex-col"
               >
-                <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                   <div>
-                    <p className="text-xs uppercase text-gray-400 tracking-wide">
+                    <p className="text-xs uppercase text-slate-400 tracking-wide">
                       Detalle de venta
                     </p>
                     <p className="text-lg font-semibold">
@@ -1017,7 +1008,7 @@ const VentasHistorialPage = () => {
 
                   <button
                     onClick={cerrarDetalle}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition"
                   >
                     <FaTimes className="text-sm" />
                   </button>
@@ -1025,7 +1016,7 @@ const VentasHistorialPage = () => {
 
                 <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
                   {detalleLoading && (
-                    <p className="text-sm text-gray-300">Cargando detalle...</p>
+                    <p className="text-sm text-slate-500">Cargando detalle...</p>
                   )}
 
                   {!detalleLoading && detalle && (
@@ -1043,9 +1034,9 @@ const VentasHistorialPage = () => {
                         return (
                           <>
                             {/* Cabecera */}
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-2">
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
                               <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-300">
+                                <span className="text-sm text-slate-500">
                                   Fecha
                                 </span>
                                 <span className="text-sm font-medium">
@@ -1054,7 +1045,7 @@ const VentasHistorialPage = () => {
                               </div>
 
                               <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-300">
+                                <span className="text-sm text-slate-500">
                                   Tipo
                                 </span>
                                 <span
@@ -1068,7 +1059,7 @@ const VentasHistorialPage = () => {
                               </div>
 
                               <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-300">
+                                <span className="text-sm text-slate-500">
                                   Estado
                                 </span>
                                 <span
@@ -1081,9 +1072,9 @@ const VentasHistorialPage = () => {
                                 </span>
                               </div>
 
-                              <div className="pt-2 border-t border-white/10 mt-2 space-y-1.5">
+                              <div className="pt-2 border-t border-slate-200 mt-2 space-y-1.5">
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-300">
+                                  <span className="text-sm text-slate-500">
                                     Total neto
                                   </span>
                                   <span className="text-lg font-bold text-emerald-300">
@@ -1092,16 +1083,16 @@ const VentasHistorialPage = () => {
                                 </div>
 
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-300">
+                                  <span className="text-sm text-slate-500">
                                     A cuenta
                                   </span>
-                                  <span className="text-sm font-semibold text-white">
+                                  <span className="text-sm font-semibold text-slate-900">
                                     {moneyAR(aCuenta)}
                                   </span>
                                 </div>
 
                                 <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-300">
+                                  <span className="text-sm text-slate-500">
                                     Saldo
                                   </span>
                                   <span className="text-sm font-semibold text-amber-200">
@@ -1112,9 +1103,9 @@ const VentasHistorialPage = () => {
                             </div>
 
                             {/* Cliente */}
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-1">
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <FaUser className="text-gray-300" />
+                                <FaUser className="text-slate-400" />
                                 <span className="text-sm font-semibold">
                                   Cliente
                                 </span>
@@ -1125,19 +1116,19 @@ const VentasHistorialPage = () => {
                               </p>
 
                               {detalle.cliente?.documento && (
-                                <p className="text-xs text-gray-300">
+                                <p className="text-xs text-slate-500">
                                   Doc: {detalle.cliente.documento}
                                 </p>
                               )}
 
                               {detalle.cliente?.telefono && (
-                                <p className="text-xs text-gray-300">
+                                <p className="text-xs text-slate-500">
                                   Tel: {detalle.cliente.telefono}
                                 </p>
                               )}
 
                               {detalle.cliente?.email && (
-                                <p className="text-xs text-gray-300">
+                                <p className="text-xs text-slate-500">
                                   Email: {detalle.cliente.email}
                                 </p>
                               )}
@@ -1154,9 +1145,9 @@ const VentasHistorialPage = () => {
                             </div>
 
                             {/* Vendedor */}
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10 space-y-1">
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <FaUserTie className="text-gray-300" />
+                                <FaUserTie className="text-slate-400" />
                                 <span className="text-sm font-semibold">
                                   Vendedor
                                 </span>
@@ -1167,27 +1158,27 @@ const VentasHistorialPage = () => {
                               </p>
 
                               {detalle.vendedor?.telefono && (
-                                <p className="text-xs text-gray-300">
+                                <p className="text-xs text-slate-500">
                                   Tel: {detalle.vendedor.telefono}
                                 </p>
                               )}
 
                               {detalle.vendedor?.email && (
-                                <p className="text-xs text-gray-300">
+                                <p className="text-xs text-slate-500">
                                   Email: {detalle.vendedor.email}
                                 </p>
                               )}
                             </div>
 
                             {/* Ítems */}
-                            <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                               <p className="text-sm font-semibold mb-3">
                                 Ítems de la venta
                               </p>
 
                               {(!detalle.items ||
                                 detalle.items.length === 0) && (
-                                <p className="text-xs text-gray-300">
+                                <p className="text-xs text-slate-500">
                                   No hay ítems registrados para esta venta.
                                 </p>
                               )}
@@ -1197,7 +1188,7 @@ const VentasHistorialPage = () => {
                                   {detalle.items.map((it) => (
                                     <div
                                       key={it.id}
-                                      className="flex justify-between gap-2 border-b border-white/10 pb-1.5 last:border-0 last:pb-0"
+                                      className="flex justify-between gap-2 border-b border-slate-200 pb-1.5 last:border-0 last:pb-0"
                                     >
                                       <div className="flex-1">
                                         <p className="font-medium">
@@ -1211,7 +1202,7 @@ const VentasHistorialPage = () => {
                                         </p>
 
                                         {/*  - 17/01/2026 - Cantidad numérica (evita strings DECIMAL) */}
-                                        <p className="text-gray-400">
+                                        <p className="text-slate-400">
                                           Cant: {Number(it.cantidad ?? 0)} · PU:{' '}
                                           {moneyAR(it.precio_unit)}
                                         </p>
@@ -1228,11 +1219,11 @@ const VentasHistorialPage = () => {
 
                             {/* Observaciones */}
                             {detalle.observaciones && (
-                              <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                                 <p className="text-sm font-semibold mb-1">
                                   Observaciones
                                 </p>
-                                <p className="text-xs text-gray-200">
+                                <p className="text-xs text-slate-500">
                                   {detalle.observaciones}
                                 </p>
                               </div>
@@ -1247,7 +1238,6 @@ const VentasHistorialPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </section>
 
       <VentaFormModal
         open={ventaModalOpen}
@@ -1265,7 +1255,7 @@ const VentasHistorialPage = () => {
         open={exportarModalOpen}
         onClose={() => setExportarModalOpen(false)}
       />
-    </>
+    </AppShell>
   );
 };
 

@@ -710,7 +710,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           aria-modal="true"
         >
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -720,15 +720,15 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-2xl md:max-w-4xl
                        max-h-[90vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5 text-slate-500" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -736,7 +736,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-5"
+                className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
               >
                 Nueva Venta
               </motion.h3>
@@ -750,17 +750,17 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
               >
                 {/* Fecha (solo lectura) */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     Fecha
                   </label>
                   <input
                     value={fechaLabel}
                     readOnly
                     disabled
-                    className="w-full rounded-xl border border-white/10 bg-white/10 px-3.5 py-3 text-gray-200
+                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-3 text-slate-500
                                cursor-not-allowed"
                   />
-                  <p className="mt-1 text-[11px] text-gray-300/70">
+                  <p className="mt-1 text-[11px] text-slate-400">
                     La fecha se toma automáticamente (no editable).
                   </p>
                 </motion.div>
@@ -769,15 +769,15 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {/* Ciudad */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
                       Ciudad
                     </label>
                     <select
                       name="ciudad_id"
                       value={form.ciudad_id}
                       onChange={handleCiudad}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
                     >
                       <option className="text-black" value="">
                         Seleccionar…
@@ -788,14 +788,14 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                         </option>
                       ))}
                     </select>
-                    <p className="mt-1 text-[11px] text-gray-300/70">
+                    <p className="mt-1 text-[11px] text-slate-400">
                       Usamos la ciudad para filtrar los clientes.
                     </p>
                   </motion.div>
 
                   {/* Reparto */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
                       Reparto
                     </label>
 
@@ -804,8 +804,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       value={form.reparto_id ?? ''}
                       onChange={handleReparto}
                       disabled={!form.ciudad_id || loadingRepartos}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
                  disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <option className="text-black" value="">
@@ -838,13 +838,13 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       })}
                     </select>
 
-                    <p className="mt-1 text-[11px] text-gray-300/70">
+                    <p className="mt-1 text-[11px] text-slate-400">
                       Opcional. Se guarda en la venta para filtrar por reparto.
                       Solo se listan los de la ciudad seleccionada.
                     </p>
 
                     {repartosError && (
-                      <p className="mt-1 text-[11px] text-red-200/90">
+                      <p className="mt-1 text-[11px] text-rose-600">
                         {repartosError}
                       </p>
                     )}
@@ -852,8 +852,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                   {/* Cliente (SearchableSelect) */}
                   <motion.div variants={fieldV} className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Cliente <span className="text-cyan-300">*</span>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      Cliente <span className="text-orange-600">*</span>
                     </label>
                     <SearchableSelect
                       items={clientes}
@@ -866,7 +866,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     />
 
                     {selectedCliente && (
-                      <p className="mt-1 text-[11px] text-gray-300/80">
+                      <p className="mt-1 text-[11px] text-slate-400">
                         {selectedCliente.direccion_calle
                           ? `Dirección: ${selectedCliente.direccion_calle} ${
                               selectedCliente.direccion_numero || ''
@@ -879,17 +879,17 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                 {/* Vendedor asociado (solo lectura, desde cliente) */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     Vendedor asignado
                   </label>
                   <input
                     value={vendedorLabel || 'Sin vendedor asociado al cliente…'}
                     readOnly
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-gray-200
+                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-3 text-slate-500
                                placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-transparent"
                     placeholder="Sin vendedor asociado"
                   />
-                  {/* <p className="mt-1 text-[11px] text-gray-300/70">
+                  {/* <p className="mt-1 text-[11px] text-slate-400">
                     Se toma automáticamente del campo{' '}
                     <span className="font-semibold">
                       vendedor_preferido del cliente
@@ -900,10 +900,10 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                 {/* Tipo de venta */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     Tipo de venta
                   </label>
-                  <div className="inline-flex rounded-xl bg-white/5 border border-white/10 p-1">
+                  <div className="inline-flex rounded-xl bg-slate-100 border border-slate-200 p-1">
                     {[
                       { key: 'contado', label: 'Contado' },
                       { key: 'fiado', label: 'Fiado' },
@@ -916,8 +916,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                         className={`px-3.5 py-1.5 text-sm rounded-lg transition
                           ${
                             form.tipo === opt.key
-                              ? 'bg-cyan-500 text-white shadow'
-                              : 'text-gray-200 hover:bg-white/10'
+                              ? 'bg-orange-500 text-white shadow'
+                              : 'text-slate-500 hover:bg-slate-100'
                           }`}
                       >
                         {opt.label}
@@ -928,7 +928,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                 {/* Observaciones */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     Observaciones
                   </label>
                   <textarea
@@ -936,8 +936,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     value={form.observaciones}
                     onChange={handleObservaciones}
                     rows={3}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
                     placeholder="Notas internas de la operación (opcional)"
                   />
                 </motion.div>
@@ -945,7 +945,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 {/* Detalle de productos */}
                 <motion.div variants={fieldV} className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-gray-200">
+                    <span className="text-sm font-medium text-slate-600">
                       Productos de la venta
                     </span>
                     <button
@@ -964,13 +964,13 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       <div
                         key={index}
                         className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-3
-                                   items-center bg-white/5 rounded-xl border border-white/10 p-3"
+                                   items-center bg-slate-50 rounded-xl border border-slate-200 p-3"
                       >
                         {/* Producto */}
 
                         <div className="md:col-span-1">
-                          <label className="block text-sm font-medium text-gray-200 mb-2">
-                            Producto <span className="text-cyan-300">*</span>
+                          <label className="block text-sm font-medium text-slate-600 mb-2">
+                            Producto <span className="text-orange-600">*</span>
                           </label>
                           <SearchableSelect
                             label=""
@@ -1000,7 +1000,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                         {/* Cantidad */}
                         <div>
-                          <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                          <label className="block text-[11px] font-medium text-slate-500 mb-1">
                             Cantidad
                           </label>
                           <input
@@ -1016,15 +1016,15 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                                 e.target.value
                               )
                             }
-                            className="w-full rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-white
-                                       placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent text-sm"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                       placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent text-sm"
                             placeholder="0"
                           />
                         </div>
 
                         {/* Precio unitario */}
                         <div>
-                          <label className="block text-[11px] font-medium text-gray-300 mb-1">
+                          <label className="block text-[11px] font-medium text-slate-500 mb-1">
                             Precio unitario ($)
                           </label>
                           <input
@@ -1040,8 +1040,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                                 e.target.value
                               )
                             }
-                            className="w-full rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-white
-                                       placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent text-sm"
+                            className="w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                       placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent text-sm"
                             placeholder="0.00"
                           />
                         </div>
@@ -1053,7 +1053,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                             onClick={() => removeItemRow(index)}
                             disabled={items.length === 1}
                             className="inline-flex items-center justify-center rounded-full p-2
-                                       border border-red-500/60 text-red-400 hover:bg-red-500/10
+                                       border border-rose-300 text-rose-500 hover:bg-rose-50
                                        disabled:opacity-40 disabled:cursor-not-allowed transition"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -1065,7 +1065,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                   {/* Total + A cuenta (derecha) */}
                   <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 pt-2">
-                    <div className="text-[11px] text-gray-300/70">
+                    <div className="text-[11px] text-slate-400">
                       {form.tipo === 'a_cuenta'
                         ? 'Ingresá el monto cobrado hoy. El saldo quedará como deuda.'
                         : 'Al seleccionar un producto, se carga automáticamente el precio y cantidad 1.'}
@@ -1076,7 +1076,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       <div className="w-full sm:w-[260px]">
                         {/* A cuenta */}
                         <div className="mb-2.5">
-                          <p className="text-xs text-gray-300/80 mb-1">
+                          <p className="text-xs text-slate-500 mb-1">
                             A cuenta
                           </p>
 
@@ -1100,14 +1100,14 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                                 }));
                               }
                             }}
-                            className="w-full rounded-xl border px-2.5 py-2 text-white text-sm
-                 border-white/10 bg-white/5
-                 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                            className="w-full rounded-xl border px-2.5 py-2 text-slate-800 text-sm
+                 border-slate-200 bg-white
+                 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
                             placeholder="0.00"
                           />
 
                           {aCuentaNumber > moneyRound(totalNeto) + 0.01 && (
-                            <p className="mt-1 text-[11px] text-red-200/90">
+                            <p className="mt-1 text-[11px] text-rose-600">
                               El monto a cuenta no puede superar el total.
                             </p>
                           )}
@@ -1115,7 +1115,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                         {/* Saldo previo (deuda histórica) - debajo de A cuenta */}
                         <div>
-                          <p className="text-xs text-amber-200/90 mb-1">
+                          <p className="text-xs text-amber-700 mb-1">
                             Saldo previo
                           </p>
 
@@ -1128,8 +1128,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                               value={form.saldo_previo ?? ''}
                               onChange={handleSaldoPrevio}
                               disabled={savingSaldoPrevio || saldoPrevioCargado}
-                              className="flex-1 rounded-xl border px-2.5 py-2 text-white text-sm
-                   border-amber-300/30 bg-amber-500/5
+                              className="flex-1 rounded-xl border px-2.5 py-2 text-slate-800 text-sm
+                   border-amber-200 bg-amber-50
                    focus:outline-none focus:ring-2 focus:ring-amber-300/30 focus:border-transparent
                    disabled:opacity-60 disabled:cursor-not-allowed"
                               placeholder="0.00"
@@ -1140,8 +1140,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                               onClick={submitSaldoPrevio}
                               disabled={!canSubmitSaldoPrevio}
                               className="inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold transition
-                   border border-amber-300/40 bg-amber-500/15 text-amber-100
-                   hover:bg-amber-500/25 hover:border-amber-300/60
+                   border border-amber-300 bg-amber-100 text-amber-700
+                   hover:bg-amber-200 hover:border-amber-400
                    disabled:opacity-50 disabled:cursor-not-allowed"
                               title={
                                 saldoPrevioCargado
@@ -1157,7 +1157,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                             </button>
                           </div>
 
-                          <p className="mt-1 text-[11px] text-amber-100/70">
+                          <p className="mt-1 text-[11px] text-amber-500">
                             Carga deuda histórica sin registrar productos.
                           </p>
                         </div>
@@ -1165,17 +1165,17 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                       {/* Totales */}
                       <div className="text-right ml-5">
-                        <p className="text-xs text-gray-300/80">
+                        <p className="text-xs text-slate-500">
                           Total estimado
                         </p>
-                        <p className="text-lg font-semibold text-emerald-300">
+                        <p className="text-lg font-semibold text-emerald-600">
                           $ {totalLabel}
                         </p>
 
                         {form.tipo === 'a_cuenta' && (
-                          <p className="text-xs text-gray-200/80">
+                          <p className="text-xs text-slate-500">
                             Saldo:{' '}
-                            <span className="font-semibold text-amber-200">
+                            <span className="font-semibold text-amber-600">
                               $ {saldoLabel}
                             </span>
                           </p>
@@ -1193,14 +1193,14 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={!canSave || saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
+                    className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold
                                hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving ? 'Guardando…' : 'Confirmar venta'}

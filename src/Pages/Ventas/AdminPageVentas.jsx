@@ -2,14 +2,11 @@
 // FILE: src/Pages/Ventas/AdminPageVentas.jsx
 // ===============================
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
+import { Link, useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { useAuth } from '../../AuthContext';
-import ParticlesBackground from '../../Components/ParticlesBackground';
 import { motion } from 'framer-motion';
-import ButtonBack from '../../Components/ButtonBack';
+import { FaArrowLeft } from 'react-icons/fa';
 // Íconos relacionados a ventas
 import {
   FaCashRegister,
@@ -62,6 +59,7 @@ const ventasLinks = [
 
 const AdminPageVentas = () => {
   const { userLevel } = useAuth(); // por si despues filtras accesos por rol
+  const navigate = useNavigate();
   const [ventaModalOpen, setVentaModalOpen] = useState(false);
   const [ventasRepartoModalOpen, setVentasRepartoModalOpen] = useState(false); //
   const [creating, setCreating] = useState(false);
@@ -159,159 +157,141 @@ const AdminPageVentas = () => {
     }
   };
 
+  const tileCls =
+    'w-full rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 text-slate-700 font-semibold text-base p-6 flex flex-col items-center justify-center gap-3';
+
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        {/* 🎨 Gradiente cálido tipo "caja / ventas" */}
-        <div className="min-h-screen bg-gradient-to-b from-[#1b1b2f] via-[#3b1f3f] to-[#b53a1d]">
-          <ParticlesBackground />
-          <ButtonBack />
-
-          {/* Título */}
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
-            >
-              Gestión de Ventas
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
-            >
-              Accedé rápidamente al historial, cargá nuevas ventas, administrá
-              deudas y consultá reportes para tomar mejores decisiones.
-            </motion.p>
-          </div>
-
-          {/* Tarjetas */}
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 justify-center">
-              {ventasLinks.map(({ to, label, icon }, index) => {
-                const isNuevaVenta = to === '/dashboard/ventas/nueva';
-                const isVentasReparto =
-                  to === '/dashboard/ventas/ventas-reparto-masiva'; //
-                const isCobranzas = to === '/dashboard/ventas/cobranzas';
-                if (isNuevaVenta) {
-                  return (
-                    <button
-                      type="button"
-                      key={label}
-                      onClick={() => setVentaModalOpen(true)}
-                      disabled={creating}
-                      className="flex justify-center"
-                    >
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: index * 0.08 }}
-                        className={`bg-white/90 backdrop-blur-xl shadow-lg hover:shadow-orange-400/70
-                                   transition-all duration-300 text-gray-800 font-semibold text-lg
-                                   rounded-2xl w-full max-w-xs p-6 flex flex-col items-center justify-center
-                                   border border-white/20 hover:scale-[1.03] gap-3 ${
-                                     creating ? 'opacity-70 cursor-wait' : ''
-                                   }`}
-                      >
-                        <span className="text-4xl text-orange-600">{icon}</span>
-                        <span className="text-center">
-                          {creating ? 'Creando venta…' : label}
-                        </span>
-                      </motion.div>
-                    </button>
-                  );
-                }
-
-                //  Tarjeta especial: abre modal de "Ventas masivas por reparto"
-                if (isVentasReparto) {
-                  return (
-                    <button
-                      type="button"
-                      key={label}
-                      onClick={() => setVentasRepartoModalOpen(true)}
-                      disabled={creatingMasiva}
-                      className="flex justify-center"
-                    >
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: index * 0.08 }}
-                        className={`bg-white/90 backdrop-blur-xl shadow-lg hover:shadow-orange-400/70
-                                   transition-all duration-300 text-gray-800 font-semibold text-lg
-                                   rounded-2xl w-full max-w-xs p-6 flex flex-col items-center justify-center
-                                   border border-white/20 hover:scale-[1.03] gap-3 ${
-                                     creatingMasiva
-                                       ? 'opacity-70 cursor-wait'
-                                       : ''
-                                   }`}
-                      >
-                        <span className="text-4xl text-orange-600">{icon}</span>
-                        <span className="text-center">
-                          {creatingMasiva ? 'Generando ventas…' : label}
-                        </span>
-                      </motion.div>
-                    </button>
-                  );
-                }
-
-                //  Tarjeta especial: flujo Cobrar Fiados Clientes (abre selector de cliente)
-                if (isCobranzas) {
-                  return (
-                    <button
-                      type="button"
-                      key={label}
-                      onClick={() => {
-                        setSelectClienteModalOpen(true);
-                      }}
-                      className="flex justify-center"
-                    >
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.4, delay: index * 0.08 }}
-                        className="bg-white/90 backdrop-blur-xl shadow-lg hover:shadow-orange-400/70
-                   transition-all duration-300 text-gray-800 font-semibold text-lg
-                   rounded-2xl w-full max-w-xs p-6 flex flex-col items-center justify-center
-                   border border-white/20 hover:scale-[1.03] gap-3"
-                      >
-                        <span className="text-4xl text-orange-600">{icon}</span>
-                        <span className="text-center">{label}</span>
-                      </motion.div>
-                    </button>
-                  );
-                }
-
-                //  Las demás siguen como links normales
-                return (
-                  <Link
-                    to={typeof to === 'string' ? to : to.pathname}
-                    state={typeof to === 'object' ? to.state || {} : {}}
-                    key={label}
-                    className="flex justify-center"
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.4, delay: index * 0.08 }}
-                      className="bg-white/90 backdrop-blur-xl shadow-lg hover:shadow-orange-400/70
-                                 transition-all duration-300 text-gray-800 font-semibold text-lg
-                                 rounded-2xl w-full max-w-xs p-6 flex flex-col items-center justify-center
-                                 border border-white/20 hover:scale-[1.03] gap-3"
-                    >
-                      <span className="text-4xl text-orange-600">{icon}</span>
-                      <span className="text-center">{label}</span>
-                    </motion.div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
         </div>
-      </section>
+
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Gestión de Ventas
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-1 text-sm text-slate-500 max-w-2xl"
+        >
+          Accedé rápidamente al historial, cargá nuevas ventas, administrá
+          deudas y consultá reportes para tomar mejores decisiones.
+        </motion.p>
+
+        {/* Tarjetas */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+          {ventasLinks.map(({ to, label, icon }, index) => {
+            const isNuevaVenta = to === '/dashboard/ventas/nueva';
+            const isVentasReparto =
+              to === '/dashboard/ventas/ventas-reparto-masiva'; //
+            const isCobranzas = to === '/dashboard/ventas/cobranzas';
+            if (isNuevaVenta) {
+              return (
+                <button
+                  type="button"
+                  key={label}
+                  onClick={() => setVentaModalOpen(true)}
+                  disabled={creating}
+                  className="flex justify-center"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                    className={`${tileCls} ${creating ? 'opacity-70 cursor-wait' : ''}`}
+                  >
+                    <span className="text-3xl text-teal-600">{icon}</span>
+                    <span className="text-center text-slate-800">
+                      {creating ? 'Creando venta…' : label}
+                    </span>
+                  </motion.div>
+                </button>
+              );
+            }
+
+            //  Tarjeta especial: abre modal de "Ventas masivas por reparto"
+            if (isVentasReparto) {
+              return (
+                <button
+                  type="button"
+                  key={label}
+                  onClick={() => setVentasRepartoModalOpen(true)}
+                  disabled={creatingMasiva}
+                  className="flex justify-center"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                    className={`${tileCls} ${creatingMasiva ? 'opacity-70 cursor-wait' : ''}`}
+                  >
+                    <span className="text-3xl text-teal-600">{icon}</span>
+                    <span className="text-center text-slate-800">
+                      {creatingMasiva ? 'Generando ventas…' : label}
+                    </span>
+                  </motion.div>
+                </button>
+              );
+            }
+
+            //  Tarjeta especial: flujo Cobrar Fiados Clientes (abre selector de cliente)
+            if (isCobranzas) {
+              return (
+                <button
+                  type="button"
+                  key={label}
+                  onClick={() => {
+                    setSelectClienteModalOpen(true);
+                  }}
+                  className="flex justify-center"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: index * 0.08 }}
+                    className={tileCls}
+                  >
+                    <span className="text-3xl text-teal-600">{icon}</span>
+                    <span className="text-center text-slate-800">{label}</span>
+                  </motion.div>
+                </button>
+              );
+            }
+
+            //  Las demás siguen como links normales
+            return (
+              <Link
+                to={typeof to === 'string' ? to : to.pathname}
+                state={typeof to === 'object' ? to.state || {} : {}}
+                key={label}
+                className="flex justify-center"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  className={tileCls}
+                >
+                  <span className="text-3xl text-teal-600">{icon}</span>
+                  <span className="text-center text-slate-800">{label}</span>
+                </motion.div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Modal de Nueva Venta */}
       <VentaFormModal
@@ -326,7 +306,7 @@ const AdminPageVentas = () => {
         onClose={() => setVentasRepartoModalOpen(false)}
         onSubmit={handleVentasRepartoMasiva}
       />
-    </>
+    </AppShell>
   );
 };
 
