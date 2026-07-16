@@ -4,10 +4,12 @@ const ParticlesBackground = ({ className = '' }) => {
   const canvasRef = useRef(null);
   const animationFrameId = useRef(null);
   const particles = useRef([]);
+  const pausedRef = useRef(false);
 
   const particleCount = 60; // ✅ reducido
   const maxVelocity = 0.25;
   const maxRadius = 1.2;
+  const frameInterval = 1000 / 30; // tope ~30fps: no hace falta más para partículas lentas
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,7 +32,18 @@ const ParticlesBackground = ({ className = '' }) => {
       color: randomColor()
     }));
 
-    const draw = () => {
+    let lastTime = 0;
+    const draw = (time = 0) => {
+      animationFrameId.current = requestAnimationFrame(draw);
+
+      // Con un modal abierto (aria-modal="true"), no repintamos: un canvas
+      // animando detrás de un panel con backdrop-blur obliga al navegador a
+      // recalcular ese blur en cada frame, y ahí es donde se siente el lag.
+      if (pausedRef.current) return;
+
+      if (time - lastTime < frameInterval) return;
+      lastTime = time;
+
       ctx.clearRect(0, 0, width, height);
 
       particles.current.forEach((p) => {
@@ -47,11 +60,9 @@ const ParticlesBackground = ({ className = '' }) => {
         ctx.fill();
         ctx.globalAlpha = 1;
       });
-
-      animationFrameId.current = requestAnimationFrame(draw);
     };
 
-    draw();
+    animationFrameId.current = requestAnimationFrame(draw);
 
     const handleResize = () => {
       width = canvas.width = canvas.offsetWidth;
@@ -59,9 +70,22 @@ const ParticlesBackground = ({ className = '' }) => {
     };
     window.addEventListener('resize', handleResize);
 
+    const checkModalState = () => {
+      pausedRef.current = !!document.querySelector('[aria-modal="true"]');
+    };
+    checkModalState();
+    const observer = new MutationObserver(checkModalState);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-modal']
+    });
+
     return () => {
       cancelAnimationFrame(animationFrameId.current);
       window.removeEventListener('resize', handleResize);
+      observer.disconnect();
     };
   }, []);
 

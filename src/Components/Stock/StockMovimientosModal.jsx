@@ -9,6 +9,7 @@ import {
   createStockAjuste
 } from '../../api/stock.js';
 import { showErrorSwal, showSuccessSwal, showWarnSwal } from '../../ui/swal';
+import { blockWheelChange } from '../../utils/numberInput';
 
 const TIPO_LABEL = {
   compra: 'Compra',
@@ -181,6 +182,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
                     >
                       <input
                         type="number"
+                        onWheel={blockWheelChange}
                         step="1"
                         value={ajusteCantidad}
                         onChange={(e) => setAjusteCantidad(e.target.value)}

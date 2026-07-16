@@ -17,6 +17,7 @@ import {
   patchVendedorEstado,
   deleteVendedor
 } from '../../api/vendedores';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
   showErrorSwal,
@@ -25,22 +26,13 @@ import {
   showConfirmSwal
 } from '../../ui/swal';
 
-const useDebounce = (value, ms = 200) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
-
 export default function VendedoresCards() {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
   const [filtroEstado, setFiltroEstado] = useState('todos'); // todos|activos|inactivos
 
   const [page, setPage] = useState(1);

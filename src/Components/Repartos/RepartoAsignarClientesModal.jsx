@@ -23,15 +23,7 @@ import {
   showSuccessSwal,
   showConfirmSwal
 } from '../../ui/swal';
-
-const useDebounce = (value, ms = 400) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 export default function RepartoAsignarClientesModal({
   open,
@@ -48,7 +40,7 @@ export default function RepartoAsignarClientesModal({
   const [clientesMeta, setClientesMeta] = useState(null);
 
   const [qClientes, setQClientes] = useState('');
-  const dqClientes = useDebounce(qClientes);
+  const dqClientes = useDebouncedValue(qClientes, 500);
   const [pageClientes, setPageClientes] = useState(1);
   const limitClientes = 20;
 

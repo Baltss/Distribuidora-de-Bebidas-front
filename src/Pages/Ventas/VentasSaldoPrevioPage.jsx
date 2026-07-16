@@ -21,6 +21,7 @@ import http from '../../api/http';
 import ventasApi from '../../api/ventas';
 import SearchableSelect from '../../Components/Common/SearchableSelect';
 import AdminPageVentas from './AdminPageVentas';
+import { blockWheelChange } from '../../utils/numberInput';
 
 //  - 25/02/2026 - Form para cargar saldo previo (deuda histórica) sin registrar productos/ventas.
 export default function VentasSaldoPrevioPage() {
@@ -472,6 +473,7 @@ export default function VentasSaldoPrevioPage() {
                 </label>
                 <input
                   type="number"
+                  onWheel={blockWheelChange}
                   min="0"
                   step="0.01"
                   value={form.monto}

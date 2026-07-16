@@ -14,7 +14,8 @@
  *  - KPIs arriba: total adeudado, cantidad de ventas, ticket promedio
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 import { useNavigate } from 'react-router-dom';
 import NavbarStaff from '../Dash/NavbarStaff';
 import '../../Styles/staff/dashboard.css';
@@ -30,7 +31,8 @@ import {
   FaFilter,
   FaTruck,
   FaMoneyBill,
-  FaHistory
+  FaHistory,
+  FaTimes
 } from 'react-icons/fa';
 import { X } from 'lucide-react';
 
@@ -456,8 +458,63 @@ const VentasDeudasPage = () => {
     else fetchVentas(1);
   }, [fuente]); // eslint-disable-line
 
-  const handleBuscar = () => {
-    //  - 25-02-2026 - Buscar respeta la fuente seleccionada.
+  // ======================================================
+  //   - 16-07-2026
+  // Filtros automáticos: ya no hace falta apretar "Aplicar filtros". Se
+  // disparan solos 0.5s después de que el usuario deja de tocar los campos
+  // (el cambio de fuente ya tiene su propio efecto inmediato, arriba).
+  // ======================================================
+  const filtroCriteriaKey = useMemo(
+    () =>
+      JSON.stringify({
+        q,
+        tipo,
+        estado,
+        vendedorId,
+        ciudadId,
+        localidadId,
+        barrioId,
+        fechaDesde,
+        fechaHasta,
+        repartoId
+      }),
+    [
+      q,
+      tipo,
+      estado,
+      vendedorId,
+      ciudadId,
+      localidadId,
+      barrioId,
+      fechaDesde,
+      fechaHasta,
+      repartoId
+    ]
+  );
+  const debouncedFiltroCriteriaKey = useDebouncedValue(filtroCriteriaKey, 500);
+  const isFirstFiltroRun = useRef(true);
+
+  useEffect(() => {
+    if (isFirstFiltroRun.current) {
+      isFirstFiltroRun.current = false;
+      return;
+    }
+    if (fuente === 'cxc') fetchCxCDeudas(1);
+    else fetchVentas(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedFiltroCriteriaKey]);
+
+  const handleLimpiarFiltros = () => {
+    setQ('');
+    setTipo('a_cuenta');
+    setEstado('confirmada');
+    setVendedorId(null);
+    setCiudadId(null);
+    setLocalidadId(null);
+    setBarrioId(null);
+    setFechaDesde('');
+    setFechaHasta('');
+    setRepartoId(null);
     if (fuente === 'cxc') fetchCxCDeudas(1);
     else fetchVentas(1);
   };
@@ -942,12 +999,13 @@ const VentasDeudasPage = () => {
                 <div className="flex items-end">
                   <button
                     type="button"
-                    onClick={handleBuscar}
-                    className="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500
-                               text-white text-sm font-semibold px-4 py-2.5 shadow-md hover:brightness-110 transition disabled:opacity-60"
+                    onClick={handleLimpiarFiltros}
+                    className="w-full inline-flex justify-center items-center gap-2 rounded-xl border border-gray-200
+                               text-gray-700 text-sm font-semibold px-4 py-2.5 hover:bg-gray-100 transition disabled:opacity-60"
                     disabled={loading}
                   >
-                    {loading ? 'Buscando…' : 'Aplicar filtros'}
+                    <FaTimes className="text-xs" />
+                    Limpiar filtros
                   </button>
                 </div>
               </div>

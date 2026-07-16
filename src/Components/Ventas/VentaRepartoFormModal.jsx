@@ -27,6 +27,7 @@ import {
   createVentasRepartoMasiva,
   createSaldoPrevioCliente
 } from '../../api/ventas';
+import { blockWheelChange } from '../../utils/numberInput';
 
 import { showErrorSwal, showWarnSwal, showSuccessSwal } from '../../ui/swal';
 
@@ -1265,6 +1266,7 @@ export default function VentaRepartoFormModal({
                                         <input
                                           ref={setACuentaInputRef(cli.id)}
                                           type="number"
+                                          onWheel={blockWheelChange}
                                           min="0"
                                           step="0.01"
                                           value={aCuentaCli || ''}
@@ -1323,6 +1325,7 @@ export default function VentaRepartoFormModal({
 
                                         <input
                                           type="number"
+                                          onWheel={blockWheelChange}
                                           min="0"
                                           step="0.01"
                                           value={
@@ -1451,6 +1454,7 @@ export default function VentaRepartoFormModal({
                                           </span>
                                           <input
                                             type="number"
+                                            onWheel={blockWheelChange}
                                             min="0"
                                             step="1"
                                             value={value}

@@ -14,7 +14,7 @@
  *  - Gráfico barras: total por tipo de venta
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import NavbarStaff from '../Dash/NavbarStaff';
 import '../../Styles/staff/dashboard.css';
 import '../../Styles/staff/background.css';
@@ -22,6 +22,7 @@ import { useAuth } from '../../AuthContext';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import { motion } from 'framer-motion';
 import ButtonBack from '../../Components/ButtonBack';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 import {
   FaSearch,
   FaFilter,
@@ -166,9 +167,25 @@ const VentasReportesPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleBuscar = () => {
+  // ======================================================
+  //   - 16-07-2026
+  // Filtros automáticos: ya no hace falta apretar "Aplicar filtros".
+  // ======================================================
+  const filtroCriteriaKey = useMemo(
+    () => JSON.stringify({ q, tipo, estado, vendedorId, fechaDesde, fechaHasta }),
+    [q, tipo, estado, vendedorId, fechaDesde, fechaHasta]
+  );
+  const debouncedFiltroCriteriaKey = useDebouncedValue(filtroCriteriaKey, 500);
+  const isFirstFiltroRun = useRef(true);
+
+  useEffect(() => {
+    if (isFirstFiltroRun.current) {
+      isFirstFiltroRun.current = false;
+      return;
+    }
     fetchVentas();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedFiltroCriteriaKey]);
 
   // --------- KPIs y datasets para gráficos ---------
   const { kpis, seriesPorFecha, seriesPorTipo } = useMemo(() => {
@@ -423,12 +440,20 @@ const VentasReportesPage = () => {
                 <div className="flex items-end">
                   <button
                     type="button"
-                    onClick={handleBuscar}
-                    className="w-full inline-flex justify-center items-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500
-                               text-white text-sm font-semibold px-4 py-2.5 shadow-md hover:brightness-110 transition disabled:opacity-60"
+                    onClick={() => {
+                      setQ('');
+                      setTipo('');
+                      setEstado('confirmada');
+                      setVendedorId(null);
+                      setFechaDesde('');
+                      setFechaHasta('');
+                      fetchVentas();
+                    }}
+                    className="w-full inline-flex justify-center items-center gap-2 rounded-xl border border-gray-200
+                               text-gray-700 text-sm font-semibold px-4 py-2.5 hover:bg-gray-100 transition disabled:opacity-60"
                     disabled={loading}
                   >
-                    {loading ? 'Actualizando…' : 'Aplicar filtros'}
+                    {loading ? 'Actualizando…' : 'Limpiar filtros'}
                   </button>
                 </div>
               </div>

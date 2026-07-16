@@ -25,6 +25,7 @@ import moneyAR from '../../utils/money';
 import ProveedorFormModal from '../Proveedores/ProveedorFormModal';
 import ProductoFormModal from '../Productos/ProductoFormModal';
 import { showErrorSwal } from '../../ui/swal';
+import { blockWheelChange } from '../../utils/numberInput';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -341,6 +342,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                     </label>
                     <input
                       type="number"
+                      onWheel={blockWheelChange}
                       min="0"
                       step="1"
                       value={form.monto_abonado}
@@ -410,6 +412,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                             </label>
                             <input
                               type="number"
+                              onWheel={blockWheelChange}
                               min="1"
                               step="1"
                               value={it.cantidad}
@@ -427,6 +430,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                             </label>
                             <input
                               type="number"
+                              onWheel={blockWheelChange}
                               min="0"
                               step="1"
                               value={it.costo_unit}

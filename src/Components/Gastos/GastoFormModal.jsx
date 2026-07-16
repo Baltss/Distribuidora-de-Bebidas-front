@@ -8,6 +8,7 @@ import {
   fieldV
 } from '../../ui/animHelpers';
 import { X, Receipt, Tag, Calendar, Wallet, CreditCard, StickyNote } from 'lucide-react';
+import { blockWheelChange } from '../../utils/numberInput';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -150,6 +151,7 @@ export default function GastoFormModal({ open, onClose, onSubmit, categorias = [
                     <input
                       name="monto"
                       type="number"
+                      onWheel={blockWheelChange}
                       step="0.01"
                       value={form.monto}
                       onChange={handle}

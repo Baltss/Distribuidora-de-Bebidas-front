@@ -1,13 +1,14 @@
 // ===============================
 // FILE: src/Pages/Ventas/VentasHistorialPage.jsx
 // ===============================
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 import NavbarStaff from '../Dash/NavbarStaff';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
   listVentas,
@@ -264,6 +265,42 @@ const VentasHistorialPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ======================================================
+  //   - 16-07-2026
+  // Filtros automáticos: ya no hace falta apretar "Buscar". Se aplican
+  // solos 0.5s después de que el usuario deja de tocar los campos.
+  // ======================================================
+  const filtroCriteriaKey = useMemo(
+    () =>
+      JSON.stringify({
+        q: filtros.q,
+        tipo: filtros.tipo,
+        estado: filtros.estado,
+        desde: filtros.desde,
+        hasta: filtros.hasta,
+        reparto_id: filtros.reparto_id
+      }),
+    [
+      filtros.q,
+      filtros.tipo,
+      filtros.estado,
+      filtros.desde,
+      filtros.hasta,
+      filtros.reparto_id
+    ]
+  );
+  const debouncedFiltroCriteriaKey = useDebouncedValue(filtroCriteriaKey, 500);
+  const isFirstFiltroRun = useRef(true);
+
+  useEffect(() => {
+    if (isFirstFiltroRun.current) {
+      isFirstFiltroRun.current = false;
+      return;
+    }
+    fetchVentas({ page: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedFiltroCriteriaKey]);
+
   // ------------ KPIs ------------
   const kpis = useMemo(() => {
     const total = ventas.reduce((acc, v) => acc + Number(v.total_neto || 0), 0);
@@ -280,10 +317,6 @@ const VentasHistorialPage = () => {
       ...f,
       [name]: value
     }));
-  };
-
-  const handleBuscar = () => {
-    fetchVentas({ page: 1 });
   };
 
   const handleLimpiar = () => {
@@ -688,16 +721,6 @@ const VentasHistorialPage = () => {
                   >
                     <FaTimes className="text-xs" />
                     Limpiar
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleBuscar}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 text-xs sm:text-sm text-white font-semibold
-                   hover:bg-orange-600 transition shadow"
-                  >
-                    <FaSearch className="text-xs" />
-                    Buscar
                   </button>
                 </div>
               </div>

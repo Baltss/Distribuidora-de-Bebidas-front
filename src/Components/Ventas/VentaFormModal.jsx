@@ -16,6 +16,7 @@ import { listClientes } from '../../api/clientes';
 import { listProductos } from '../../api/productos';
 import SearchableSelect from '../Common/SearchableSelect';
 import http from '../../api/http';
+import { blockWheelChange } from '../../utils/numberInput';
 export default function VentaFormModal({ open, onClose, onSubmit }) {
   const [form, setForm] = useState({
     fecha: new Date(),
@@ -1004,6 +1005,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                           </label>
                           <input
                             type="number"
+                            onWheel={blockWheelChange}
                             min="0"
                             step="0.001"
                             value={it.cantidad}
@@ -1027,6 +1029,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                           </label>
                           <input
                             type="number"
+                            onWheel={blockWheelChange}
                             min="0"
                             step="0.01"
                             value={it.precio_unit}
@@ -1079,6 +1082,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                           <input
                             type="number"
+                            onWheel={blockWheelChange}
                             min="0"
                             step="0.01"
                             value={form.monto_a_cuenta ?? ''}
@@ -1118,6 +1122,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
+                              onWheel={blockWheelChange}
                               min="0"
                               step="0.01"
                               value={form.saldo_previo ?? ''}

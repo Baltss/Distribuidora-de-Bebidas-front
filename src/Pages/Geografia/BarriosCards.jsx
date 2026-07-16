@@ -20,6 +20,7 @@ import {
 } from '../../api/barrios';
 import { listCiudades } from '../../api/ciudades';
 import { listLocalidades } from '../../api/localidades';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
   showErrorSwal,
@@ -27,15 +28,6 @@ import {
   showSuccessSwal,
   showConfirmSwal
 } from '../../ui/swal';
-
-const useDebounce = (value, ms = 400) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
 
 // Acepta boolean o { isConfirmed }
 const isConfirmed = (res) =>
@@ -47,7 +39,7 @@ export default function BarriosCards() {
   const [loading, setLoading] = useState(true);
 
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
 
   const [filtroEstado, setFiltroEstado] = useState('todas'); // todas|activas|inactivas
   const [filtroCiudad, setFiltroCiudad] = useState('');

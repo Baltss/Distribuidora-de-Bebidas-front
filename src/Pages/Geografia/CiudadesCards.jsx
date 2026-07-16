@@ -18,6 +18,7 @@ import {
   patchCiudadEstado,
   deleteCiudad
 } from '../../api/ciudades';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
   showErrorSwal,
@@ -25,15 +26,6 @@ import {
   showSuccessSwal,
   showConfirmSwal
 } from '../../ui/swal';
-
-const useDebounce = (value, ms = 400) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
 
 // Soporta confirm wrappers que devuelven boolean o { isConfirmed }
 const isConfirmed = (res) =>
@@ -45,7 +37,7 @@ export default function CiudadesCards() {
   const [loading, setLoading] = useState(true);
 
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
   const [filtroEstado, setFiltroEstado] = useState('todas'); // todas|activas|inactivas
   const [page, setPage] = useState(1);
   const limit = 18;

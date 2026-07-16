@@ -39,6 +39,7 @@ import ParticlesBackground from '../../Components/ParticlesBackground';
 import { useAuth } from '../../AuthContext';
 
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import { blockWheelChange } from '../../utils/numberInput';
 
 const moneyAR = (n) =>
   (Number(n) || 0).toLocaleString('es-AR', {
@@ -506,23 +507,12 @@ export default function ReporteRepartoCobranza() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 justify-end">
-                <button
-                  type="button"
-                  onClick={fetchReporte}
-                  disabled={loading}
-                  className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-400 text-slate-950 text-xs sm:text-sm font-semibold hover:bg-amber-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />{' '}
-                      Actualizando...
-                    </>
-                  ) : (
-                    <>
-                      <Filter className="h-4 w-4" /> Aplicar filtros
-                    </>
-                  )}
-                </button>
+                {loading && (
+                  <span className="inline-flex items-center gap-2 px-3 py-2 text-xs sm:text-sm text-amber-100/80">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Actualizando…
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={handleExport}
@@ -1131,6 +1121,7 @@ export default function ReporteRepartoCobranza() {
                                               </span>
                                               <input
                                                 type="number"
+                                                onWheel={blockWheelChange}
                                                 min="0"
                                                 step="1"
                                                 value={cantidad}

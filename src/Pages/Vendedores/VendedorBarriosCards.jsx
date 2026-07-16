@@ -25,6 +25,7 @@ import {
   patchVendedorBarrioEstado,
   deleteVendedorBarrio
 } from '../../api/vendedores_barrios';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
   showErrorSwal,
@@ -33,15 +34,6 @@ import {
   showConfirmSwal
 } from '../../ui/swal';
 
-const useDebounce = (value, ms = 400) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
-
 export default function VendedorBarriosCards() {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -49,7 +41,7 @@ export default function VendedorBarriosCards() {
 
   // Filtros
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
   const [filtroVendedor, setFiltroVendedor] = useState('');
   const [filtroCiudad, setFiltroCiudad] = useState('');
   const [filtroLocalidad, setFiltroLocalidad] = useState('');

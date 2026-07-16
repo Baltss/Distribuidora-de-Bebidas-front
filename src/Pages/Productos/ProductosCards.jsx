@@ -7,6 +7,7 @@ import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
 import { motion } from 'framer-motion';
 import { FaPlus, FaSearch, FaLayerGroup } from 'react-icons/fa';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import ProductCard from '../../Components/Productos/ProductCard';
 import ProductoFormModal from '../../Components/Productos/ProductoFormModal';
@@ -30,22 +31,13 @@ import {
   showConfirmSwal
 } from '../../ui/swal';
 
-const useDebounce = (value, ms = 200) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
-
 export default function ProductosCards() {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
 
   const [filtroEstado, setFiltroEstado] = useState('todos'); // 'todos' | 'activos' | 'inactivos'
   const [filtroPresentacion, setFiltroPresentacion] = useState('todas'); // 'todas' | 'unidad' | 'pack'

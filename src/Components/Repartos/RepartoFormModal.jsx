@@ -9,6 +9,7 @@ import {
   fieldV
 } from '../../ui/animHelpers';
 import { listCiudades } from '../../api/ciudades';
+import { blockWheelChange } from '../../utils/numberInput';
 
 export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
   const [form, setForm] = useState({
@@ -227,6 +228,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                     </label>
                     <input
                       type="number"
+                      onWheel={blockWheelChange}
                       name="rango_min"
                       value={form.rango_min}
                       onChange={handle}
@@ -242,6 +244,7 @@ export default function RepartoFormModal({ open, onClose, onSubmit, initial }) {
                     </label>
                     <input
                       type="number"
+                      onWheel={blockWheelChange}
                       name="rango_max"
                       value={form.rango_max}
                       onChange={handle}

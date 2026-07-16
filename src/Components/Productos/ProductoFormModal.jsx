@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { listCategorias, createCategoria } from '../../api/categorias';
 import { showErrorSwal } from '../../ui/swal';
+import { blockWheelChange } from '../../utils/numberInput';
 
 
 const UM_OPTS = [
@@ -480,6 +481,7 @@ export default function ProductoFormModal({
                     <input
                       name="pack_cantidad"
                       type="number"
+                      onWheel={blockWheelChange}
                       min={form.presentacion === 'pack' ? 2 : 1}
                       value={form.pack_cantidad}
                       onChange={handle}
@@ -535,6 +537,7 @@ export default function ProductoFormModal({
                     <input
                       name="contenido"
                       type="number"
+                      onWheel={blockWheelChange}
                       step="0.01"
                       value={form.contenido}
                       onChange={handle}
@@ -554,6 +557,7 @@ export default function ProductoFormModal({
                   <input
                     name="stock_minimo"
                     type="number"
+                    onWheel={blockWheelChange}
                     min="0"
                     step="1"
                     value={form.stock_minimo}
@@ -573,6 +577,7 @@ export default function ProductoFormModal({
                     <input
                       name="pre_prod"
                       type="number"
+                      onWheel={blockWheelChange}
                       step="0.01"
                       value={form.pre_prod}
                       onChange={handle}
@@ -594,6 +599,7 @@ export default function ProductoFormModal({
                     <input
                       name="iva_porcentaje"
                       type="number"
+                      onWheel={blockWheelChange}
                       step="0.01"
                       min="0"
                       max="27"
@@ -620,6 +626,7 @@ export default function ProductoFormModal({
                   <input
                     name="ultimo_costo_compra"
                     type="number"
+                    onWheel={blockWheelChange}
                     step="0.01"
                     value={form.ultimo_costo_compra}
                     onChange={handle}

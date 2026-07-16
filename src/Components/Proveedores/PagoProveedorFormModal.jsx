@@ -10,6 +10,7 @@ import {
 import { X, Wallet, Calendar, CreditCard, StickyNote } from 'lucide-react';
 import { createPagoProveedor } from '../../api/pagosProveedores.js';
 import { showErrorSwal, showSuccessSwal, showWarnSwal } from '../../ui/swal';
+import { blockWheelChange } from '../../utils/numberInput';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -151,6 +152,7 @@ export default function PagoProveedorFormModal({
                   <input
                     name="monto"
                     type="number"
+                    onWheel={blockWheelChange}
                     step="0.01"
                     value={form.monto}
                     onChange={handle}

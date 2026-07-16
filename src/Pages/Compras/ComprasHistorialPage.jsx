@@ -17,15 +17,7 @@ import {
   showConfirmSwal
 } from '../../ui/swal';
 import moneyAR from '../../utils/money';
-
-const useDebounce = (value, ms = 300) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 export default function ComprasHistorialPage() {
   const [rows, setRows] = useState([]);
@@ -36,7 +28,7 @@ export default function ComprasHistorialPage() {
 
   // Filtros de búsqueda
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
   const [tipoPago, setTipoPago] = useState(''); // '' | contado | cuenta_corriente

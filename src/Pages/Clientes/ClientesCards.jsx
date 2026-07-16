@@ -23,6 +23,7 @@ import {
 
 import { listVendedores } from '../../api/vendedores';
 import { listBarrios } from '../../api/barrios';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 //   - 14-07-2026 - Borrado lógico del filtro de barrios (dejó de ser
 // necesario). Se mantiene el estado/lógica por si se reactiva a futuro;
@@ -36,15 +37,6 @@ import {
   showConfirmSwal
 } from '../../ui/swal';
 
-const useDebounce = (value, ms = 200) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
-
 export default function ClientesCards() {
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -52,7 +44,7 @@ export default function ClientesCards() {
 
   // Filtros
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
   const [filtroEstado, setFiltroEstado] = useState('todos'); // todos|activos|inactivos
   const [filtroBarrio, setFiltroBarrio] = useState('');
   const [filtroVendedor, setFiltroVendedor] = useState('');

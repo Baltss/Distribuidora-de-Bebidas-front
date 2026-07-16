@@ -21,6 +21,7 @@ import {
   patchRepartoEstado,
   deleteReparto
 } from '../../api/repartos';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import {
   showErrorSwal,
@@ -28,15 +29,6 @@ import {
   showSuccessSwal,
   showConfirmSwal
 } from '../../ui/swal';
-
-const useDebounce = (value, ms = 400) => {
-  const [deb, setDeb] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDeb(value), ms);
-    return () => clearTimeout(id);
-  }, [value, ms]);
-  return deb;
-};
 
 const isConfirmed = (res) =>
   typeof res === 'object' && res !== null ? !!res.isConfirmed : !!res;
@@ -47,7 +39,7 @@ export default function RepartosCards() {
   const [loading, setLoading] = useState(true);
 
   const [q, setQ] = useState('');
-  const dq = useDebounce(q);
+  const dq = useDebouncedValue(q, 500);
   const [filtroEstado, setFiltroEstado] = useState('todos'); // todos|activos|inactivos
   const [page, setPage] = useState(1);
   const limit = 18;

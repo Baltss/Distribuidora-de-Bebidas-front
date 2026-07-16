@@ -15,6 +15,7 @@ import {
 
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
+import { blockWheelChange } from '../../utils/numberInput';
 
 function formatMoneyARS(value = 0) {
   return Number(value || 0).toLocaleString('es-AR', {
@@ -589,6 +590,7 @@ export default function DeudaClienteModal({
 
                           <input
                             type="number"
+                            onWheel={blockWheelChange}
                             min="0"
                             step="0.01"
                             value={cobroSaldoPrevio}
@@ -677,6 +679,7 @@ export default function DeudaClienteModal({
                                 <td className="px-3 py-2 whitespace-nowrap text-right">
                                   <input
                                     type="number"
+                                    onWheel={blockWheelChange}
                                     min="0"
                                     step="0.01"
                                     value={
