@@ -2,13 +2,10 @@
 // FILE: src/Pages/Vendedores/VendedorBarriosCards.jsx
 // ===========================================
 import React, { useEffect, useMemo, useState } from 'react';
-import NavbarStaff from '../Dash/NavbarStaff';
-import '../../Styles/staff/dashboard.css';
-import '../../Styles/staff/background.css';
-import ParticlesBackground from '../../Components/ParticlesBackground';
-import ButtonBack from '../../Components/ButtonBack';
+import { useNavigate } from 'react-router-dom';
+import AppShell from '../../Components/Layout/AppShell';
 import { motion } from 'framer-motion';
-import { FaPlus, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaArrowLeft } from 'react-icons/fa';
 
 import VendedorBarrioCard from '../../Components/Vendedores/VendedorBarrioCard';
 import VendedorBarrioFormModal from '../../Components/Vendedores/VendedorBarrioFormModal';
@@ -35,6 +32,7 @@ import {
 } from '../../ui/swal';
 
 export default function VendedorBarriosCards() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -341,17 +339,17 @@ export default function VendedorBarriosCards() {
         <button
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={!meta.hasPrev}
-          className="px-3 py-2 rounded-xl border border-white/30 bg-white/70 hover:bg-white disabled:opacity-50"
+          className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50"
         >
           ← Anterior
         </button>
-        <span className="text-white/90 text-sm">
+        <span className="text-slate-500 text-sm">
           Página {meta.page} / {meta.totalPages}
         </span>
         <button
           onClick={() => setPage((p) => (meta.hasNext ? p + 1 : p))}
           disabled={!meta.hasNext}
-          className="px-3 py-2 rounded-xl border border-white/30 bg-white/70 hover:bg-white disabled:opacity-50"
+          className="px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-50"
         >
           Siguiente →
         </button>
@@ -360,184 +358,183 @@ export default function VendedorBarriosCards() {
   }, [meta]);
 
   return (
-    <>
-      <NavbarStaff />
-      <section className="relative w-full min-h-screen bg-white">
-        <div className="min-h-screen bg-gradient-to-b from-[#001219] via-[#003049] to-[#005f73]">
-          <ParticlesBackground />
-          <ButtonBack />
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+        </div>
 
-          <div className="text-center pt-24 px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-4xl titulo uppercase font-bold text-white mb-3 drop-shadow-md"
+        <motion.h1
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900"
+        >
+          Vendedores ↔ Barrios
+        </motion.h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Asigná vendedores a barrios y gestioná vigencias.
+        </p>
+
+        {/* Barra de acciones y filtros */}
+        <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+          <div className="relative flex-1">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={q}
+              onChange={(e) => {
+                setPage(1);
+                setQ(e.target.value);
+              }}
+              placeholder="Buscar por vendedor o barrio…"
+              className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Vendedor */}
+            <select
+              value={filtroVendedor}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroVendedor(e.target.value);
+              }}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
             >
-              Vendedores ↔ Barrios
-            </motion.h1>
-            <p className="text-white/80">
-              Asigná vendedores a barrios y gestioná vigencias.
-            </p>
-          </div>
+              <option value="">Todos los vendedores</option>
+              {vendedores.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.nombre}
+                </option>
+              ))}
+            </select>
 
-          {/* Barra de acciones y filtros */}
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
-              <div className="relative flex-1">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  value={q}
-                  onChange={(e) => {
-                    setPage(1);
-                    setQ(e.target.value);
-                  }}
-                  placeholder="Buscar por vendedor o barrio…"
-                  className="w-full pl-10 pr-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                />
-              </div>
+            {/* Ciudad */}
+            <select
+              value={filtroCiudad}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroCiudad(e.target.value);
+              }}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+            >
+              <option value="">Todas las ciudades</option>
+              {ciudades.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre} {c.provincia ? `(${c.provincia})` : ''}
+                </option>
+              ))}
+            </select>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* Vendedor */}
-                <select
-                  value={filtroVendedor}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroVendedor(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">Todos los vendedores</option>
-                  {vendedores.map((v) => (
-                    <option key={v.id} value={v.id}>
-                      {v.nombre}
-                    </option>
-                  ))}
-                </select>
+            {/* Localidad */}
+            <select
+              value={filtroLocalidad}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroLocalidad(e.target.value);
+              }}
+              disabled={!filtroCiudad}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40 disabled:opacity-60"
+            >
+              <option value="">
+                {filtroCiudad ? 'Todas las localidades' : 'Elegí ciudad'}
+              </option>
+              {localidades.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nombre}
+                </option>
+              ))}
+            </select>
 
-                {/* Ciudad */}
-                <select
-                  value={filtroCiudad}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroCiudad(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="">Todas las ciudades</option>
-                  {ciudades.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nombre} {c.provincia ? `(${c.provincia})` : ''}
-                    </option>
-                  ))}
-                </select>
+            {/* Barrio */}
+            <select
+              value={filtroBarrio}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroBarrio(e.target.value);
+              }}
+              disabled={!filtroLocalidad}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40 disabled:opacity-60"
+            >
+              <option value="">
+                {filtroLocalidad ? 'Todos los barrios' : 'Elegí localidad'}
+              </option>
+              {barrios.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.nombre}
+                </option>
+              ))}
+            </select>
 
-                {/* Localidad */}
-                <select
-                  value={filtroLocalidad}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroLocalidad(e.target.value);
-                  }}
-                  disabled={!filtroCiudad}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-60"
-                >
-                  <option value="">
-                    {filtroCiudad ? 'Todas las localidades' : 'Elegí ciudad'}
-                  </option>
-                  {localidades.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.nombre}
-                    </option>
-                  ))}
-                </select>
+            {/* Estado */}
+            <select
+              value={filtroEstado}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroEstado(e.target.value);
+              }}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+            >
+              <option value="todas">Estado (todos)</option>
+              <option value="activo">Activas</option>
+              <option value="inactivo">Inactivas</option>
+            </select>
 
-                {/* Barrio */}
-                <select
-                  value={filtroBarrio}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroBarrio(e.target.value);
-                  }}
-                  disabled={!filtroLocalidad}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500 disabled:opacity-60"
-                >
-                  <option value="">
-                    {filtroLocalidad ? 'Todos los barrios' : 'Elegí localidad'}
-                  </option>
-                  {barrios.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.nombre}
-                    </option>
-                  ))}
-                </select>
+            {/* Vigencia */}
+            <select
+              value={filtroVigentes}
+              onChange={(e) => {
+                setPage(1);
+                setFiltroVigentes(e.target.value);
+              }}
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+            >
+              <option value="todos">Vigencia (todas)</option>
+              <option value="vigentes">Vigentes</option>
+              <option value="cerradas">Cerradas</option>
+            </select>
 
-                {/* Estado */}
-                <select
-                  value={filtroEstado}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroEstado(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="todas">Estado (todos)</option>
-                  <option value="activo">Activas</option>
-                  <option value="inactivo">Inactivas</option>
-                </select>
-
-                {/* Vigencia */}
-                <select
-                  value={filtroVigentes}
-                  onChange={(e) => {
-                    setPage(1);
-                    setFiltroVigentes(e.target.value);
-                  }}
-                  className="px-3 py-2 rounded-xl border border-white/20 bg-white/90 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="todos">Vigencia (todas)</option>
-                  <option value="vigentes">Vigentes</option>
-                  <option value="cerradas">Cerradas</option>
-                </select>
-
-                <button
-                  onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700"
-                >
-                  <FaPlus /> Nueva Asignación
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Grid */}
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {loading ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="h-10 w-10 border-4 border-white/50 border-t-teal-400 rounded-full animate-spin" />
-              </div>
-            ) : rows.length === 0 ? (
-              <div className="text-center text-white/80 py-24">
-                No hay asignaciones con esos filtros.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {rows.map((it) => (
-                  <VendedorBarrioCard
-                    key={it.id}
-                    item={it}
-                    onClose={onClose}
-                    onToggleEstado={onToggleEstado}
-                    onDelete={onDelete}
-                  />
-                ))}
-              </div>
-            )}
-
-            {Pager}
+            <button
+              onClick={() => setModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition"
+            >
+              <FaPlus /> Nueva Asignación
+            </button>
           </div>
         </div>
-      </section>
+
+        {/* Grid */}
+        <div className="mt-8">
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="h-10 w-10 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="text-center text-slate-400 py-24">
+              No hay asignaciones con esos filtros.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {rows.map((it) => (
+                <VendedorBarrioCard
+                  key={it.id}
+                  item={it}
+                  onClose={onClose}
+                  onToggleEstado={onToggleEstado}
+                  onDelete={onDelete}
+                />
+              ))}
+            </div>
+          )}
+
+          {Pager}
+        </div>
+      </div>
 
       {/* Modal crear */}
       <VendedorBarrioFormModal
@@ -545,8 +542,7 @@ export default function VendedorBarriosCards() {
         onClose={() => setModalOpen(false)}
         onSubmit={onSubmit}
         fetchData={fetchData}
-
       />
-    </>
+    </AppShell>
   );
 }

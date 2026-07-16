@@ -134,13 +134,9 @@ export default function VendedorBarrioCard({
         initial={{ opacity: 0, y: 18, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.28 }}
-        className={`relative overflow-hidden rounded-3xl border border-white/20 shadow-lg backdrop-blur-xl dark:border-white/10
-                   hover:shadow-cyan-600/50 hover:scale-[1.02] transition-all duration-300
-                   ${
-                     vigente
-                       ? 'bg-white/80 dark:bg-zinc-900/70'
-                       : 'bg-zinc-200/50 dark:bg-zinc-800/60 saturate-50'
-                   }`}
+        className={`relative overflow-hidden rounded-3xl border border-slate-200 shadow-sm
+                   hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300
+                   ${vigente ? 'bg-white' : 'bg-slate-100 saturate-50'}`}
       >
         {/* Banda lateral */}
         <div className="absolute left-0 top-0 h-full w-24 sm:w-28">
@@ -164,13 +160,13 @@ export default function VendedorBarrioCard({
         <div className="relative z-10 p-5 sm:p-6 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">
+              <div className="text-xs text-slate-400 mb-1">
                 Asignación
               </div>
-              <h3 className="truncate text-lg font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+              <h3 className="truncate text-lg font-extrabold tracking-tight text-slate-900">
                 {item?.vendedor?.nombre || '—'}
               </h3>
-              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-300 truncate">
+              <div className="mt-1 text-sm text-slate-500 truncate">
                 {path || '—'}
               </div>
             </div>

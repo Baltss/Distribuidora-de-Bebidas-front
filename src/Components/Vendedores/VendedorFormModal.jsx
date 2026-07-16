@@ -9,6 +9,10 @@ import {
   fieldV
 } from '../../ui/animHelpers';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
+const labelCls = 'block text-sm font-medium text-slate-600 mb-2';
+
 export default function VendedorFormModal({
   open,
   onClose,
@@ -81,7 +85,7 @@ export default function VendedorFormModal({
           aria-modal="true"
         >
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -91,15 +95,15 @@ export default function VendedorFormModal({
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-xl md:max-w-2xl
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -107,7 +111,7 @@ export default function VendedorFormModal({
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-5"
+                className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
               >
                 {isEdit ? 'Editar Vendedor' : 'Nuevo Vendedor'}
               </motion.h3>
@@ -121,15 +125,14 @@ export default function VendedorFormModal({
               >
                 {/* Nombre */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Nombre <span className="text-cyan-300">*</span>
+                  <label className={labelCls}>
+                    Nombre <span className="text-teal-600">*</span>
                   </label>
                   <input
                     name="nombre"
                     value={form.nombre}
                     onChange={handle}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Nombre y apellido"
                   />
                 </motion.div>
@@ -137,53 +140,44 @@ export default function VendedorFormModal({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Documento */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Documento
-                    </label>
+                    <label className={labelCls}>Documento</label>
                     <input
                       name="documento"
                       value={form.documento}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="CUIT/CUIL o DNI"
                     />
                   </motion.div>
 
                   {/* Teléfono */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Teléfono
-                    </label>
+                    <label className={labelCls}>Teléfono</label>
                     <input
                       name="telefono"
                       value={form.telefono}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="+54 9 ..."
                     />
                   </motion.div>
 
                   {/* Email */}
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Email
-                    </label>
+                    <label className={labelCls}>Email</label>
                     <input
                       type="email"
                       name="email"
                       value={form.email}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                       placeholder="correo@dominio.com"
                     />
                   </motion.div>
 
                   {/* Estado (toggle) */}
                   <motion.div variants={fieldV} className="flex items-end">
-                    <label className=" inline-flex items-center gap-3 select-none cursor-pointer">
+                    <label className="inline-flex items-center gap-3 select-none cursor-pointer">
                       <input
                         type="checkbox"
                         name="estado"
@@ -193,7 +187,7 @@ export default function VendedorFormModal({
                       />
                       <span
                         className="relative inline-flex h-6 w-11 items-center rounded-full
-                                   bg-white/10 peer-checked:bg-emerald-500/70 transition-colors duration-200"
+                                   bg-slate-200 peer-checked:bg-teal-600 transition-colors duration-200"
                         aria-hidden
                       >
                         <span
@@ -201,7 +195,7 @@ export default function VendedorFormModal({
                                      peer-checked:translate-x-5 transition-transform duration-200"
                         />
                       </span>
-                      <span className="text-sm text-gray-200">
+                      <span className="text-sm text-slate-600">
                         {form.estado === 'activo' ? 'Activo' : 'Inactivo'}
                       </span>
                     </label>
@@ -210,16 +204,13 @@ export default function VendedorFormModal({
 
                 {/* Notas */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-gray-200 mb-2">
-                    Notas
-                  </label>
+                  <label className={labelCls}>Notas</label>
                   <textarea
                     name="notas"
                     value={form.notas}
                     onChange={handle}
                     rows={3}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                               placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                    className={inputCls}
                     placeholder="Observaciones internas"
                   />
                 </motion.div>
@@ -232,15 +223,15 @@ export default function VendedorFormModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={!canSave || saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold
+                               hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving
                       ? 'Guardando…'
@@ -251,8 +242,6 @@ export default function VendedorFormModal({
                 </motion.div>
               </motion.form>
             </div>
-
-            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-gray-400/70 via-gray-200/70 to-gray-400/70 opacity-40 rounded-b-2xl" />
           </motion.div>
         </motion.div>
       )}

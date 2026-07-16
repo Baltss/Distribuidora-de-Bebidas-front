@@ -21,6 +21,10 @@ import {
 import { showErrorSwal, showSuccessSwal } from '../../ui/swal';
 import { FaSearch, FaCheck } from 'react-icons/fa';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
+const labelCls = 'block text-sm font-medium text-slate-600 mb-2';
+
 export default function VendedorBarrioFormModal({
   open,
   onClose,
@@ -375,7 +379,7 @@ export default function VendedorBarrioFormModal({
           aria-modal="true"
         >
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
             onClick={onClose}
           />
           <motion.div
@@ -385,15 +389,15 @@ export default function VendedorBarrioFormModal({
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-xl md:max-w-3xl
                        max-h-[85vh] overflow-y-auto overscroll-contain
-                       rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl"
+                       rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
               onClick={onClose}
               className="absolute z-50 top-2.5 right-2.5 inline-flex h-9 w-9 items-center justify-center rounded-lg
-                         bg-white/5 border border-white/10 hover:bg-white/10 transition"
+                         bg-slate-100 border border-slate-200 text-slate-500 hover:bg-slate-200 transition"
               aria-label="Cerrar"
             >
-              <X className="h-5 w-5 text-gray-200" />
+              <X className="h-5 w-5" />
             </button>
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
@@ -401,7 +405,7 @@ export default function VendedorBarrioFormModal({
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-5"
+                className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
               >
                 {isEdit
                   ? 'Editar Asignación'
@@ -417,10 +421,10 @@ export default function VendedorBarrioFormModal({
                     onChange={() => setMultiple((v) => !v)}
                     className="peer sr-only"
                   />
-                  <span className="relative inline-flex h-6 w-11 items-center rounded-full bg-white/10 peer-checked:bg-indigo-500/70 transition-colors duration-200">
+                  <span className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 peer-checked:bg-teal-600 transition-colors duration-200">
                     <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow peer-checked:translate-x-5 transition-transform duration-200" />
                   </span>
-                  <span className="text-sm text-gray-200">
+                  <span className="text-sm text-slate-600">
                     Asignación múltiple
                   </span>
                 </label>
@@ -436,18 +440,18 @@ export default function VendedorBarrioFormModal({
                 {/* Vendedor(es) */}
                 {!multiple ? (
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Vendedor <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      Vendedor <span className="text-teal-600">*</span>
                     </label>
                     <select
                       name="vendedor_id"
                       value={form.vendedor_id}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                     >
                       <option value="">Seleccionar…</option>
                       {vendedores.map((v) => (
-                        <option key={v.id} value={v.id} className="text-black">
+                        <option key={v.id} value={v.id}>
                           {v.nombre}{' '}
                           {v.estado === 'inactivo' ? '(inactivo)' : ''}
                         </option>
@@ -457,10 +461,10 @@ export default function VendedorBarrioFormModal({
                 ) : (
                   <motion.div variants={fieldV}>
                     <div className="flex items-center justify-between gap-3 mb-2">
-                      <label className="block text-sm font-medium text-gray-200">
-                        Vendedores <span className="text-cyan-300">*</span>
+                      <label className="block text-sm font-medium text-slate-600">
+                        Vendedores <span className="text-teal-600">*</span>
                       </label>
-                      <span className="text-xs px-2 py-1 rounded-lg bg-white/10 text-gray-200 border border-white/10">
+                      <span className="text-xs px-2 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200">
                         {selVendedores.length} seleccionados
                       </span>
                     </div>
@@ -471,18 +475,17 @@ export default function VendedorBarrioFormModal({
                         <input
                           value={qVend}
                           onChange={(e) => setQVend(e.target.value)}
-                          className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 pr-9 text-white
-                   placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                          className={`${inputCls} py-2.5 pr-9`}
                           placeholder="Buscar por nombre o documento…"
                         />
-                        <FaSearch className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-70 text-gray-300" />
+                        <FaSearch className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
                       </div>
 
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={toggleSelectAllFiltered}
-                          className="px-3 py-2 text-xs rounded-lg border border-white/10 bg-white/5 text-gray-100 hover:bg-white/10 transition"
+                          className="px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition"
                           title={
                             allFilteredSelected
                               ? 'Quitar selección del filtro'
@@ -496,7 +499,7 @@ export default function VendedorBarrioFormModal({
                         <button
                           type="button"
                           onClick={() => setSelVendedores([])}
-                          className="px-3 py-2 text-xs rounded-lg border border-white/10 bg-white/5 text-gray-100 hover:bg-white/10 transition"
+                          className="px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition"
                           title="Limpiar todo"
                         >
                           Limpiar
@@ -505,9 +508,9 @@ export default function VendedorBarrioFormModal({
                     </div>
 
                     {/* Lista */}
-                    <div className="max-h-56 overflow-auto rounded-xl border border-white/10 bg-white/5 p-2.5">
+                    <div className="max-h-56 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-2.5">
                       {filteredVendedores.length === 0 ? (
-                        <div className="text-sm text-gray-300/80 px-1 py-1.5">
+                        <div className="text-sm text-slate-400 px-1 py-1.5">
                           Sin resultados para “{qVend}”.
                         </div>
                       ) : (
@@ -520,8 +523,8 @@ export default function VendedorBarrioFormModal({
                                 className={`group flex items-center gap-3 rounded-lg px-2.5 py-2 border transition
                           ${
                             checked
-                              ? 'bg-emerald-500/10 border-emerald-400/30 ring-1 ring-emerald-400/30'
-                              : 'bg-white/[0.04] border-white/10 hover:bg-white/10'
+                              ? 'bg-teal-50 border-teal-300 ring-1 ring-teal-300'
+                              : 'bg-white border-slate-200 hover:bg-slate-100'
                           }`}
                               >
                                 {/* checkbox custom */}
@@ -535,8 +538,8 @@ export default function VendedorBarrioFormModal({
                                   className={`flex h-4 w-4 items-center justify-center rounded-md border text-[10px]
                             ${
                               checked
-                                ? 'bg-emerald-500 border-emerald-400 text-white'
-                                : 'bg-transparent border-white/30 text-transparent group-hover:text-white/70'
+                                ? 'bg-teal-600 border-teal-600 text-white'
+                                : 'bg-white border-slate-300 text-transparent group-hover:text-slate-300'
                             }`}
                                   aria-hidden
                                 >
@@ -544,11 +547,11 @@ export default function VendedorBarrioFormModal({
                                 </span>
 
                                 <div className="min-w-0">
-                                  <div className="truncate text-sm text-white/95">
+                                  <div className="truncate text-sm text-slate-700">
                                     {v.nombre}
                                   </div>
                                   {v.documento ? (
-                                    <div className="truncate text-[11px] text-gray-300/80">
+                                    <div className="truncate text-[11px] text-slate-400">
                                       {v.documento}
                                     </div>
                                   ) : null}
@@ -565,39 +568,35 @@ export default function VendedorBarrioFormModal({
                 {/* Cascada Geo: Ciudad → Localidad */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Ciudad
-                    </label>
+                    <label className={labelCls}>Ciudad</label>
                     <select
                       name="ciudad_id"
                       value={form.ciudad_id}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                     >
                       <option value="">Seleccionar…</option>
                       {ciudades.map((c) => (
-                        <option key={c.id} value={c.id} className="text-black">
+                        <option key={c.id} value={c.id}>
                           {c.nombre} {c.provincia ? `(${c.provincia})` : ''}
                         </option>
                       ))}
                     </select>
                   </motion.div>
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Localidad
-                    </label>
+                    <label className={labelCls}>Localidad</label>
                     <select
                       name="localidad_id"
                       value={form.localidad_id}
                       onChange={handle}
                       disabled={!form.ciudad_id}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent disabled:opacity-60"
+                      className={`${inputCls} disabled:opacity-60`}
                     >
                       <option value="">
                         {form.ciudad_id ? 'Seleccionar…' : 'Elegí ciudad'}
                       </option>
                       {localidades.map((l) => (
-                        <option key={l.id} value={l.id} className="text-black">
+                        <option key={l.id} value={l.id}>
                           {l.nombre}
                         </option>
                       ))}
@@ -608,21 +607,21 @@ export default function VendedorBarrioFormModal({
                 {/* Barrios: single vs multi */}
                 {!multiple ? (
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Barrio <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      Barrio <span className="text-teal-600">*</span>
                     </label>
                     <select
                       name="barrio_id"
                       value={form.barrio_id}
                       onChange={handle}
                       disabled={!form.localidad_id}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent disabled:opacity-60"
+                      className={`${inputCls} disabled:opacity-60`}
                     >
                       <option value="">
                         {form.localidad_id ? 'Seleccionar…' : 'Elegí localidad'}
                       </option>
                       {barrios.map((b) => (
-                        <option key={b.id} value={b.id} className="text-black">
+                        <option key={b.id} value={b.id}>
                           {b.nombre}
                         </option>
                       ))}
@@ -631,10 +630,10 @@ export default function VendedorBarrioFormModal({
                 ) : (
                   <motion.div variants={fieldV}>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-200">
+                      <label className="block text-sm font-medium text-slate-600">
                         Barrios (selección múltiple)
                       </label>
-                      <label className="inline-flex items-center gap-2 text-sm text-gray-100">
+                      <label className="inline-flex items-center gap-2 text-sm text-slate-600">
                         <input
                           type="checkbox"
                           checked={allLocalidadBarrios}
@@ -650,12 +649,12 @@ export default function VendedorBarrioFormModal({
                         allLocalidadBarrios
                           ? 'opacity-50 pointer-events-none'
                           : ''
-                      } grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-auto rounded-xl border border-white/10 bg-white/5 p-3`}
+                      } grid-cols-1 sm:grid-cols-2 gap-2 max-h-44 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-3`}
                     >
                       {barrios.map((b) => (
                         <label
                           key={b.id}
-                          className="inline-flex items-center gap-2 text-sm text-gray-100"
+                          className="inline-flex items-center gap-2 text-sm text-slate-700"
                         >
                           <input
                             type="checkbox"
@@ -670,7 +669,7 @@ export default function VendedorBarrioFormModal({
 
                     {/* Fallback: si no tildás ninguno, podés seguir usando el select simple */}
                     <div className="mt-3">
-                      <label className="block text-xs font-medium text-gray-300 mb-1">
+                      <label className="block text-xs font-medium text-slate-500 mb-1">
                         (Opcional) Barrio único vía select
                       </label>
                       <select
@@ -678,15 +677,11 @@ export default function VendedorBarrioFormModal({
                         value={form.barrio_id}
                         onChange={handle}
                         disabled={!form.localidad_id || allLocalidadBarrios}
-                        className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent disabled:opacity-60"
+                        className={`${inputCls} py-2.5 disabled:opacity-60`}
                       >
                         <option value="">—</option>
                         {barrios.map((b) => (
-                          <option
-                            key={b.id}
-                            value={b.id}
-                            className="text-black"
-                          >
+                          <option key={b.id} value={b.id}>
                             {b.nombre}
                           </option>
                         ))}
@@ -698,19 +693,19 @@ export default function VendedorBarrioFormModal({
                 {/* Fechas */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
-                      Asignado desde <span className="text-cyan-300">*</span>
+                    <label className={labelCls}>
+                      Asignado desde <span className="text-teal-600">*</span>
                     </label>
                     <input
                       type="date"
                       name="asignado_desde"
                       value={form.asignado_desde}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={inputCls}
                     />
                   </motion.div>
                   <motion.div variants={fieldV}>
-                    <label className="block text-sm font-medium text-gray-200 mb-2">
+                    <label className={labelCls}>
                       Asignado hasta (se completa al cerrar)
                     </label>
                     <input
@@ -719,7 +714,7 @@ export default function VendedorBarrioFormModal({
                       value={form.asignado_hasta}
                       disabled
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      className={`${inputCls} disabled:opacity-60`}
                     />
                   </motion.div>
                 </div>
@@ -736,10 +731,10 @@ export default function VendedorBarrioFormModal({
                     onChange={handle}
                     className="peer sr-only"
                   />
-                  <span className="relative inline-flex h-6 w-11 items-center rounded-full bg-white/10 peer-checked:bg-emerald-500/70 transition-colors duration-200">
+                  <span className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 peer-checked:bg-teal-600 transition-colors duration-200">
                     <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow peer-checked:translate-x-5 transition-transform duration-200" />
                   </span>
-                  <span className="text-sm text-gray-200">
+                  <span className="text-sm text-slate-600">
                     {form.estado === 'activo' ? 'Activo' : 'Inactivo'}
                   </span>
                 </motion.label>
@@ -752,14 +747,14 @@ export default function VendedorBarrioFormModal({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-white/10 text-gray-200 hover:bg-white/10 transition"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-500 text-white font-semibold hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     {saving
                       ? 'Guardando…'
@@ -772,8 +767,6 @@ export default function VendedorBarrioFormModal({
                 </motion.div>
               </motion.form>
             </div>
-
-            <div className="absolute bottom-0 left-0 w-full h-[3px] bg-gradient-to-r from-gray-400/70 via-gray-200/70 to-gray-400/70 opacity-40 rounded-b-2xl" />
           </motion.div>
         </motion.div>
       )}
