@@ -59,10 +59,14 @@ export default function ProductoFormModal({
     barra_ean13: '',
     pre_prod: '',
     ultimo_costo_compra: '',
+    margen_pct: '',
     iva_porcentaje: 21,
     estado: 'activo', // activo | inactivo
     notas: ''
   });
+
+  //   - 16/07/2026 - Precio manual o calculado por % de margen sobre el costo
+  const [modoPrecio, setModoPrecio] = useState('manual'); // 'manual' | 'margen'
 
   const [errors, setErrors] = useState({});
 
@@ -126,20 +130,39 @@ export default function ProductoFormModal({
         barra_ean13: initial?.barra_ean13 ?? '',
         pre_prod: initial?.pre_prod ?? '',
         ultimo_costo_compra: initial?.ultimo_costo_compra ?? '',
+        margen_pct: initial?.margen_pct ?? '',
         iva_porcentaje: initial?.iva_porcentaje ?? 21,
         estado: initial?.estado ?? 'activo',
         notas: initial?.notas ?? ''
       });
+      setModoPrecio(initial?.margen_pct != null ? 'margen' : 'manual');
       setErrors({});
     }
   }, [open, initial]);
+
+  //   - 16/07/2026 - En modo "por margen", el precio se recalcula solo
+  // cuando cambia el costo o el %. El input de precio queda de solo lectura.
+  useEffect(() => {
+    if (modoPrecio !== 'margen') return;
+    const costo = Number(form.ultimo_costo_compra);
+    const margen = Number(form.margen_pct);
+    if (!Number.isFinite(costo) || costo <= 0 || !Number.isFinite(margen)) {
+      return;
+    }
+    const precio = Math.round(costo * (1 + margen / 100) * 100) / 100;
+    setForm((f) => (Number(f.pre_prod) === precio ? f : { ...f, pre_prod: precio }));
+  }, [modoPrecio, form.ultimo_costo_compra, form.margen_pct]);
 
   // Helpers
   const handle = (e) => {
     const { name, value, type } = e.target;
     setForm((f) => {
       let v = value;
-      if (['pack_cantidad', 'stock_minimo', 'iva_porcentaje', 'contenido'].includes(name)) {
+      if (
+        ['pack_cantidad', 'stock_minimo', 'iva_porcentaje', 'contenido', 'margen_pct'].includes(
+          name
+        )
+      ) {
         // normalizamos número
         v =
           v === ''
@@ -152,6 +175,15 @@ export default function ProductoFormModal({
       if (name === 'codigo_sku') v = String(v).trim().toUpperCase();
       return { ...f, [name]: v };
     });
+  };
+
+  //   - 16/07/2026 - Al volver a modo manual, limpiamos el % (para que
+  // el submit mande margen_pct: null y el precio quede 100% editable).
+  const setModoPrecioSafe = (modo) => {
+    setModoPrecio(modo);
+    if (modo === 'manual') {
+      setForm((f) => ({ ...f, margen_pct: '' }));
+    }
   };
 
   const setPresentacion = (pres) => {
@@ -183,6 +215,12 @@ export default function ProductoFormModal({
     if (form.pre_prod && Number(form.pre_prod) < 0) {
       e.pre_prod = 'El precio no puede ser negativo';
     }
+    if (modoPrecio === 'margen') {
+      const m = Number(form.margen_pct);
+      if (form.margen_pct === '' || !Number.isFinite(m) || m < 0 || m > 1000) {
+        e.margen_pct = 'El margen debe ser un número entre 0 y 1000';
+      }
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -209,6 +247,10 @@ export default function ProductoFormModal({
         form.ultimo_costo_compra === ''
           ? null
           : Math.round(Number(form.ultimo_costo_compra) * 100) / 100,
+      margen_pct:
+        modoPrecio === 'margen' && form.margen_pct !== ''
+          ? Math.round(Number(form.margen_pct) * 100) / 100
+          : null,
       iva_porcentaje: Number(form.iva_porcentaje) || 21,
       estado: form.estado,
       notas: form.notas?.trim() || null
@@ -571,9 +613,61 @@ export default function ProductoFormModal({
                 {/* IVA + Estado */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-200 mb-2">
-                      PRECIO PRODUCTO
-                    </label>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-gray-200">
+                        PRECIO PRODUCTO
+                      </label>
+                      <div className="inline-flex rounded-lg border border-white/10 bg-white/5 p-0.5 gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setModoPrecioSafe('manual')}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                            modoPrecio === 'manual'
+                              ? 'bg-cyan-500 text-slate-950'
+                              : 'text-gray-300 hover:bg-white/10'
+                          }`}
+                        >
+                          Manual
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setModoPrecioSafe('margen')}
+                          className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition ${
+                            modoPrecio === 'margen'
+                              ? 'bg-cyan-500 text-slate-950'
+                              : 'text-gray-300 hover:bg-white/10'
+                          }`}
+                        >
+                          Por margen (%)
+                        </button>
+                      </div>
+                    </div>
+
+                    {modoPrecio === 'margen' && (
+                      <div className="mb-2 flex items-center gap-2">
+                        <input
+                          name="margen_pct"
+                          type="number"
+                          onWheel={blockWheelChange}
+                          step="0.01"
+                          min="0"
+                          value={form.margen_pct}
+                          onChange={handle}
+                          className="w-24 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white
+                                     placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                          placeholder="Ej: 30"
+                        />
+                        <span className="text-xs text-gray-400">
+                          % sobre el costo
+                        </span>
+                      </div>
+                    )}
+                    {errors.margen_pct && (
+                      <p className="mb-2 text-sm text-rose-300">
+                        {errors.margen_pct}
+                      </p>
+                    )}
+
                     <input
                       name="pre_prod"
                       type="number"
@@ -581,10 +675,22 @@ export default function ProductoFormModal({
                       step="0.01"
                       value={form.pre_prod}
                       onChange={handle}
-                      className="w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-3 text-white
-                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent"
+                      readOnly={modoPrecio === 'margen'}
+                      disabled={modoPrecio === 'margen'}
+                      className={`w-full rounded-xl border px-3.5 py-3 text-white
+                                 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-300/40 focus:border-transparent ${
+                                   modoPrecio === 'margen'
+                                     ? 'border-white/5 bg-white/[0.02] opacity-70 cursor-not-allowed'
+                                     : 'border-white/10 bg-white/5'
+                                 }`}
                       placeholder="ingrese el precio"
                     />
+                    {modoPrecio === 'margen' && (
+                      <p className="mt-1 text-[11px] text-gray-400">
+                        Calculado a partir del costo. Se recalcula solo cada
+                        vez que entra un costo nuevo por una compra.
+                      </p>
+                    )}
                     {errors.pre_prod && (
                       <p className="mt-1 text-sm text-rose-300">
                         {errors.pre_prod}
