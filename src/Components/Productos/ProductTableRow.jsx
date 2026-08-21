@@ -109,7 +109,20 @@ export default function ProductTableRow({
         <td className="px-4 py-3">
           <p className="text-sm font-medium text-slate-800">{item?.nombre || 'Producto'}</p>
         </td>
-        <td className="px-4 py-3 text-sm text-slate-500">{item?.codigo_sku}</td>
+        <td className="px-4 py-3 text-sm text-slate-500">
+          <div className="flex items-center gap-1.5">
+            <span>{item?.codigo_sku}</span>
+            {!item?.barra_ean13 && !isInactive && (
+              <span
+                title="Sin código de barras — no se va a poder cargar por escaneo en Venta en el local"
+                className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 whitespace-nowrap"
+              >
+                <AlertTriangle className="h-3 w-3" />
+                Sin código
+              </span>
+            )}
+          </div>
+        </td>
         <td className="px-4 py-3">
           <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700">
             {item?.categoria?.nombre || 'Sin categoría'}

@@ -1,9 +1,9 @@
 // ===============================
 // FILE: src/Components/Ventas/VentaFormModal.jsx
 // ===============================
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, ScanLine } from 'lucide-react';
 import {
   backdropV,
   panelV,
@@ -14,12 +14,29 @@ import {
 import { listCiudades } from '../../api/ciudades';
 import { listClientes } from '../../api/clientes';
 import { listProductos } from '../../api/productos';
+import { listVendedores } from '../../api/vendedores';
 import SearchableSelect from '../Common/SearchableSelect';
 import http from '../../api/http';
 import { blockWheelChange } from '../../utils/numberInput';
+
+const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
+
+// Normaliza un código escaneado para comparar EAN-13 vs UPC-A (12 dígitos)
+// que a veces llegan con o sin el 0 inicial según la configuración del lector.
+const normalizeScanCode = (raw) => String(raw || '').trim();
+const scanVariants = (code) => {
+  const c = normalizeScanCode(code);
+  const variants = new Set([c]);
+  if (/^\d+$/.test(c)) {
+    if (c.length === 12) variants.add(`0${c}`);
+    if (c.length === 13 && c.startsWith('0')) variants.add(c.slice(1));
+  }
+  return Array.from(variants);
+};
 export default function VentaFormModal({ open, onClose, onSubmit }) {
   const [form, setForm] = useState({
     fecha: new Date(),
+    canal: 'local', // 'local' | 'reparto'
     ciudad_id: '',
     cliente_id: '',
     vendedor_id: '',
@@ -61,6 +78,19 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   const [repartos, setRepartos] = useState([]);
   const [loadingRepartos, setLoadingRepartos] = useState(false);
   const [repartosError, setRepartosError] = useState(null);
+
+  // ======================================================
+  //   - 21-08-2026
+  // Venta en el local: vendedores + clientes (catálogo completo,
+  // independiente del filtro por reparto) + escaneo de código de barras.
+  // ======================================================
+  const [vendedoresLocal, setVendedoresLocal] = useState([]);
+  const [loadingVendedoresLocal, setLoadingVendedoresLocal] = useState(false);
+  const [clientesLocal, setClientesLocal] = useState([]);
+  const [loadingClientesLocal, setLoadingClientesLocal] = useState(false);
+  const [scanValue, setScanValue] = useState('');
+  const [scanError, setScanError] = useState('');
+  const scanInputRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
@@ -143,6 +173,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   const resetState = () => {
     setForm({
       fecha: new Date(),
+      canal: 'local',
       ciudad_id: '',
       cliente_id: '',
       vendedor_id: '',
@@ -158,6 +189,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     setItems([
       { producto_id: '', producto: null, cantidad: '', precio_unit: '' }
     ]);
+    setScanValue('');
+    setScanError('');
 
     //  - 25-02-2026 - Resetea estado visual de saldo previo al reabrir modal
     setSavingSaldoPrevio(false);
@@ -347,6 +380,119 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       }
     })();
   }, [open]);
+
+  // ======================================================
+  //   - 21-08-2026
+  // Venta en el local: cargamos vendedores y clientes completos
+  // (no dependen de ciudad/reparto) y preseleccionamos Consumidor Final.
+  // ======================================================
+  useEffect(() => {
+    if (!open) return;
+
+    (async () => {
+      try {
+        setLoadingVendedoresLocal(true);
+        const vRes = await listVendedores({
+          estado: 'activo',
+          orderBy: 'nombre',
+          orderDir: 'ASC',
+          limit: 1000
+        });
+        const vs = Array.isArray(vRes?.data) ? vRes.data : vRes || [];
+        setVendedoresLocal(Array.isArray(vs) ? vs : []);
+      } catch (err) {
+        console.error('Error cargando vendedores para venta local:', err);
+        setVendedoresLocal([]);
+      } finally {
+        setLoadingVendedoresLocal(false);
+      }
+
+      try {
+        setLoadingClientesLocal(true);
+        const cRes = await listClientes({
+          estado: 'activo',
+          orderBy: 'nombre',
+          orderDir: 'ASC',
+          limit: 2000
+        });
+        const cs = Array.isArray(cRes?.data) ? cRes.data : [];
+        setClientesLocal(cs);
+
+        const consumidorFinal = cs.find(
+          (c) => c.documento === CONSUMIDOR_FINAL_DOCUMENTO
+        );
+        if (consumidorFinal) {
+          setSelectedCliente(consumidorFinal);
+          setForm((f) => ({ ...f, cliente_id: consumidorFinal.id }));
+        }
+      } catch (err) {
+        console.error('Error cargando clientes para venta local:', err);
+        setClientesLocal([]);
+      } finally {
+        setLoadingClientesLocal(false);
+      }
+    })();
+  }, [open]);
+
+  // ======================================================
+  //   - 21-08-2026
+  // Toggle Local / Reparto: resetea lo que no aplica en cada modo.
+  // ======================================================
+  const handleCanalChange = (canal) => {
+    if (canal === form.canal) return;
+
+    setScanValue('');
+    setScanError('');
+    setSaldoPrevioCargado(false);
+    setSavingSaldoPrevio(false);
+
+    if (canal === 'local') {
+      setClientes([]);
+      const consumidorFinal = clientesLocal.find(
+        (c) => c.documento === CONSUMIDOR_FINAL_DOCUMENTO
+      );
+      setSelectedCliente(consumidorFinal || null);
+      setVendedorLabel('');
+      setForm((f) => ({
+        ...f,
+        canal,
+        ciudad_id: '',
+        reparto_id: '',
+        cliente_id: consumidorFinal?.id || '',
+        vendedor_id: '',
+        saldo_previo: ''
+      }));
+    } else {
+      setSelectedCliente(null);
+      setVendedorLabel('');
+      setForm((f) => ({
+        ...f,
+        canal,
+        cliente_id: '',
+        vendedor_id: '',
+        saldo_previo: ''
+      }));
+    }
+  };
+
+  const handleVendedorLocal = (e) => {
+    const v = e.target.value;
+    setForm((f) => ({ ...f, vendedor_id: v }));
+  };
+
+  const handleClienteLocalChange = (cliOrId) => {
+    if (!cliOrId) {
+      setSelectedCliente(null);
+      setForm((f) => ({ ...f, cliente_id: '' }));
+      return;
+    }
+    const cli =
+      typeof cliOrId === 'object'
+        ? cliOrId
+        : clientesLocal.find((c) => c.id === Number(cliOrId));
+    setSelectedCliente(cli || null);
+    setForm((f) => ({ ...f, cliente_id: cli ? cli.id : Number(cliOrId) || '' }));
+  };
 
   // ======================================================
   //  - 17-01-2026
@@ -592,6 +738,67 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     );
   };
 
+  // ======================================================
+  //   - 21-08-2026
+  // Escaneo de código de barras (venta en el local): cada escaneo
+  // busca el producto por barra_ean13 (o codigo_sku como respaldo) y
+  // suma 1 unidad — si ya está en el carrito, incrementa esa línea.
+  // ======================================================
+  const findProductoByScan = (code) => {
+    const variants = scanVariants(code).map((v) => v.toUpperCase());
+    return (
+      productos.find((p) =>
+        p?.barra_ean13 && variants.includes(String(p.barra_ean13).toUpperCase())
+      ) ||
+      productos.find((p) =>
+        p?.codigo_sku && variants.includes(String(p.codigo_sku).toUpperCase())
+      ) ||
+      null
+    );
+  };
+
+  const handleScanSubmit = (e) => {
+    e.preventDefault();
+    const code = normalizeScanCode(scanValue);
+    setScanValue('');
+    if (!code) return;
+
+    const prod = findProductoByScan(code);
+    if (!prod) {
+      setScanError(`Producto no encontrado (código: ${code})`);
+      scanInputRef.current?.focus();
+      return;
+    }
+    setScanError('');
+
+    setItems((prev) => {
+      const idx = prev.findIndex((it) => Number(it.producto_id) === Number(prod.id));
+      if (idx >= 0) {
+        const actual = Number(prev[idx].cantidad) || 0;
+        return prev.map((it, i) =>
+          i === idx ? { ...it, cantidad: String(actual + 1) } : it
+        );
+      }
+
+      const precioAuto = getPrecioFromProducto(prod);
+      const nuevaLinea = {
+        producto_id: prod.id,
+        producto: prod,
+        cantidad: '1',
+        precio_unit: precioAuto === null ? '' : String(precioAuto)
+      };
+
+      // Reutilizamos la primera fila vacía si existe, si no agregamos una nueva
+      const emptyIdx = prev.findIndex((it) => !it.producto_id);
+      if (emptyIdx >= 0) {
+        return prev.map((it, i) => (i === emptyIdx ? nuevaLinea : it));
+      }
+      return [...prev, nuevaLinea];
+    });
+
+    scanInputRef.current?.focus();
+  };
+
   // ---------- Submit ----------
   const submit = async (e) => {
     e.preventDefault();
@@ -620,6 +827,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           vendedor_id: Number(form.vendedor_id),
           fecha: fechaPayload,
           tipo: form.tipo,
+          canal: form.canal,
           observaciones: form.observaciones?.trim() || null,
 
           // ======================================================
@@ -748,6 +956,33 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 animate="visible"
                 className="space-y-5 sm:space-y-6"
               >
+                {/* Canal de venta: local (mostrador) o reparto */}
+                <motion.div variants={fieldV}>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
+                    Canal de venta
+                  </label>
+                  <div className="inline-flex rounded-xl bg-slate-100 border border-slate-200 p-1">
+                    {[
+                      { key: 'local', label: 'Venta en el local' },
+                      { key: 'reparto', label: 'Venta en reparto' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        onClick={() => handleCanalChange(opt.key)}
+                        className={`px-3.5 py-1.5 text-sm rounded-lg transition
+                          ${
+                            form.canal === opt.key
+                              ? 'bg-orange-500 text-white shadow'
+                              : 'text-slate-500 hover:bg-slate-100'
+                          }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </motion.div>
+
                 {/* Fecha (solo lectura) */}
                 <motion.div variants={fieldV}>
                   <label className="block text-sm font-medium text-slate-600 mb-2">
@@ -765,7 +1000,9 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                   </p>
                 </motion.div>
 
-                {/* Ciudad + Reparto + Cliente */}
+                {/* Ciudad + Reparto + Cliente (solo canal reparto) */}
+                {form.canal === 'reparto' && (
+                <>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {/* Ciudad */}
                   <motion.div variants={fieldV}>
@@ -897,6 +1134,60 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     .
                   </p> */}
                 </motion.div>
+                </>
+                )}
+
+                {/* Vendedor + Cliente (solo canal local) */}
+                {form.canal === 'local' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <motion.div variants={fieldV}>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      Vendedor <span className="text-orange-600">*</span>
+                    </label>
+                    <select
+                      value={form.vendedor_id || ''}
+                      onChange={handleVendedorLocal}
+                      disabled={loadingVendedoresLocal}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
+                 disabled:opacity-60"
+                    >
+                      <option className="text-black" value="">
+                        {loadingVendedoresLocal
+                          ? 'Cargando vendedores…'
+                          : 'Seleccioná quién atiende…'}
+                      </option>
+                      {vendedoresLocal.map((v) => (
+                        <option className="text-black" key={v.id} value={v.id}>
+                          {v.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </motion.div>
+
+                  <motion.div variants={fieldV}>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      Cliente <span className="text-orange-600">*</span>
+                    </label>
+                    <SearchableSelect
+                      items={clientesLocal}
+                      value={form.cliente_id}
+                      onChange={handleClienteLocalChange}
+                      placeholder={
+                        loadingClientesLocal ? 'Cargando clientes…' : 'Cliente…'
+                      }
+                      getOptionLabel={(c) =>
+                        c ? `${c.nombre} (${c.documento || 's/ doc'})` : ''
+                      }
+                      getOptionValue={(c) => c.id}
+                    />
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      Por defecto queda "Consumidor Final" — elegí un cliente
+                      real solo si la venta va a quedar fiada o a cuenta.
+                    </p>
+                  </motion.div>
+                </div>
+                )}
 
                 {/* Tipo de venta */}
                 <motion.div variants={fieldV}>
@@ -941,6 +1232,39 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     placeholder="Notas internas de la operación (opcional)"
                   />
                 </motion.div>
+
+                {/* Escaneo de código de barras (solo canal local) */}
+                {form.canal === 'local' && (
+                  <motion.div variants={fieldV}>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      Escanear producto
+                    </label>
+                    <form onSubmit={handleScanSubmit} className="flex gap-2">
+                      <div className="relative flex-1">
+                        <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <input
+                          ref={scanInputRef}
+                          autoFocus
+                          value={scanValue}
+                          onChange={(e) => {
+                            setScanValue(e.target.value);
+                            if (scanError) setScanError('');
+                          }}
+                          placeholder="Pasá el producto por el lector, o tipeá el código y Enter…"
+                          className="w-full pl-9 pr-3.5 py-3 rounded-xl border border-slate-200 bg-white text-slate-800
+                                     placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
+                        />
+                      </div>
+                    </form>
+                    {scanError && (
+                      <p className="mt-1 text-[12px] text-rose-600">{scanError}</p>
+                    )}
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      Cada escaneo suma 1 unidad — si el producto ya está en la
+                      lista, se acumula en la misma línea.
+                    </p>
+                  </motion.div>
+                )}
 
                 {/* Detalle de productos */}
                 <motion.div variants={fieldV} className="space-y-3">
