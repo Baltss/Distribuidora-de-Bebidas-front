@@ -757,8 +757,11 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     );
   };
 
-  const handleScanSubmit = (e) => {
-    e.preventDefault();
+  // Nota: NO es un <form> — un <form> anidado dentro del formulario grande
+  // de la venta hace que el submit de este input burbujee y dispare
+  // también el submit de la venta completa (guardando una venta parcial
+  // en cada escaneo). Se maneja directo con onKeyDown (Enter).
+  const handleScan = () => {
     const code = normalizeScanCode(scanValue);
     setScanValue('');
     if (!code) return;
@@ -1239,7 +1242,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     <label className="block text-sm font-medium text-slate-600 mb-2">
                       Escanear producto
                     </label>
-                    <form onSubmit={handleScanSubmit} className="flex gap-2">
+                    <div className="flex gap-2">
                       <div className="relative flex-1">
                         <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <input
@@ -1250,12 +1253,18 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                             setScanValue(e.target.value);
                             if (scanError) setScanError('');
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key !== 'Enter') return;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleScan();
+                          }}
                           placeholder="Pasá el producto por el lector, o tipeá el código y Enter…"
                           className="w-full pl-9 pr-3.5 py-3 rounded-xl border border-slate-200 bg-white text-slate-800
                                      placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
                         />
                       </div>
-                    </form>
+                    </div>
                     {scanError && (
                       <p className="mt-1 text-[12px] text-rose-600">{scanError}</p>
                     )}
