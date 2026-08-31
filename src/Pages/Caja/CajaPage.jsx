@@ -2,8 +2,19 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../Components/Layout/AppShell';
+import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
-import { FaPlus, FaTrash, FaArrowUp, FaArrowDown, FaWallet, FaArrowLeft } from 'react-icons/fa';
+import {
+  FaPlus,
+  FaArrowUp,
+  FaArrowDown,
+  FaWallet,
+  FaArrowLeft,
+  FaLock,
+  FaBan,
+  FaEdit,
+  FaHistory
+} from 'react-icons/fa';
 import {
   ResponsiveContainer,
   LineChart,
@@ -16,17 +27,24 @@ import {
 } from 'recharts';
 
 import GastoFormModal from '../../Components/Gastos/GastoFormModal';
-import IngresoManualFormModal from '../../Components/Caja/IngresoManualFormModal';
+import MovimientoManualFormModal from '../../Components/Caja/MovimientoManualFormModal';
+import CerrarCajaModal from '../../Components/Caja/CerrarCajaModal';
+import CajaDetalleModal from '../../Components/Caja/CajaDetalleModal';
 import {
+  getCajaActual,
   listCajaMovimientos,
   getCajaResumen,
   createCajaMovimientoManual,
-  deleteCajaMovimientoManual
+  updateCajaMovimientoManual,
+  anularCajaMovimiento,
+  cerrarCaja,
+  listCajasHistorial
 } from '../../api/caja.js';
 import { createGasto } from '../../api/gastos.js';
 import { listGastosCategorias } from '../../api/gastosCategorias.js';
 import { showErrorSwal, showSuccessSwal, showConfirmSwal, showWarnSwal } from '../../ui/swal';
 import moneyAR from '../../utils/money';
+import { MEDIOS_PAGO, medioPagoLabel } from '../../utils/mediosPago';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 const ORIGEN_OPCIONES = [
@@ -40,12 +58,28 @@ const ORIGEN_OPCIONES = [
   { value: 'egreso_manual', label: 'Egreso manual' }
 ];
 
+const ESTADO_BADGE = {
+  abierta: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  pendiente_cierre: 'bg-amber-50 text-amber-700 border-amber-200',
+  cerrada: 'bg-slate-100 text-slate-600 border-slate-200'
+};
+const ESTADO_LABEL = {
+  abierta: 'Abierta',
+  pendiente_cierre: 'Pendiente de cierre',
+  cerrada: 'Cerrada'
+};
+
 const fmtFecha = (v) => (v ? new Date(v).toLocaleDateString('es-AR') : '—');
+const fmtFechaHora = (v) =>
+  v ? new Date(v).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 const fmtFechaChart = (v) =>
   v ? new Date(v).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '';
 
 export default function CajaPage() {
   const navigate = useNavigate();
+  const { userLevel } = useAuth();
+  const esAdmin = ['socio', 'administrador', 'admin'].includes(String(userLevel || '').toLowerCase());
+
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,19 +87,29 @@ export default function CajaPage() {
 
   const [resumen, setResumen] = useState(null);
   const [categorias, setCategorias] = useState([]);
+  const [cajaActual, setCajaActual] = useState(null);
+  const [alertaCajaAnterior, setAlertaCajaAnterior] = useState(null);
 
   const [gastoModalOpen, setGastoModalOpen] = useState(false);
-  const [ingresoModalOpen, setIngresoModalOpen] = useState(false);
+  const [movModalOpen, setMovModalOpen] = useState(false);
+  const [movModalTipo, setMovModalTipo] = useState('ingreso');
+  const [movModalEdit, setMovModalEdit] = useState(null);
+  const [cerrarModalOpen, setCerrarModalOpen] = useState(false);
+
+  const [detalleCajaId, setDetalleCajaId] = useState(null);
+  const [historialCajas, setHistorialCajas] = useState([]);
+  const [historialOpen, setHistorialOpen] = useState(false);
 
   // Filtros
   const [tipo, setTipo] = useState(''); // '' | ingreso | egreso
   const [origenTipo, setOrigenTipo] = useState('');
+  const [medioPago, setMedioPago] = useState('');
   const [desde, setDesde] = useState('');
   const [hasta, setHasta] = useState('');
 
   const filtroCriteriaKey = useMemo(
-    () => JSON.stringify({ tipo, origenTipo, desde, hasta }),
-    [tipo, origenTipo, desde, hasta]
+    () => JSON.stringify({ tipo, origenTipo, medioPago, desde, hasta }),
+    [tipo, origenTipo, medioPago, desde, hasta]
   );
   const debouncedFiltroCriteriaKey = useDebouncedValue(filtroCriteriaKey, 500);
 
@@ -73,6 +117,16 @@ export default function CajaPage() {
     try {
       const resp = await listGastosCategorias({ estado: 'activo' });
       setCategorias(resp?.data || []);
+    } catch {
+      // no bloqueamos si falla
+    }
+  };
+
+  const fetchCajaActual = async () => {
+    try {
+      const resp = await getCajaActual();
+      setCajaActual(resp?.caja || null);
+      setAlertaCajaAnterior(resp?.alerta_caja_anterior_pendiente || null);
     } catch {
       // no bloqueamos si falla
     }
@@ -87,6 +141,15 @@ export default function CajaPage() {
     }
   };
 
+  const fetchHistorial = async () => {
+    try {
+      const resp = await listCajasHistorial({ limit: 15 });
+      setHistorialCajas(resp?.data || []);
+    } catch {
+      // no bloqueamos si falla
+    }
+  };
+
   const fetchData = async (targetPage = page) => {
     setLoading(true);
     try {
@@ -95,6 +158,7 @@ export default function CajaPage() {
         limit: 20,
         tipo: tipo || undefined,
         origen_tipo: origenTipo || undefined,
+        medio_pago: medioPago || undefined,
         desde: desde || undefined,
         hasta: hasta || undefined
       });
@@ -108,8 +172,14 @@ export default function CajaPage() {
     }
   };
 
+  const refreshAll = async (targetPage = page) => {
+    await Promise.all([fetchData(targetPage), fetchResumen(), fetchCajaActual(), fetchHistorial()]);
+  };
+
   useEffect(() => {
     fetchCategorias();
+    fetchCajaActual();
+    fetchHistorial();
   }, []);
 
   // Filtros cambiados (debounced): volvemos a página 1
@@ -139,12 +209,15 @@ export default function CajaPage() {
     try {
       await createGasto(payload);
       await showSuccessSwal({ title: 'Gasto registrado' });
-      await Promise.all([fetchData(page), fetchResumen()]);
+      await refreshAll(page);
       setGastoModalOpen(false);
     } catch (err) {
       const { code, mensajeError, tips } = err || {};
       if (code === 'BAD_REQUEST' || code === 'NOT_FOUND') {
         return showWarnSwal({ title: 'Datos inválidos', text: mensajeError, tips });
+      }
+      if (code === 'CAJA_CERRADA') {
+        return showWarnSwal({ title: 'Caja cerrada', text: mensajeError });
       }
       return showErrorSwal({
         title: 'No se pudo registrar el gasto',
@@ -154,41 +227,72 @@ export default function CajaPage() {
     }
   };
 
-  const onSubmitIngreso = async (payload) => {
+  const openNuevoMovimiento = (t) => {
+    setMovModalTipo(t);
+    setMovModalEdit(null);
+    setMovModalOpen(true);
+  };
+
+  const openEditarMovimiento = (mov) => {
+    setMovModalTipo(Number(mov.signo) === 1 ? 'ingreso' : 'egreso');
+    setMovModalEdit(mov);
+    setMovModalOpen(true);
+  };
+
+  const onSubmitMovimiento = async (payload) => {
     try {
-      await createCajaMovimientoManual(payload);
-      await showSuccessSwal({ title: 'Ingreso registrado' });
-      await Promise.all([fetchData(page), fetchResumen()]);
-      setIngresoModalOpen(false);
+      if (movModalEdit) {
+        await updateCajaMovimientoManual(movModalEdit.id, payload);
+        await showSuccessSwal({ title: 'Movimiento actualizado' });
+      } else {
+        await createCajaMovimientoManual(payload);
+        await showSuccessSwal({ title: movModalTipo === 'ingreso' ? 'Ingreso registrado' : 'Egreso registrado' });
+      }
+      await refreshAll(page);
+    } catch (err) {
+      const { code, mensajeError, tips } = err || {};
+      if (code === 'CAJA_CERRADA') {
+        await showWarnSwal({ title: 'Caja cerrada', text: mensajeError });
+      } else {
+        await showErrorSwal({
+          title: 'No se pudo guardar el movimiento',
+          text: mensajeError || 'Ocurrió un error inesperado',
+          tips
+        });
+      }
+      throw err;
+    }
+  };
+
+  const onAnularMovimiento = async (mov) => {
+    const ok = await showConfirmSwal({
+      title: 'Anular movimiento',
+      text: `¿Anular este movimiento de ${moneyAR(mov.monto)}? Queda registrado como anulado, no se borra.`
+    });
+    if (!ok) return;
+
+    try {
+      await anularCajaMovimiento(mov.id);
+      await showSuccessSwal({ title: 'Movimiento anulado' });
+      await refreshAll(page);
     } catch (err) {
       const { mensajeError, tips } = err || {};
-      return showErrorSwal({
-        title: 'No se pudo registrar el ingreso',
+      await showErrorSwal({
+        title: 'No se pudo anular',
         text: mensajeError || 'Ocurrió un error inesperado',
         tips
       });
     }
   };
 
-  const onDeleteManual = async (mov) => {
-    const ok = await showConfirmSwal({
-      title: 'Eliminar movimiento',
-      text: `¿Eliminar este movimiento de ${moneyAR(mov.monto)}?`
+  const onCerrarCaja = async (payload) => {
+    if (!cajaActual?.id) return;
+    const resp = await cerrarCaja(cajaActual.id, payload);
+    await showSuccessSwal({
+      title: 'Caja cerrada',
+      text: resp?.estado_diferencia === 'ok' ? 'El efectivo contado cuadra con lo esperado.' : undefined
     });
-    if (!ok) return;
-
-    try {
-      await deleteCajaMovimientoManual(mov.id);
-      await showSuccessSwal({ title: 'Eliminado' });
-      await Promise.all([fetchData(page), fetchResumen()]);
-    } catch (err) {
-      const { mensajeError, tips } = err || {};
-      await showErrorSwal({
-        title: 'No se pudo eliminar',
-        text: mensajeError || 'Ocurrió un error inesperado',
-        tips
-      });
-    }
+    await refreshAll(page);
   };
 
   return (
@@ -222,13 +326,84 @@ export default function CajaPage() {
         </motion.p>
 
         <div className="mt-6 space-y-6">
+          {alertaCajaAnterior && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              La caja del {fmtFecha(alertaCajaAnterior.fecha_jornada)} quedó sin cerrar. Cerrala para que los
+              cierres queden al día.
+            </div>
+          )}
+
+          {/* Caja del día */}
+          {cajaActual && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2.5">
+                  <h2 className="text-lg font-bold text-slate-900">Caja de hoy · {fmtFecha(cajaActual.fecha_jornada)}</h2>
+                  <span className={`px-2 py-1 rounded-full text-xs border ${ESTADO_BADGE[cajaActual.estado] || ''}`}>
+                    {ESTADO_LABEL[cajaActual.estado] || cajaActual.estado}
+                  </span>
+                </div>
+                {esAdmin && cajaActual.estado !== 'cerrada' && (
+                  <button
+                    onClick={() => setCerrarModalOpen(true)}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
+                  >
+                    <FaLock className="h-3.5 w-3.5" /> Cerrar caja
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Saldo inicial</p>
+                  <p className="text-base font-semibold text-slate-800">{moneyAR(cajaActual.saldo_inicial)}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Ingresos hoy</p>
+                  <p className="text-base font-semibold text-emerald-600">{moneyAR(cajaActual.ingresos)}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Egresos hoy</p>
+                  <p className="text-base font-semibold text-rose-600">{moneyAR(cajaActual.egresos)}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] uppercase tracking-wide text-slate-500">Efectivo esperado</p>
+                  <p className="text-base font-bold text-slate-900">{moneyAR(cajaActual.efectivo_esperado_actual)}</p>
+                </div>
+              </div>
+              {cajaActual.por_medio_pago && Object.keys(cajaActual.por_medio_pago).length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {Object.entries(cajaActual.por_medio_pago).map(([medio, v]) => (
+                    <span
+                      key={medio}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border border-slate-200 bg-slate-50 text-slate-600"
+                    >
+                      {medioPagoLabel(medio)}: {moneyAR(v.total)}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Acciones */}
           <div className="flex flex-wrap justify-end gap-2">
             <button
-              onClick={() => setIngresoModalOpen(true)}
+              onClick={() => setHistorialOpen((v) => !v)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold transition"
+            >
+              <FaHistory /> {historialOpen ? 'Ocultar historial de cajas' : 'Historial de cajas'}
+            </button>
+            <button
+              onClick={() => openNuevoMovimiento('ingreso')}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition"
             >
               <FaPlus /> Nuevo ingreso
+            </button>
+            <button
+              onClick={() => openNuevoMovimiento('egreso')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition"
+            >
+              <FaPlus /> Nuevo egreso
             </button>
             <button
               onClick={() => setGastoModalOpen(true)}
@@ -238,6 +413,53 @@ export default function CajaPage() {
             </button>
           </div>
 
+          {historialOpen && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
+                Historial de cajas
+              </h3>
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full text-sm text-left text-slate-700">
+                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <tr>
+                      <th className="px-3 py-2">Jornada</th>
+                      <th className="px-3 py-2">Estado</th>
+                      <th className="px-3 py-2 text-right">Saldo esperado</th>
+                      <th className="px-3 py-2 text-right">Diferencia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historialCajas.map((c) => (
+                      <tr
+                        key={c.id}
+                        className="border-t border-slate-100 cursor-pointer hover:bg-slate-50"
+                        onClick={() => setDetalleCajaId(c.id)}
+                      >
+                        <td className="px-3 py-2 whitespace-nowrap">{fmtFecha(c.fecha_jornada)}</td>
+                        <td className="px-3 py-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[11px] border ${ESTADO_BADGE[c.estado] || ''}`}>
+                            {ESTADO_LABEL[c.estado] || c.estado}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right">{moneyAR(c.saldo_esperado)}</td>
+                        <td className="px-3 py-2 text-right">
+                          {c.estado === 'cerrada' ? moneyAR(c.diferencia) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                    {historialCajas.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-3 py-6 text-center text-slate-400">
+                          Sin cajas registradas todavía.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-3">
@@ -245,7 +467,7 @@ export default function CajaPage() {
                 <FaWallet className="text-teal-600" />
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-wide text-slate-400">Saldo actual</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Saldo actual</p>
                 <p className="text-xl font-bold text-slate-900">
                   {resumen ? moneyAR(resumen.saldo_actual) : '—'}
                 </p>
@@ -256,7 +478,7 @@ export default function CajaPage() {
                 <FaArrowUp className="text-emerald-600" />
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-wide text-slate-400">Ingresos del período</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Ingresos del período</p>
                 <p className="text-xl font-bold text-slate-900">
                   {resumen ? moneyAR(resumen.ingresos_periodo) : '—'}
                 </p>
@@ -267,7 +489,7 @@ export default function CajaPage() {
                 <FaArrowDown className="text-rose-600" />
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-wide text-slate-400">Egresos del período</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Egresos del período</p>
                 <p className="text-xl font-bold text-slate-900">
                   {resumen ? moneyAR(resumen.egresos_periodo) : '—'}
                 </p>
@@ -275,9 +497,32 @@ export default function CajaPage() {
             </div>
           </div>
 
+          {Array.isArray(resumen?.por_medio_pago) && resumen.por_medio_pago.length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
+                Por medio de pago (período)
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {resumen.por_medio_pago.map((m, i) => (
+                  <span
+                    key={`${m.medio_pago}-${m.signo}-${i}`}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${
+                      m.signo === 1
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-rose-50 text-rose-700 border-rose-200'
+                    }`}
+                  >
+                    {medioPagoLabel(m.medio_pago)}: {m.signo === 1 ? '+' : '-'}
+                    {moneyAR(m.total)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Filtros */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
               <select
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
@@ -298,6 +543,20 @@ export default function CajaPage() {
                 {ORIGEN_OPCIONES.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={medioPago}
+                onChange={(e) => setMedioPago(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
+                           focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+              >
+                <option value="">Todos los medios</option>
+                {MEDIOS_PAGO.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
                   </option>
                 ))}
               </select>
@@ -358,6 +617,7 @@ export default function CajaPage() {
                     <th className="px-4 py-3">Fecha</th>
                     <th className="px-4 py-3">Tipo</th>
                     <th className="px-4 py-3">Origen</th>
+                    <th className="px-4 py-3">Medio</th>
                     <th className="px-4 py-3">Descripción</th>
                     <th className="px-4 py-3 text-right">Monto</th>
                     <th className="px-4 py-3 text-right">Acciones</th>
@@ -368,8 +628,8 @@ export default function CajaPage() {
                     const esManual = ['ingreso_manual', 'egreso_manual'].includes(m.origen_tipo);
                     const esIngreso = Number(m.signo) === 1;
                     return (
-                      <tr key={m.id} className="border-t border-slate-100">
-                        <td className="px-4 py-3 whitespace-nowrap">{fmtFecha(m.fecha)}</td>
+                      <tr key={m.id} className={`border-t border-slate-100 ${m.anulado ? 'opacity-50' : ''}`}>
+                        <td className="px-4 py-3 whitespace-nowrap">{fmtFechaHora(m.fecha)}</td>
                         <td className="px-4 py-3">
                           <span
                             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
@@ -382,7 +642,15 @@ export default function CajaPage() {
                             {esIngreso ? 'Ingreso' : 'Egreso'}
                           </span>
                         </td>
-                        <td className="px-4 py-3">{m.origen_label}</td>
+                        <td className="px-4 py-3">
+                          {m.origen_label}
+                          {m.anulado && (
+                            <span className="ml-1.5 text-[10px] uppercase text-rose-600 font-semibold">
+                              Anulado
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">{medioPagoLabel(m.medio_pago)}</td>
                         <td className="px-4 py-3">{m.descripcion || '—'}</td>
                         <td
                           className={`px-4 py-3 text-right font-semibold ${
@@ -393,13 +661,21 @@ export default function CajaPage() {
                           {moneyAR(m.monto)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {esManual && (
-                            <button
-                              onClick={() => onDeleteManual(m)}
-                              className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
-                            >
-                              <FaTrash /> Eliminar
-                            </button>
+                          {esManual && !m.anulado && (
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                onClick={() => openEditarMovimiento(m)}
+                                className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                              >
+                                <FaEdit /> Editar
+                              </button>
+                              <button
+                                onClick={() => onAnularMovimiento(m)}
+                                className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
+                              >
+                                <FaBan /> Anular
+                              </button>
+                            </div>
                           )}
                         </td>
                       </tr>
@@ -440,10 +716,23 @@ export default function CajaPage() {
         onSubmit={onSubmitGasto}
         categorias={categorias}
       />
-      <IngresoManualFormModal
-        open={ingresoModalOpen}
-        onClose={() => setIngresoModalOpen(false)}
-        onSubmit={onSubmitIngreso}
+      <MovimientoManualFormModal
+        open={movModalOpen}
+        onClose={() => setMovModalOpen(false)}
+        onSubmit={onSubmitMovimiento}
+        tipo={movModalTipo}
+        initialData={movModalEdit}
+      />
+      <CerrarCajaModal
+        open={cerrarModalOpen}
+        onClose={() => setCerrarModalOpen(false)}
+        onSubmit={onCerrarCaja}
+        caja={cajaActual}
+      />
+      <CajaDetalleModal
+        open={detalleCajaId != null}
+        onClose={() => setDetalleCajaId(null)}
+        cajaId={detalleCajaId}
       />
     </AppShell>
   );

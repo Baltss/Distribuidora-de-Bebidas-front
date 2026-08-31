@@ -1,4 +1,4 @@
-// src/Components/Caja/IngresoManualFormModal.jsx
+// src/Components/Caja/MovimientoManualFormModal.jsx
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -7,8 +7,9 @@ import {
   formContainerV,
   fieldV
 } from '../../ui/animHelpers';
-import { X, TrendingUp, Calendar, Wallet, CreditCard, StickyNote } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Calendar, Wallet, CreditCard, StickyNote } from 'lucide-react';
 import { blockWheelChange } from '../../utils/numberInput';
+import { MEDIOS_PAGO } from '../../utils/mediosPago';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent';
@@ -16,8 +17,18 @@ const labelCls = 'flex items-center gap-2 text-sm font-medium text-slate-600 mb-
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-// Ingreso de caja ajeno a las ventas (ej: un aporte, un reintegro, etc.)
-export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
+// Movimiento de caja manual, ajeno a ventas/cobros/gastos/pagos (ej: un
+// aporte, un retiro, un reintegro). Sirve tanto para alta (POST) como
+// para edición (PUT) si se pasa `initialData`.
+export default function MovimientoManualFormModal({
+  open,
+  onClose,
+  onSubmit,
+  tipo = 'ingreso', // 'ingreso' | 'egreso'
+  initialData = null
+}) {
+  const isEdit = !!initialData;
+  const esIngreso = tipo === 'ingreso';
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     fecha: todayISO(),
@@ -29,10 +40,19 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
 
   useEffect(() => {
     if (open) {
-      setForm({ fecha: todayISO(), monto: '', descripcion: '', medio_pago: '' });
+      setForm(
+        initialData
+          ? {
+              fecha: initialData.fecha ? String(initialData.fecha).slice(0, 10) : todayISO(),
+              monto: initialData.monto ?? '',
+              descripcion: initialData.descripcion || '',
+              medio_pago: initialData.medio_pago || ''
+            }
+          : { fecha: todayISO(), monto: '', descripcion: '', medio_pago: '' }
+      );
       setErrors({});
     }
-  }, [open]);
+  }, [open, initialData]);
 
   const handle = (e) => {
     const { name, value } = e.target;
@@ -45,7 +65,8 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
       e.monto = 'El monto debe ser mayor a 0';
     }
     if (!form.fecha) e.fecha = 'La fecha es obligatoria';
-    if (!form.descripcion?.trim()) e.descripcion = 'Contá de qué es este ingreso';
+    if (!form.descripcion?.trim()) e.descripcion = `Contá de qué es este ${esIngreso ? 'ingreso' : 'egreso'}`;
+    if (!form.medio_pago) e.medio_pago = 'El medio de pago es obligatorio';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -54,13 +75,20 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
     e.preventDefault();
     if (!validate()) return;
 
-    const payload = {
-      tipo: 'ingreso',
-      fecha: form.fecha,
-      monto: Number(form.monto),
-      descripcion: form.descripcion.trim(),
-      medio_pago: form.medio_pago?.trim() || null
-    };
+    const payload = isEdit
+      ? {
+          fecha: form.fecha,
+          monto: Number(form.monto),
+          descripcion: form.descripcion.trim(),
+          medio_pago: form.medio_pago
+        }
+      : {
+          tipo,
+          fecha: form.fecha,
+          monto: Number(form.monto),
+          descripcion: form.descripcion.trim(),
+          medio_pago: form.medio_pago
+        };
 
     try {
       setSaving(true);
@@ -70,6 +98,12 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
       setSaving(false);
     }
   };
+
+  const accentText = esIngreso ? 'text-emerald-600' : 'text-rose-600';
+  const accentIcon = esIngreso ? 'text-emerald-600' : 'text-rose-600';
+  const accentBtn = esIngreso
+    ? 'bg-emerald-600 hover:bg-emerald-700'
+    : 'bg-rose-600 hover:bg-rose-700';
 
   return (
     <AnimatePresence>
@@ -105,8 +139,14 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
 
             <div className="relative z-10 p-5 sm:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <TrendingUp className="h-6 w-6 text-emerald-600 shrink-0" />
-                <h3 className="text-xl font-bold tracking-tight text-slate-900">Nuevo ingreso</h3>
+                {esIngreso ? (
+                  <TrendingUp className={`h-6 w-6 ${accentIcon} shrink-0`} />
+                ) : (
+                  <TrendingDown className={`h-6 w-6 ${accentIcon} shrink-0`} />
+                )}
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">
+                  {isEdit ? 'Editar movimiento' : esIngreso ? 'Nuevo ingreso' : 'Nuevo egreso'}
+                </h3>
               </div>
 
               <motion.form
@@ -120,7 +160,7 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
                       <Wallet className="h-4 w-4 text-slate-400" />
-                      Monto <span className="text-emerald-600">*</span>
+                      Monto <span className={accentText}>*</span>
                     </label>
                     <input
                       name="monto"
@@ -140,7 +180,7 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
                       <Calendar className="h-4 w-4 text-slate-400" />
-                      Fecha <span className="text-emerald-600">*</span>
+                      Fecha <span className={accentText}>*</span>
                     </label>
                     <input
                       name="fecha"
@@ -158,7 +198,7 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
                     <CreditCard className="h-4 w-4 text-slate-400" />
-                    Medio de pago (opcional)
+                    Medio de pago <span className={accentText}>*</span>
                   </label>
                   <select
                     name="medio_pago"
@@ -167,16 +207,21 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
                     className={inputCls}
                   >
                     <option value="">Seleccionar…</option>
-                    <option value="Efectivo">Efectivo</option>
-                    <option value="Transferencia">Transferencia</option>
-                    <option value="Débito">Débito</option>
+                    {MEDIOS_PAGO.map((m) => (
+                      <option key={m.value} value={m.value}>
+                        {m.label}
+                      </option>
+                    ))}
                   </select>
+                  {errors.medio_pago && (
+                    <p className="mt-1 text-sm text-rose-600">{errors.medio_pago}</p>
+                  )}
                 </motion.div>
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
                     <StickyNote className="h-4 w-4 text-slate-400" />
-                    Descripción <span className="text-emerald-600">*</span>
+                    Descripción <span className={accentText}>*</span>
                   </label>
                   <textarea
                     name="descripcion"
@@ -184,7 +229,7 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
                     value={form.descripcion}
                     onChange={handle}
                     className={`${inputCls} resize-y`}
-                    placeholder="Ej: reintegro, aporte de capital…"
+                    placeholder={esIngreso ? 'Ej: reintegro, aporte de capital…' : 'Ej: retiro, ajuste…'}
                   />
                   {errors.descripcion && (
                     <p className="mt-1 text-sm text-rose-600">{errors.descripcion}</p>
@@ -205,10 +250,10 @@ export default function IngresoManualFormModal({ open, onClose, onSubmit }) {
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold
-                               disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className={`px-4 py-2 rounded-xl ${accentBtn} text-white font-semibold
+                               disabled:opacity-60 disabled:cursor-not-allowed transition`}
                   >
-                    {saving ? 'Guardando…' : 'Registrar ingreso'}
+                    {saving ? 'Guardando…' : isEdit ? 'Guardar cambios' : esIngreso ? 'Registrar ingreso' : 'Registrar egreso'}
                   </button>
                 </motion.div>
               </motion.form>
