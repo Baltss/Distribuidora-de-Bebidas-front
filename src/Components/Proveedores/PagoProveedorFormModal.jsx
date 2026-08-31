@@ -12,6 +12,7 @@ import { createPagoProveedor } from '../../api/pagosProveedores.js';
 import { baseSwal, showErrorSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import { MEDIOS_PAGO } from '../../utils/mediosPago';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent';
@@ -59,6 +60,7 @@ export default function PagoProveedorFormModal({
       e.monto = 'El monto debe ser mayor a 0';
     }
     if (!form.fecha) e.fecha = 'La fecha es obligatoria';
+    if (!form.medio_pago) e.medio_pago = 'El medio de pago es obligatorio';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -163,7 +165,7 @@ export default function PagoProveedorFormModal({
               >
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Wallet className="h-4 w-4 text-slate-400" />
+                    <Wallet className="h-4 w-4 text-slate-600" />
                     Monto a pagar <span className="text-emerald-600">*</span>
                   </label>
                   <input
@@ -183,7 +185,7 @@ export default function PagoProveedorFormModal({
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Calendar className="h-4 w-4 text-slate-400" />
+                    <Calendar className="h-4 w-4 text-slate-600" />
                     Fecha <span className="text-emerald-600">*</span>
                   </label>
                   <input
@@ -200,21 +202,30 @@ export default function PagoProveedorFormModal({
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <CreditCard className="h-4 w-4 text-slate-400" />
-                    Medio de pago (opcional)
+                    <CreditCard className="h-4 w-4 text-slate-500" />
+                    Medio de pago <span className="text-emerald-600">*</span>
                   </label>
-                  <input
+                  <select
                     name="medio_pago"
                     value={form.medio_pago}
                     onChange={handle}
                     className={inputCls}
-                    placeholder="Efectivo, transferencia…"
-                  />
+                  >
+                    <option value="">Seleccionar…</option>
+                    {MEDIOS_PAGO.map((m) => (
+                      <option key={m.value} value={m.value}>
+                        {m.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.medio_pago && (
+                    <p className="mt-1 text-sm text-rose-600">{errors.medio_pago}</p>
+                  )}
                 </motion.div>
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <StickyNote className="h-4 w-4 text-slate-400" />
+                    <StickyNote className="h-4 w-4 text-slate-600" />
                     Observaciones (opcional)
                   </label>
                   <textarea

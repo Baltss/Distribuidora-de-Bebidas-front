@@ -311,7 +311,7 @@ export default function LocalidadesCards() {
         {/* Barra de acciones */}
         <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <div className="relative flex-1">
-            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
             <input
               value={q}
               onChange={(e) => {
@@ -369,7 +369,7 @@ export default function LocalidadesCards() {
               <div className="h-10 w-10 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
             </div>
           ) : rows.length === 0 ? (
-            <div className="text-center text-slate-400 py-24">
+            <div className="text-center text-slate-600 py-24">
               No hay localidades con esos filtros.
             </div>
           ) : (

@@ -18,8 +18,21 @@ import { listVendedores } from '../../api/vendedores';
 import SearchableSelect from '../Common/SearchableSelect';
 import http from '../../api/http';
 import { blockWheelChange } from '../../utils/numberInput';
+import { MEDIOS_PAGO } from '../../utils/mediosPago';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
+
+// Key estable por ítem (no el índice del array): evita que, al insertar un
+// ítem nuevo arriba de la lista, React "recicle" el DOM/estado interno de
+// un SearchableSelect que en realidad pertenece a otra fila.
+let itemKeySeq = 0;
+const makeEmptyItem = () => ({
+  _key: ++itemKeySeq,
+  producto_id: '',
+  producto: null,
+  cantidad: '',
+  precio_unit: ''
+});
 
 // Normaliza un código escaneado para comparar EAN-13 vs UPC-A (12 dígitos)
 // que a veces llegan con o sin el 0 inicial según la configuración del lector.
@@ -40,7 +53,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     ciudad_id: '',
     cliente_id: '',
     vendedor_id: '',
-    tipo: 'fiado', // contado | fiado | a_cuenta
+    tipo: 'contado', // contado | fiado | a_cuenta
+    medio_pago: '',
     observaciones: '',
     // ======================================================
     //  - 17-01-2026
@@ -165,9 +179,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   };
 
   // Items (detalle)
-  const [items, setItems] = useState([
-    { producto_id: '', producto: null, cantidad: '', precio_unit: '' }
-  ]);
+  const [items, setItems] = useState([makeEmptyItem()]);
 
   // ---------- Helpers ----------
   const resetState = () => {
@@ -177,7 +189,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       ciudad_id: '',
       cliente_id: '',
       vendedor_id: '',
-      tipo: 'fiado',
+      tipo: 'contado',
+      medio_pago: '',
       observaciones: '',
       //  - 17-01-2026
       monto_a_cuenta: '',
@@ -186,9 +199,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     });
     setSelectedCliente(null);
     setVendedorLabel('');
-    setItems([
-      { producto_id: '', producto: null, cantidad: '', precio_unit: '' }
-    ]);
+    setItems([makeEmptyItem()]);
     setScanValue('');
     setScanError('');
 
@@ -321,11 +332,16 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           aCuentaNumber >= 0 &&
           aCuentaNumber <= moneyRound(totalNeto) + 0.01;
 
-    return hasCliente && hasVendedor && hasItemsValidos && aCuentaOk;
+    const hasMedioPago = !!form.medio_pago;
+
+    return (
+      hasCliente && hasVendedor && hasItemsValidos && aCuentaOk && hasMedioPago
+    );
   }, [
     form.cliente_id,
     form.vendedor_id,
     form.tipo,
+    form.medio_pago,
     items,
     aCuentaNumber,
     totalNeto
@@ -531,8 +547,26 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     })();
   }, [open, form.reparto_id]);
 
+  // ======================================================
+  //  - 31-08-2026
+  // Consumidor Final: nunca puede quedar fiado ni a cuenta (no tiene
+  // cuenta corriente propia, es un cliente genérico/anónimo). Se fuerza
+  // "contado" cada vez que queda seleccionado, sea venta local o reparto.
+  // ======================================================
+  const esConsumidorFinal = selectedCliente?.documento === CONSUMIDOR_FINAL_DOCUMENTO;
+
+  useEffect(() => {
+    if (!esConsumidorFinal) return;
+    setForm((f) =>
+      f.tipo === 'contado'
+        ? f
+        : { ...f, tipo: 'contado', monto_a_cuenta: '', saldo_previo: '' }
+    );
+  }, [esConsumidorFinal]);
+
   // ---------- Handlers de campos simples ----------
-  const handleTipo = (tipo) =>
+  const handleTipo = (tipo) => {
+    if (esConsumidorFinal && tipo !== 'contado') return; // bloqueado: ver efecto arriba
     setForm((f) => ({
       ...f,
       tipo,
@@ -542,6 +576,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       // ======================================================
       ...(tipo === 'a_cuenta' ? {} : { monto_a_cuenta: '' })
     }));
+  };
 
   const handleObservaciones = (e) => {
     const { value } = e.target;
@@ -725,11 +760,10 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     );
   };
 
+  // Los ítems nuevos se agregan arriba del listado (más visibles al escanear
+  // o cargar varios productos seguidos).
   const addItemRow = () => {
-    setItems((prev) => [
-      ...prev,
-      { producto_id: '', producto: null, cantidad: '', precio_unit: '' }
-    ]);
+    setItems((prev) => [makeEmptyItem(), ...prev]);
   };
 
   const removeItemRow = (index) => {
@@ -785,18 +819,21 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
       const precioAuto = getPrecioFromProducto(prod);
       const nuevaLinea = {
+        ...makeEmptyItem(),
         producto_id: prod.id,
         producto: prod,
         cantidad: '1',
         precio_unit: precioAuto === null ? '' : String(precioAuto)
       };
 
-      // Reutilizamos la primera fila vacía si existe, si no agregamos una nueva
+      // Reutilizamos la primera fila vacía si existe, si no agregamos una nueva arriba
       const emptyIdx = prev.findIndex((it) => !it.producto_id);
       if (emptyIdx >= 0) {
-        return prev.map((it, i) => (i === emptyIdx ? nuevaLinea : it));
+        return prev.map((it, i) =>
+          i === emptyIdx ? { ...nuevaLinea, _key: it._key } : it
+        );
       }
-      return [...prev, nuevaLinea];
+      return [nuevaLinea, ...prev];
     });
 
     scanInputRef.current?.focus();
@@ -831,6 +868,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           fecha: fechaPayload,
           tipo: form.tipo,
           canal: form.canal,
+          medio_pago: form.medio_pago,
           observaciones: form.observaciones?.trim() || null,
 
           // ======================================================
@@ -930,7 +968,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[92vw] sm:max-w-2xl md:max-w-4xl
-                       max-h-[90vh] overflow-y-auto overscroll-contain
+                       max-h-[90vh] flex flex-col overscroll-contain
                        rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
@@ -942,12 +980,12 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
               <X className="h-5 w-5 text-slate-500" />
             </button>
 
-            <div className="relative z-10 p-5 sm:p-6 md:p-8">
+            <div className="relative z-10 flex flex-col flex-1 min-h-0">
               <motion.h3
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
+                className="shrink-0 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 md:pt-8 text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-5"
               >
                 Nueva Venta
               </motion.h3>
@@ -957,8 +995,9 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 variants={formContainerV}
                 initial="hidden"
                 animate="visible"
-                className="space-y-5 sm:space-y-6"
+                className="flex flex-col flex-1 min-h-0"
               >
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-6 md:px-8 space-y-5 sm:space-y-6">
                 {/* Canal de venta: local (mostrador) o reparto */}
                 <motion.div variants={fieldV}>
                   <label className="block text-sm font-medium text-slate-600 mb-2">
@@ -998,7 +1037,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-3 text-slate-500
                                cursor-not-allowed"
                   />
-                  <p className="mt-1 text-[11px] text-slate-400">
+                  <p className="mt-1 text-[11px] text-slate-600">
                     La fecha se toma automáticamente (no editable).
                   </p>
                 </motion.div>
@@ -1028,7 +1067,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                         </option>
                       ))}
                     </select>
-                    <p className="mt-1 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[11px] text-slate-600">
                       Usamos la ciudad para filtrar los clientes.
                     </p>
                   </motion.div>
@@ -1078,7 +1117,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       })}
                     </select>
 
-                    <p className="mt-1 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[11px] text-slate-600">
                       Opcional. Se guarda en la venta para filtrar por reparto.
                       Solo se listan los de la ciudad seleccionada.
                     </p>
@@ -1106,7 +1145,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     />
 
                     {selectedCliente && (
-                      <p className="mt-1 text-[11px] text-slate-400">
+                      <p className="mt-1 text-[11px] text-slate-600">
                         {selectedCliente.direccion_calle
                           ? `Dirección: ${selectedCliente.direccion_calle} ${
                               selectedCliente.direccion_numero || ''
@@ -1129,7 +1168,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                                placeholder-gray-400 focus:outline-none focus:ring-0 focus:border-transparent"
                     placeholder="Sin vendedor asociado"
                   />
-                  {/* <p className="mt-1 text-[11px] text-slate-400">
+                  {/* <p className="mt-1 text-[11px] text-slate-600">
                     Se toma automáticamente del campo{' '}
                     <span className="font-semibold">
                       vendedor_preferido del cliente
@@ -1184,7 +1223,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       }
                       getOptionValue={(c) => c.id}
                     />
-                    <p className="mt-1 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[11px] text-slate-600">
                       Por defecto queda "Consumidor Final" — elegí un cliente
                       real solo si la venta va a quedar fiada o a cuenta.
                     </p>
@@ -1202,22 +1241,55 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                       { key: 'contado', label: 'Contado' },
                       { key: 'fiado', label: 'Fiado' },
                       { key: 'a_cuenta', label: 'A cuenta' }
-                    ].map((opt) => (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        onClick={() => handleTipo(opt.key)}
-                        className={`px-3.5 py-1.5 text-sm rounded-lg transition
-                          ${
-                            form.tipo === opt.key
-                              ? 'bg-orange-500 text-white shadow'
-                              : 'text-slate-500 hover:bg-slate-100'
-                          }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
+                    ].map((opt) => {
+                      const disabled = esConsumidorFinal && opt.key !== 'contado';
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => handleTipo(opt.key)}
+                          className={`px-3.5 py-1.5 text-sm rounded-lg transition
+                            ${
+                              form.tipo === opt.key
+                                ? 'bg-orange-500 text-white shadow'
+                                : disabled
+                                  ? 'text-slate-600 cursor-not-allowed'
+                                  : 'text-slate-500 hover:bg-slate-100'
+                            }`}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
                   </div>
+                  {esConsumidorFinal && (
+                    <p className="mt-2 text-xs text-slate-500">
+                      Consumidor Final solo admite venta al contado.
+                    </p>
+                  )}
+                </motion.div>
+
+                {/* Medio de pago */}
+                <motion.div variants={fieldV}>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
+                    Medio de pago <span className="text-orange-600">*</span>
+                  </label>
+                  <select
+                    value={form.medio_pago}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, medio_pago: e.target.value }))
+                    }
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
+                  >
+                    <option value="">Seleccionar…</option>
+                    {MEDIOS_PAGO.map((m) => (
+                      <option key={m.value} value={m.value}>
+                        {m.label}
+                      </option>
+                    ))}
+                  </select>
                 </motion.div>
 
                 {/* Observaciones */}
@@ -1244,7 +1316,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     </label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
-                        <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
                         <input
                           ref={scanInputRef}
                           autoFocus
@@ -1268,7 +1340,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                     {scanError && (
                       <p className="mt-1 text-[12px] text-rose-600">{scanError}</p>
                     )}
-                    <p className="mt-1 text-[11px] text-slate-400">
+                    <p className="mt-1 text-[11px] text-slate-600">
                       Cada escaneo suma 1 unidad — si el producto ya está en la
                       lista, se acumula en la misma línea.
                     </p>
@@ -1295,7 +1367,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                   <div className="space-y-2">
                     {items.map((it, index) => (
                       <div
-                        key={index}
+                        key={it._key}
                         className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-3
                                    items-center bg-slate-50 rounded-xl border border-slate-200 p-3"
                       >
@@ -1398,14 +1470,16 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                   {/* Total + A cuenta (derecha) */}
                   <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-3 pt-2">
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-slate-600">
                       {form.tipo === 'a_cuenta'
                         ? 'Ingresá el monto cobrado hoy. El saldo quedará como deuda.'
                         : 'Al seleccionar un producto, se carga automáticamente el precio y cantidad 1.'}
                     </div>
 
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
-                      {/*  - 17-01-2026 / 25-02-2026: A cuenta + Saldo previo (debajo) */}
+                      {/*  - 17-01-2026 / 25-02-2026: A cuenta + Saldo previo (debajo)
+                          - 31-08-2026: solo tienen sentido si la venta queda fiada o a cuenta. */}
+                      {(form.tipo === 'fiado' || form.tipo === 'a_cuenta') && (
                       <div className="w-full sm:w-[260px]">
                         {/* A cuenta */}
                         <div className="mb-2.5">
@@ -1495,50 +1569,49 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                           </p>
                         </div>
                       </div>
+                      )}
 
-                      {/* Totales */}
-                      <div className="text-right ml-5">
-                        <p className="text-xs text-slate-500">
-                          Total estimado
-                        </p>
-                        <p className="text-lg font-semibold text-emerald-600">
-                          $ {totalLabel}
-                        </p>
-
-                        {form.tipo === 'a_cuenta' && (
-                          <p className="text-xs text-slate-500">
-                            Saldo:{' '}
-                            <span className="font-semibold text-amber-600">
-                              $ {saldoLabel}
-                            </span>
-                          </p>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </motion.div>
+                </div>
 
-                {/* Acciones */}
-                <motion.div
-                  variants={fieldV}
-                  className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-1"
-                >
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!canSave || saving}
-                    className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
-                  >
-                    {saving ? 'Guardando…' : 'Confirmar venta'}
-                  </button>
-                </motion.div>
+                {/* Total estimado + Acciones: fijo y siempre visible, no se pierde
+                    abajo del todo cuando la venta tiene muchos ítems. */}
+                <div className="shrink-0 border-t border-slate-200 bg-white px-5 sm:px-6 md:px-8 py-4
+                                 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <p className="text-xs text-slate-500">Total estimado</p>
+                    <p className="text-lg font-semibold text-emerald-600">
+                      $ {totalLabel}
+                    </p>
+                    {form.tipo === 'a_cuenta' && (
+                      <p className="text-xs text-slate-500">
+                        Saldo:{' '}
+                        <span className="font-semibold text-amber-600">
+                          $ {saldoLabel}
+                        </span>
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!canSave || saving}
+                      className="px-4 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-semibold
+                                 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      {saving ? 'Guardando…' : 'Confirmar venta'}
+                    </button>
+                  </div>
+                </div>
               </motion.form>
             </div>
           </motion.div>

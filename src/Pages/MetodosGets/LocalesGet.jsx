@@ -199,7 +199,7 @@ const LocalesGet = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-gray-400"
+            className="flex-1 px-4 py-3 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-slate-600"
           />
         </div>
 
@@ -295,24 +295,24 @@ const LocalesGet = () => {
                   <h2 className="text-xl font-bold text-pink-300">
                     {local.nombre}
                   </h2>
-                  <p className="text-sm text-gray-400 italic">
+                  <p className="text-sm text-slate-600 italic">
                     {local.direccion}
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-600">
                     📍 {local.ciudad}, {local.provincia}
                   </p>
-                  <p className="text-sm text-gray-400">📞 {local.telefono}</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-600">📞 {local.telefono}</p>
+                  <p className="text-sm text-slate-600">
                     Responsable: {local.responsable_nombre} (
                     {local.responsable_dni})
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-600">
                     🕒 {local.horario_apertura} - {local.horario_cierre}
                   </p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-slate-600">
                     🖨️ {local.printer_nombre}
                   </p>
-                  <p className="text-sm text-gray-400">✉️ {local.email}</p>
+                  <p className="text-sm text-slate-600">✉️ {local.email}</p>
                   <p className="text-sm text-green-400 font-bold">
                     Estado: {local.estado}
                   </p>

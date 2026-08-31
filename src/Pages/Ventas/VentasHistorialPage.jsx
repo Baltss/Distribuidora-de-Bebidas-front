@@ -577,7 +577,7 @@ const VentasHistorialPage = () => {
                     Buscar (cliente, documento, email)
                   </label>
                   <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 text-sm" />
                     <input
                       type="text"
                       name="q"
@@ -625,7 +625,7 @@ const VentasHistorialPage = () => {
                     </select>
 
                     {repartosLoading && (
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400">
+                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-600">
                         …
                       </span>
                     )}
@@ -826,7 +826,7 @@ const VentasHistorialPage = () => {
 
                               <td className="px-4 py-2 text-gray-800">
                                 <div className="flex items-center gap-2">
-                                  <FaUser className="text-gray-400 text-xs" />
+                                  <FaUser className="text-slate-600 text-xs" />
                                   <div className="flex flex-col leading-tight">
                                     <span className="font-medium">
                                       {v.cliente?.nombre || '—'}
@@ -842,7 +842,7 @@ const VentasHistorialPage = () => {
 
                               <td className="px-4 py-2 text-gray-800">
                                 <div className="flex items-center gap-2">
-                                  <FaUserTie className="text-gray-400 text-xs" />
+                                  <FaUserTie className="text-slate-600 text-xs" />
                                   <span className="font-medium">
                                     {v.vendedor?.nombre || '—'}
                                   </span>
@@ -855,7 +855,7 @@ const VentasHistorialPage = () => {
                                   const rid = Number(v.reparto_id || 0);
                                   if (!rid)
                                     return (
-                                      <span className="text-gray-400">—</span>
+                                      <span className="text-slate-600">—</span>
                                     );
 
                                   const rep = repartoById.get(rid);
@@ -998,7 +998,7 @@ const VentasHistorialPage = () => {
               >
                 <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                   <div>
-                    <p className="text-xs uppercase text-slate-400 tracking-wide">
+                    <p className="text-xs uppercase text-slate-600 tracking-wide">
                       Detalle de venta
                     </p>
                     <p className="text-lg font-semibold">
@@ -1077,7 +1077,7 @@ const VentasHistorialPage = () => {
                                   <span className="text-sm text-slate-500">
                                     Total neto
                                   </span>
-                                  <span className="text-lg font-bold text-emerald-300">
+                                  <span className="text-lg font-bold text-emerald-600">
                                     {moneyAR(totalNeto)}
                                   </span>
                                 </div>
@@ -1095,7 +1095,7 @@ const VentasHistorialPage = () => {
                                   <span className="text-sm text-slate-500">
                                     Saldo
                                   </span>
-                                  <span className="text-sm font-semibold text-amber-200">
+                                  <span className="text-sm font-semibold text-amber-700">
                                     {moneyAR(saldo)}
                                   </span>
                                 </div>
@@ -1105,7 +1105,7 @@ const VentasHistorialPage = () => {
                             {/* Cliente */}
                             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <FaUser className="text-slate-400" />
+                                <FaUser className="text-slate-600" />
                                 <span className="text-sm font-semibold">
                                   Cliente
                                 </span>
@@ -1134,7 +1134,7 @@ const VentasHistorialPage = () => {
                               )}
 
                               {detalle.cliente?.barrio?.localidad?.ciudad && (
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-slate-600 mt-1">
                                   {
                                     detalle.cliente.barrio.localidad.ciudad
                                       .nombre
@@ -1147,7 +1147,7 @@ const VentasHistorialPage = () => {
                             {/* Vendedor */}
                             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-1">
                               <div className="flex items-center gap-2 mb-1">
-                                <FaUserTie className="text-slate-400" />
+                                <FaUserTie className="text-slate-600" />
                                 <span className="text-sm font-semibold">
                                   Vendedor
                                 </span>
@@ -1202,7 +1202,7 @@ const VentasHistorialPage = () => {
                                         </p>
 
                                         {/*  - 17/01/2026 - Cantidad numérica (evita strings DECIMAL) */}
-                                        <p className="text-slate-400">
+                                        <p className="text-slate-600">
                                           Cant: {Number(it.cantidad ?? 0)} · PU:{' '}
                                           {moneyAR(it.precio_unit)}
                                         </p>

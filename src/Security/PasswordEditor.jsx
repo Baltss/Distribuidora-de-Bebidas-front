@@ -61,7 +61,7 @@ export default function PasswordEditor({
           >
             {show ? 'Ocultar' : 'Mostrar'}
           </button>
-          <span className="text-gray-300">·</span>
+          <span className="text-slate-600">·</span>
           <button
             type="button"
             onClick={genPassword}
@@ -80,7 +80,7 @@ export default function PasswordEditor({
         >
           {show ? 'Ocultar' : 'Mostrar'}
         </button>
-        <span className="text-gray-300">·</span>
+        <span className="text-slate-600">·</span>
         <button
           type="button"
           onClick={genPassword}

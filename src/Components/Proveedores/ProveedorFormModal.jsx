@@ -156,7 +156,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
               >
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Truck className="h-4 w-4 text-slate-400" />
+                    <Truck className="h-4 w-4 text-slate-600" />
                     Razón social <span className="text-emerald-600">*</span>
                   </label>
                   <input
@@ -174,7 +174,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <IdCard className="h-4 w-4 text-slate-400" />
+                      <IdCard className="h-4 w-4 text-slate-600" />
                       CUIT (opcional)
                     </label>
                     <input
@@ -188,7 +188,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
 
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Phone className="h-4 w-4 text-slate-400" />
+                      <Phone className="h-4 w-4 text-slate-600" />
                       Teléfono
                     </label>
                     <input
@@ -204,7 +204,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Mail className="h-4 w-4 text-slate-400" />
+                      <Mail className="h-4 w-4 text-slate-600" />
                       Email
                     </label>
                     <input
@@ -221,7 +221,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
 
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <MapPin className="h-4 w-4 text-slate-400" />
+                      <MapPin className="h-4 w-4 text-slate-600" />
                       Dirección
                     </label>
                     <input
@@ -236,7 +236,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Power className="h-4 w-4 text-slate-400" />
+                    <Power className="h-4 w-4 text-slate-600" />
                     Estado
                   </label>
                   <select
@@ -252,7 +252,7 @@ export default function ProveedorFormModal({ open, onClose, onSubmit, initial })
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <StickyNote className="h-4 w-4 text-slate-400" />
+                    <StickyNote className="h-4 w-4 text-slate-600" />
                     Notas (opcional)
                   </label>
                   <textarea

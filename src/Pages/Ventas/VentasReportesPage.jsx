@@ -346,7 +346,7 @@ const VentasReportesPage = () => {
                                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
                       placeholder="Ej: Benjamín, 20-4384..."
                     />
-                    <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+                    <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 text-xs" />
                   </div>
                 </div>
 

@@ -33,3 +33,11 @@ export async function getCobranzaCliente(id) {
   const { data } = await http.get(`/cobranzas-clientes/${id}`);
   return data;
 }
+
+// PATCH /cobranzas-clientes/:id/anular (anulación lógica, no borra nada)
+export async function anularCobranzaCliente(id, motivo) {
+  const { data } = await http.patch(`/cobranzas-clientes/${id}/anular`, {
+    motivo: motivo || undefined
+  });
+  return data;
+}

@@ -150,9 +150,9 @@ export default function CategoriasManagerModal({ open, onClose, onChanged }) {
 
               {/* Listado */}
               {loading ? (
-                <div className="text-center text-slate-400 py-6">Cargando…</div>
+                <div className="text-center text-slate-600 py-6">Cargando…</div>
               ) : categorias.length === 0 ? (
-                <div className="text-center text-slate-400 py-6">Todavía no hay categorías.</div>
+                <div className="text-center text-slate-600 py-6">Todavía no hay categorías.</div>
               ) : (
                 <ul className="space-y-2">
                   {categorias.map((c) => (
@@ -161,7 +161,7 @@ export default function CategoriasManagerModal({ open, onClose, onChanged }) {
                       className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"
                     >
                       <span className="text-slate-700 inline-flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-slate-400" />
+                        <Layers className="h-4 w-4 text-slate-600" />
                         {c.nombre}
                         {c.estado === 'inactivo' && (
                           <span className="text-[10px] uppercase text-amber-600">(inactiva)</span>

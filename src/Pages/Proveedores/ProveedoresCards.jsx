@@ -200,7 +200,7 @@ export default function ProveedoresCards() {
         <div className="mt-6 space-y-6">
           <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
             <div className="relative flex-1 max-w-md">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
               <input
                 value={q}
                 onChange={(e) => {
@@ -237,9 +237,9 @@ export default function ProveedoresCards() {
           </div>
 
           {loading ? (
-            <div className="text-center text-slate-400 py-16">Cargando…</div>
+            <div className="text-center text-slate-600 py-16">Cargando…</div>
           ) : rows.length === 0 ? (
-            <div className="text-center text-slate-400 py-16">
+            <div className="text-center text-slate-600 py-16">
               No hay proveedores para mostrar.
             </div>
           ) : (

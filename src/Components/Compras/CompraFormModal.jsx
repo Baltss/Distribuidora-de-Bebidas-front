@@ -1,5 +1,5 @@
 // src/Components/Compras/CompraFormModal.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   backdropV,
@@ -16,7 +16,8 @@ import {
   Plus,
   Trash2,
   UserPlus,
-  PackagePlus
+  PackagePlus,
+  ScanLine
 } from 'lucide-react';
 import SearchableSelect from '../Common/SearchableSelect';
 import { listProveedores, createProveedor } from '../../api/proveedores.js';
@@ -26,10 +27,21 @@ import ProveedorFormModal from '../Proveedores/ProveedorFormModal';
 import ProductoFormModal from '../Productos/ProductoFormModal';
 import { showErrorSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
+import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import { normalizeScanCode, findProductoByScan } from '../../utils/barcodeScan';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-const emptyItem = () => ({ producto_id: '', cantidad: 1, costo_unit: '' });
+// Key estable por ítem (no el índice del array): evita que, al insertar un
+// ítem nuevo arriba de la lista, React "recicle" el DOM/estado interno de
+// un SearchableSelect que en realidad pertenece a otra fila.
+let itemKeySeq = 0;
+const emptyItem = () => ({
+  _key: ++itemKeySeq,
+  producto_id: '',
+  cantidad: 1,
+  costo_unit: ''
+});
 
 export default function CompraFormModal({ open, onClose, onSubmit }) {
   const [saving, setSaving] = useState(false);
@@ -41,11 +53,17 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     fecha: todayISO(),
     nro_factura: '',
     tipo_pago: 'cuenta_corriente',
+    medio_pago: '',
     monto_abonado: '',
     observaciones: ''
   });
   const [items, setItems] = useState([emptyItem()]);
   const [errors, setErrors] = useState({});
+
+  // Escaneo de código de barras
+  const [scanValue, setScanValue] = useState('');
+  const [scanError, setScanError] = useState('');
+  const scanInputRef = useRef(null);
 
   // Alta rápida desde los selectores
   const [provModalOpen, setProvModalOpen] = useState(false);
@@ -72,11 +90,14 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       fecha: todayISO(),
       nro_factura: '',
       tipo_pago: 'cuenta_corriente',
+      medio_pago: '',
       monto_abonado: '',
       observaciones: ''
     });
     setItems([emptyItem()]);
     setErrors({});
+    setScanValue('');
+    setScanError('');
 
     (async () => {
       try {
@@ -119,10 +140,60 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
   const removeItem = (idx) =>
     setItems((arr) => (arr.length > 1 ? arr.filter((_, i) => i !== idx) : arr));
 
+  // ======================================================
+  // Escaneo de código de barras: busca el producto por EAN (o SKU como
+  // respaldo) y suma 1 unidad — si ya está en el carrito, incrementa esa
+  // línea; si no, la agrega arriba precargando el último costo conocido.
+  // ======================================================
+  const handleScan = () => {
+    const code = normalizeScanCode(scanValue);
+    setScanValue('');
+    if (!code) return;
+
+    const prod = findProductoByScan(productos, code);
+    if (!prod) {
+      setScanError(`Producto no encontrado (código: ${code})`);
+      scanInputRef.current?.focus();
+      return;
+    }
+    setScanError('');
+
+    setItems((prev) => {
+      const idx = prev.findIndex((it) => String(it.producto_id) === String(prod.id));
+      if (idx >= 0) {
+        const actual = Number(prev[idx].cantidad) || 0;
+        return prev.map((it, i) =>
+          i === idx ? { ...it, cantidad: actual + 1 } : it
+        );
+      }
+
+      const nuevaLinea = {
+        ...emptyItem(),
+        producto_id: prod.id,
+        cantidad: 1,
+        costo_unit: prod.ultimo_costo_compra != null ? String(prod.ultimo_costo_compra) : ''
+      };
+
+      // Reutilizamos la primera fila vacía si existe, si no la agregamos arriba
+      const emptyIdx = prev.findIndex((it) => !it.producto_id);
+      if (emptyIdx >= 0) {
+        return prev.map((it, i) =>
+          i === emptyIdx ? { ...nuevaLinea, _key: it._key } : it
+        );
+      }
+      return [nuevaLinea, ...prev];
+    });
+
+    scanInputRef.current?.focus();
+  };
+
   const validate = () => {
     const e = {};
     if (!form.proveedor_id) e.proveedor_id = 'Seleccioná un proveedor';
     if (!form.fecha) e.fecha = 'La fecha es obligatoria';
+    if (form.tipo_pago === 'contado' && !form.medio_pago) {
+      e.medio_pago = 'El medio de pago es obligatorio en compras al contado.';
+    }
 
     const itemErrors = items.map((it) => {
       const ie = {};
@@ -147,6 +218,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       fecha: form.fecha,
       nro_factura: form.nro_factura?.trim() || null,
       tipo_pago: form.tipo_pago,
+      medio_pago: form.tipo_pago === 'contado' ? form.medio_pago : null,
       monto_abonado: esCuentaCorriente ? abonado : 0,
       observaciones: form.observaciones?.trim() || null,
       items: items.map((it) => ({
@@ -223,7 +295,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
             animate="visible"
             exit="exit"
             className="relative w-full max-w-[95vw] sm:max-w-3xl
-                       max-h-[90vh] overflow-y-auto overscroll-contain
+                       max-h-[90vh] flex flex-col overscroll-contain
                        rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <button
@@ -235,9 +307,9 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
               <X className="h-5 w-5 text-slate-500" />
             </button>
 
-            <div className="relative z-10 p-5 sm:p-6 md:p-8">
-              <div className="mb-5 sm:mb-6 flex items-center gap-3">
-                <Truck className="h-6 w-6 text-gray-300 shrink-0" />
+            <div className="relative z-10 flex flex-col flex-1 min-h-0">
+              <div className="shrink-0 px-5 sm:px-6 md:px-8 pt-5 sm:pt-6 md:pt-8 mb-5 sm:mb-6 flex items-center gap-3">
+                <Truck className="h-6 w-6 text-slate-500 shrink-0" />
                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                   Nueva compra
                 </h3>
@@ -248,13 +320,14 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                 variants={formContainerV}
                 initial="hidden"
                 animate="visible"
-                className="space-y-5"
+                className="flex flex-col flex-1 min-h-0"
               >
+                <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 sm:px-6 md:px-8 space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className="flex items-center justify-between gap-2 text-sm font-medium text-slate-600 mb-2">
                       <span className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-gray-400" />
+                        <Truck className="h-4 w-4 text-slate-500" />
                         Proveedor <span className="text-teal-600">*</span>
                       </span>
                       <button
@@ -275,13 +348,13 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       portal
                     />
                     {errors.proveedor_id && (
-                      <p className="mt-1 text-sm text-rose-300">{errors.proveedor_id}</p>
+                      <p className="mt-1 text-sm text-rose-600">{errors.proveedor_id}</p>
                     )}
                   </motion.div>
 
                   <motion.div variants={fieldV}>
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
-                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <Calendar className="h-4 w-4 text-slate-500" />
                       Fecha <span className="text-teal-600">*</span>
                     </label>
                     <input
@@ -292,7 +365,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                                  focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                     />
                     {errors.fecha && (
-                      <p className="mt-1 text-sm text-rose-300">{errors.fecha}</p>
+                      <p className="mt-1 text-sm text-rose-600">{errors.fecha}</p>
                     )}
                   </motion.div>
                 </div>
@@ -300,7 +373,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
-                      <FileText className="h-4 w-4 text-gray-400" />
+                      <FileText className="h-4 w-4 text-slate-500" />
                       N° de factura (opcional)
                     </label>
                     <input
@@ -316,13 +389,17 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
 
                   <motion.div variants={fieldV}>
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
-                      <Wallet className="h-4 w-4 text-gray-400" />
+                      <Wallet className="h-4 w-4 text-slate-500" />
                       Tipo de pago
                     </label>
                     <select
                       value={form.tipo_pago}
                       onChange={(e) =>
-                        setForm((f) => ({ ...f, tipo_pago: e.target.value }))
+                        setForm((f) => ({
+                          ...f,
+                          tipo_pago: e.target.value,
+                          ...(e.target.value === 'contado' ? {} : { medio_pago: '' })
+                        }))
                       }
                       className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
                                  focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
@@ -333,11 +410,40 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                   </motion.div>
                 </div>
 
+                {/* Medio de pago (solo compras al contado: mueven caja ahora) */}
+                {form.tipo_pago === 'contado' && (
+                  <motion.div variants={fieldV}>
+                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
+                      <Wallet className="h-4 w-4 text-slate-500" />
+                      Medio de pago <span className="text-teal-600">*</span>
+                    </label>
+                    <select
+                      value={form.medio_pago}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, medio_pago: e.target.value }))
+                      }
+                      className={`w-full rounded-xl border bg-white px-3.5 py-3 text-slate-800
+                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent
+                                 ${errors.medio_pago ? 'border-rose-300' : 'border-slate-200'}`}
+                    >
+                      <option value="">Seleccionar…</option>
+                      {MEDIOS_PAGO.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.medio_pago && (
+                      <p className="mt-1 text-sm text-rose-600">{errors.medio_pago}</p>
+                    )}
+                  </motion.div>
+                )}
+
                 {/* Monto abonado (solo cuenta corriente) */}
                 {esCuentaCorriente && (
                   <motion.div variants={fieldV}>
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
-                      <Wallet className="h-4 w-4 text-gray-400" />
+                      <Wallet className="h-4 w-4 text-slate-500" />
                       Monto abonado ahora (opcional)
                     </label>
                     <input
@@ -353,7 +459,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                                  placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                       placeholder="0.00"
                     />
-                    <p className="mt-1 text-xs text-gray-300/80">
+                    <p className="mt-1 text-xs text-slate-500">
                       Saldo que quedará en cuenta corriente:{' '}
                       <span className="font-semibold text-slate-900">
                         {moneyAR(saldoPendiente)}
@@ -361,6 +467,36 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                     </p>
                   </motion.div>
                 )}
+
+                {/* Escaneo de código de barras */}
+                <motion.div variants={fieldV}>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
+                    Escanear producto
+                  </label>
+                  <div className="relative">
+                    <ScanLine className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
+                    <input
+                      ref={scanInputRef}
+                      value={scanValue}
+                      onChange={(e) => {
+                        setScanValue(e.target.value);
+                        if (scanError) setScanError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleScan();
+                      }}
+                      placeholder="Pasá el producto por el lector, o tipeá el código y Enter…"
+                      className="w-full pl-9 pr-3.5 py-3 rounded-xl border border-slate-200 bg-white text-slate-800
+                                 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
+                    />
+                  </div>
+                  {scanError && (
+                    <p className="mt-1 text-sm text-rose-600">{scanError}</p>
+                  )}
+                </motion.div>
 
                 <motion.div variants={fieldV}>
                   <label className="flex items-center justify-between text-sm font-medium text-slate-600 mb-2">
@@ -379,11 +515,11 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       const ie = errors.items?.[idx] || {};
                       return (
                         <div
-                          key={idx}
+                          key={it._key}
                           className="grid grid-cols-1 sm:grid-cols-[1fr,110px,140px,auto] gap-2 items-start rounded-xl border border-slate-200 bg-slate-50 p-3"
                         >
                           <div>
-                            <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+                            <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
                               Producto
                             </label>
                             <SearchableSelect
@@ -403,11 +539,11 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                               <PackagePlus className="h-3.5 w-3.5" /> Nuevo producto
                             </button>
                             {ie.producto_id && (
-                              <p className="mt-1 text-xs text-rose-300">{ie.producto_id}</p>
+                              <p className="mt-1 text-xs text-rose-600">{ie.producto_id}</p>
                             )}
                           </div>
                           <div>
-                            <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+                            <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
                               Cantidad
                             </label>
                             <input
@@ -421,11 +557,11 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                                          focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                             />
                             {ie.cantidad && (
-                              <p className="mt-1 text-xs text-rose-300">{ie.cantidad}</p>
+                              <p className="mt-1 text-xs text-rose-600">{ie.cantidad}</p>
                             )}
                           </div>
                           <div>
-                            <label className="block text-[10px] uppercase tracking-wide text-gray-400 mb-1">
+                            <label className="block text-[10px] uppercase tracking-wide text-slate-500 mb-1">
                               Costo unitario
                             </label>
                             <input
@@ -439,7 +575,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                                          focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                             />
                             {ie.costo_unit && (
-                              <p className="mt-1 text-xs text-rose-300">{ie.costo_unit}</p>
+                              <p className="mt-1 text-xs text-rose-600">{ie.costo_unit}</p>
                             )}
                           </div>
                           <div className="flex items-end h-full">
@@ -457,11 +593,6 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                       );
                     })}
                   </div>
-
-                  <div className="mt-3 flex justify-end text-slate-900">
-                    <span className="text-sm text-gray-300 mr-2">Total:</span>
-                    <span className="text-lg font-extrabold">{moneyAR(total)}</span>
-                  </div>
                 </motion.div>
 
                 <motion.div variants={fieldV}>
@@ -478,27 +609,34 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent resize-y"
                   />
                 </motion.div>
+                </div>
 
-                <motion.div
-                  variants={fieldV}
-                  className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-1"
-                >
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold
-                               hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
-                  >
-                    {saving ? 'Guardando…' : 'Registrar compra'}
-                  </button>
-                </motion.div>
+                {/* Total + Acciones: fijo y siempre visible, no se pierde
+                    abajo del todo cuando la compra tiene muchos ítems. */}
+                <div className="shrink-0 border-t border-slate-200 bg-white px-5 sm:px-6 md:px-8 py-4
+                                 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <span className="text-sm text-slate-500">Total:</span>
+                    <span className="text-lg font-extrabold">{moneyAR(total)}</span>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold
+                                 hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    >
+                      {saving ? 'Guardando…' : 'Registrar compra'}
+                    </button>
+                  </div>
+                </div>
               </motion.form>
             </div>
           </motion.div>

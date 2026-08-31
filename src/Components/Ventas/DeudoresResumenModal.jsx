@@ -142,7 +142,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                   </div>
 
                   <div className="flex flex-col items-end gap-1 text-right">
-                    <span className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                    <span className="text-[11px] uppercase tracking-[0.16em] text-slate-600">
                       Total pendiente
                     </span>
                     <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-200 px-3 py-1.5">
@@ -151,7 +151,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                         {formatMoney(totalGlobal)}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-slate-600">
                       {deudores.length} deudor(es) · {totalVentas} venta(s)
                     </div>
                   </div>
@@ -167,7 +167,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+                      <div className="text-xs uppercase tracking-[0.18em] text-slate-600">
                         Deudores
                       </div>
                       <div className="text-sm text-slate-600">
@@ -178,7 +178,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
 
                   <div className="flex-1 min-h-[180px] max-h-[360px] overflow-y-auto space-y-2 pr-1">
                     {!deudores.length ? (
-                      <div className="text-xs text-slate-400 italic">
+                      <div className="text-xs text-slate-600 italic">
                         No hay deudores registrados por ventas fiado.
                       </div>
                     ) : (
@@ -217,7 +217,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                               <div className="font-semibold truncate text-slate-800">
                                 {d.nombre}
                               </div>
-                              <div className="text-[11px] text-slate-400 truncate">
+                              <div className="text-[11px] text-slate-600 truncate">
                                 {d.documento || 'Sin documento'}
                               </div>
                               <div className="mt-0.5 text-[11px] text-slate-500">
@@ -227,7 +227,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                                 </span>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end gap-1 text-[11px] text-slate-400">
+                            <div className="flex flex-col items-end gap-1 text-[11px] text-slate-600">
                               <span>
                                 {(d.ventas && d.ventas.length) || 0} venta(s)
                               </span>
@@ -252,7 +252,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4 flex flex-col"
                 >
                   {!selected ? (
-                    <div className="flex items-center justify-center flex-1 py-12 text-center text-sm text-slate-400">
+                    <div className="flex items-center justify-center flex-1 py-12 text-center text-sm text-slate-600">
                       Seleccioná un cliente en la lista de la izquierda para ver
                       el detalle.
                     </div>
@@ -270,7 +270,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                             <div className="text-sm font-semibold text-slate-800">
                               {selected.nombre}
                             </div>
-                            <div className="text-[11px] text-slate-400">
+                            <div className="text-[11px] text-slate-600">
                               {selected.documento || 'Sin documento'}
                             </div>
 
@@ -285,13 +285,13 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                           </div>
                         </div>
                         <div className="flex flex-col items-end text-right gap-1">
-                          <span className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                          <span className="text-[11px] uppercase tracking-[0.16em] text-slate-600">
                             Total pendiente
                           </span>
                           <span className="text-sm sm:text-base font-semibold text-rose-600">
                             {formatMoney(selected.total_pendiente)}
                           </span>
-                          <span className="text-[11px] text-slate-400">
+                          <span className="text-[11px] text-slate-600">
                             {selectedVentasCount} venta(s) pendiente(s)
                           </span>
                         </div>
@@ -302,7 +302,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                         className="flex-1 min-h-[220px] max-h-[360px] overflow-y-auto rounded-xl border border-slate-200 bg-white px-2 py-2"
                       >
                         {!selected.ventas || !selected.ventas.length ? (
-                          <div className="py-10 text-center text-xs text-slate-400">
+                          <div className="py-10 text-center text-xs text-slate-600">
                             {selectedSaldoPrevio > 0.01
                               ? 'Este cliente no tiene ventas fiado pendientes, pero mantiene saldo previo pendiente.'
                               : 'Este cliente no tiene ventas fiado pendientes.'}
@@ -316,13 +316,13 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                               >
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="min-w-0">
-                                    <div className="text-[11px] uppercase tracking-[0.16em] text-slate-400 mb-0.5">
+                                    <div className="text-[11px] uppercase tracking-[0.16em] text-slate-600 mb-0.5">
                                       Venta #{v.id}
                                     </div>
-                                    <div className="text-[11px] text-slate-400">
+                                    <div className="text-[11px] text-slate-600">
                                       {formatFecha(v.fecha)}
                                     </div>
-                                    <div className="text-[11px] text-slate-400 mt-1">
+                                    <div className="text-[11px] text-slate-600 mt-1">
                                       Vendedor:{' '}
                                       <span className="font-semibold text-slate-600">
                                         {v.vendedor_nombre || '—'}
@@ -336,7 +336,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                                     >
                                       {v.tipo || 'fiado'}
                                     </span>
-                                    <span className="text-[11px] text-slate-400">
+                                    <span className="text-[11px] text-slate-600">
                                       Estado:{' '}
                                       <span className="font-semibold capitalize text-slate-600">
                                         {v.estado || 'confirmada'}
@@ -356,7 +356,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                   )}
 
                   <div className="mt-3 flex flex-col sm:flex-row items-center justify-between gap-2">
-                    <div className="text-[11px] text-slate-400">
+                    <div className="text-[11px] text-slate-600">
                       Consejo: usá esta vista como radar rápido para priorizar
                       cobros.
                     </div>
@@ -373,7 +373,7 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="text-[11px] text-slate-400 text-center sm:text-left">
+                <div className="text-[11px] text-slate-600 text-center sm:text-left">
                   Módulo de Ventas &amp; Cobranza — Desarrollado por{' '}
                   <span className="font-semibold text-slate-600">
                     SoftFusion

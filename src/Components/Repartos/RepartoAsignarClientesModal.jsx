@@ -380,13 +380,13 @@ export default function RepartoAsignarClientesModal({
                   className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-xs sm:text-sm text-slate-600"
                 >
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Ciudad
                     </span>
                     <span className="font-medium text-slate-800">{ciudadNombre}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Rango de clientes
                     </span>
                     <span className="font-medium text-slate-800">
@@ -394,7 +394,7 @@ export default function RepartoAsignarClientesModal({
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Capacidad
                     </span>
                     <span className="font-medium text-slate-800">
@@ -402,7 +402,7 @@ export default function RepartoAsignarClientesModal({
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Ocupados / Libres
                     </span>
                     <span className="font-medium text-slate-800">
@@ -428,7 +428,7 @@ export default function RepartoAsignarClientesModal({
                 >
                   <div className="flex items-center justify-between mb-3 gap-2">
                     <div>
-                      <div className="text-xs uppercase tracking-widest text-slate-400">
+                      <div className="text-xs uppercase tracking-widest text-slate-600">
                         Clientes asignados
                       </div>
                       <div className="text-sm text-slate-600">
@@ -442,7 +442,7 @@ export default function RepartoAsignarClientesModal({
 
                   <div className="flex-1 min-h-[160px] max-h-[320px] sm:max-h-[360px] overflow-y-auto space-y-2 pr-1">
                     {assignedRows.length === 0 && !loadingAssigned ? (
-                      <div className="text-xs text-slate-400 italic">
+                      <div className="text-xs text-slate-600 italic">
                         Este reparto aún no tiene clientes asignados.
                       </div>
                     ) : (
@@ -466,7 +466,7 @@ export default function RepartoAsignarClientesModal({
                                 <div className="text-xs font-semibold text-slate-800 truncate">
                                   {nombre}
                                 </div>
-                                <div className="text-[11px] text-slate-400 truncate">
+                                <div className="text-[11px] text-slate-600 truncate">
                                   {documento && (
                                     <span>DNI: {documento} · </span>
                                   )}
@@ -503,7 +503,7 @@ export default function RepartoAsignarClientesModal({
                     className="flex flex-col sm:flex-row gap-2 sm:items-center mb-3"
                   >
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
                       <input
                         value={qClientes}
                         onChange={(e) => {
@@ -537,7 +537,7 @@ export default function RepartoAsignarClientesModal({
                         <div className="h-9 w-9 rounded-full border-2 border-slate-200 border-t-teal-500 animate-spin" />
                       </div>
                     ) : clientesFiltrados.length === 0 ? (
-                      <div className="py-10 text-center text-xs text-slate-400 px-3">
+                      <div className="py-10 text-center text-xs text-slate-600 px-3">
                         No se encontraron clientes con esos filtros.
                       </div>
                     ) : (
@@ -577,7 +577,7 @@ export default function RepartoAsignarClientesModal({
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-slate-400 truncate">
+                                <div className="text-[11px] text-slate-600 truncate">
                                   {barrio && loc
                                     ? `${barrio} (${loc})`
                                     : barrio || loc || ciudad || '—'}

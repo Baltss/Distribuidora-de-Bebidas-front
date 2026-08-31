@@ -244,7 +244,7 @@ export default function UsuariosGet() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Filtro de texto */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Buscar</label>
+              <label className="block text-sm text-slate-600 mb-1">Buscar</label>
               <input
                 type="text"
                 placeholder="Nombre, email o rol..."
@@ -256,7 +256,7 @@ export default function UsuariosGet() {
 
             {/* Filtro por rol */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Rol</label>
+              <label className="block text-sm text-slate-600 mb-1">Rol</label>
               <select
                 value={rolFiltro}
                 onChange={(e) => setRolFiltro(e.target.value)}
@@ -272,7 +272,7 @@ export default function UsuariosGet() {
 
             {/* Filtro por local */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Local</label>
+              <label className="block text-sm text-slate-600 mb-1">Local</label>
               <select
                 value={localFiltro}
                 onChange={(e) => setLocalFiltro(e.target.value)}
@@ -326,7 +326,7 @@ export default function UsuariosGet() {
                           Sí
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30">
+                        <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/20 text-rose-600 ring-1 ring-rose-400/30">
                           <span className="w-2 h-2 rounded-full bg-rose-400" />{' '}
                           No
                         </span>

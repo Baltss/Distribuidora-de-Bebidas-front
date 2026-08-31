@@ -33,23 +33,23 @@ export const AuthProvider = ({ children }) => {
     setUserLocalId(null);
     setUserIsReemplazante(false);
 
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userLevel');
-    localStorage.removeItem('userLocalId');
-    localStorage.removeItem('userIsReemplazante');
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userId');
+    sessionStorage.removeItem('userName');
+    sessionStorage.removeItem('userEmail');
+    sessionStorage.removeItem('userLevel');
+    sessionStorage.removeItem('userLocalId');
+    sessionStorage.removeItem('userIsReemplazante');
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const id = localStorage.getItem('userId');
-    const name = localStorage.getItem('userName');
-    const email = localStorage.getItem('userEmail');
-    const role = localStorage.getItem('userLevel');
-    const localId = localStorage.getItem('userLocalId');
-    const isReemplazante = localStorage.getItem('userIsReemplazante');
+    const token = sessionStorage.getItem('authToken');
+    const id = sessionStorage.getItem('userId');
+    const name = sessionStorage.getItem('userName');
+    const email = sessionStorage.getItem('userEmail');
+    const role = sessionStorage.getItem('userLevel');
+    const localId = sessionStorage.getItem('userLocalId');
+    const isReemplazante = sessionStorage.getItem('userIsReemplazante');
 
     if (token) {
       try {
@@ -72,21 +72,10 @@ export const AuthProvider = ({ children }) => {
     if (role) setUserLevel(role);
     if (localId) setUserLocalId(localId);
     if (isReemplazante) setUserIsReemplazante(isReemplazante === 'true');
-
-    const handleBeforeUnload = () => {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userLevel');
-      localStorage.removeItem('userLocalId');
-      localStorage.removeItem('userIsReemplazante');
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    // Nota: usamos sessionStorage (no localStorage) a propósito: persiste
+    // mientras la pestaña/navegador esté abierto (sobrevive a recargas) y
+    // se borra solo al cerrarlo, sin necesitar un listener de beforeunload
+    // (que además se dispara también en cada F5, deslogueando al recargar).
   }, []);
 
   const login = (token, id, name, email, role, localId, esReemplazante) => {
@@ -98,13 +87,13 @@ export const AuthProvider = ({ children }) => {
     setUserLocalId(localId);
     setUserIsReemplazante(!!esReemplazante);
 
-    localStorage.setItem('authToken', token);
-    localStorage.setItem('userId', id);
-    localStorage.setItem('userName', name);
-    localStorage.setItem('userEmail', email);
-    localStorage.setItem('userLevel', role);
-    localStorage.setItem('userLocalId', localId);
-    localStorage.setItem('userIsReemplazante', (!!esReemplazante).toString());
+    sessionStorage.setItem('authToken', token);
+    sessionStorage.setItem('userId', id);
+    sessionStorage.setItem('userName', name);
+    sessionStorage.setItem('userEmail', email);
+    sessionStorage.setItem('userLevel', role);
+    sessionStorage.setItem('userLocalId', localId);
+    sessionStorage.setItem('userIsReemplazante', (!!esReemplazante).toString());
   };
 
   return (

@@ -748,7 +748,7 @@ const VentasDeudasPage = () => {
                    placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
                       placeholder="Ej: Benjamín, 20-4384..."
                     />
-                    <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+                    <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 text-xs" />
                   </div>
                 </div>
 
@@ -1073,7 +1073,7 @@ const VentasDeudasPage = () => {
                           >
                             <td className="px-4 py-2 text-gray-800">
                               <div className="flex items-center gap-2">
-                                <FaUser className="text-gray-400 text-xs" />
+                                <FaUser className="text-slate-600 text-xs" />
                                 <div className="flex flex-col leading-tight">
                                   <span className="font-medium">
                                     {r.nombre || '—'}
@@ -1183,7 +1183,7 @@ const VentasDeudasPage = () => {
                             {/* Cliente */}
                             <td className="px-4 py-2 text-gray-800">
                               <div className="flex items-center gap-2">
-                                <FaUser className="text-gray-400 text-xs" />
+                                <FaUser className="text-slate-600 text-xs" />
                                 <div className="flex flex-col leading-tight">
                                   <span className="font-medium">
                                     {v.cliente?.nombre || '—'}
@@ -1200,7 +1200,7 @@ const VentasDeudasPage = () => {
                             {/* Vendedor */}
                             <td className="px-4 py-2 text-gray-800">
                               <div className="flex items-center gap-2">
-                                <FaUserTie className="text-gray-400 text-xs" />
+                                <FaUserTie className="text-slate-600 text-xs" />
                                 <span className="font-medium">
                                   {v.vendedor?.nombre || '—'}
                                 </span>
@@ -1213,7 +1213,7 @@ const VentasDeudasPage = () => {
                                 const rid = Number(v.reparto_id || 0);
                                 if (!rid)
                                   return (
-                                    <span className="text-gray-400">—</span>
+                                    <span className="text-slate-600">—</span>
                                   );
 
                                 const rep = repartoById.get(rid);

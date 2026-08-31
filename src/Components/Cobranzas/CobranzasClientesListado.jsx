@@ -12,8 +12,11 @@ import {
 
 import {
   listCobranzasClientes,
-  getCobranzaCliente
+  getCobranzaCliente,
+  anularCobranzaCliente
 } from '../../api/cobranzasClientes';
+import { showConfirmSwal, showErrorSwal, showSuccessSwal } from '../../ui/swal';
+import { medioPagoLabel } from '../../utils/mediosPago';
 
 // Helpers locales
 const moneyAR = (n) =>
@@ -141,6 +144,37 @@ export default function CobranzasClientesListado() {
     setDetalle(null);
   };
 
+  const [anulandoId, setAnulandoId] = useState(null);
+
+  const handleAnular = async (row) => {
+    const ok = await showConfirmSwal({
+      title: 'Anular cobro',
+      text: `¿Anular el cobro de ${moneyAR(row.total_cobrado)} a ${
+        row.cliente?.nombre || 'este cliente'
+      }? Quedará marcado como anulado y el saldo adeudado se restablece.`
+    });
+    if (!ok) return;
+
+    try {
+      setAnulandoId(row.id);
+      await anularCobranzaCliente(row.id);
+      await showSuccessSwal({ title: 'Cobro anulado' });
+      await cargar();
+      if (detalleOpen && detalle?.id === row.id) {
+        handleVerDetalle(row.id);
+      }
+    } catch (err) {
+      const { mensajeError, tips } = err || {};
+      await showErrorSwal({
+        title: 'No se pudo anular',
+        text: mensajeError || 'Ocurrió un error inesperado',
+        tips
+      });
+    } finally {
+      setAnulandoId(null);
+    }
+  };
+
   const canPrev = meta.page > 1;
   const canNext = meta.page < meta.totalPages;
 
@@ -164,7 +198,7 @@ export default function CobranzasClientesListado() {
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="px-3 py-2 rounded-2xl bg-slate-50 border border-slate-200">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-600">
               Total cobranzas (página)
             </p>
             <p className="text-sm font-semibold text-emerald-600">
@@ -172,13 +206,13 @@ export default function CobranzasClientesListado() {
             </p>
           </div>
           <div className="px-3 py-2 rounded-2xl bg-slate-50 border border-slate-200">
-            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-[11px] uppercase tracking-[0.16em] text-slate-600">
               Registros
             </p>
             <p className="text-sm font-semibold text-slate-700">
               {meta.total} total
               {meta.totalPages > 1 && (
-                <span className="text-[11px] text-slate-400">
+                <span className="text-[11px] text-slate-600">
                   {' '}
                   · pág. {meta.page}/{meta.totalPages}
                 </span>
@@ -195,7 +229,7 @@ export default function CobranzasClientesListado() {
             Buscar
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">
               <FaSearch className="h-4 w-4" />
             </span>
             <input
@@ -235,7 +269,7 @@ export default function CobranzasClientesListado() {
           />
         </div>
 
-        <div className="flex items-center gap-2 text-slate-400 text-[11px] md:ml-2">
+        <div className="flex items-center gap-2 text-slate-600 text-[11px] md:ml-2">
           <FaFilter className="h-3 w-3" />
           Los filtros se aplican automáticamente.
         </div>
@@ -263,7 +297,7 @@ export default function CobranzasClientesListado() {
 
         {!loading && !error && rows.length > 0 && (
           <>
-            <div className="hidden md:grid grid-cols-[120px_minmax(0,1.3fr)_minmax(0,1fr)_120px_auto] gap-3 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 border-b border-slate-200 bg-slate-50">
+            <div className="hidden md:grid grid-cols-[120px_minmax(0,1.3fr)_minmax(0,1fr)_120px_auto] gap-3 px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600 border-b border-slate-200 bg-slate-50">
               <span>Fecha</span>
               <span>Cliente</span>
               <span>Observaciones</span>
@@ -284,13 +318,19 @@ export default function CobranzasClientesListado() {
 
                   {/* Cliente */}
                   <div className="flex flex-col">
-                    <span className="font-semibold text-slate-800">
+                    <span className="font-semibold text-slate-800 inline-flex items-center gap-2">
                       {row.cliente?.nombre || '—'}
+                      {row.estado === 'anulada' && (
+                        <span className="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700">
+                          Anulada
+                        </span>
+                      )}
                     </span>
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-slate-500">
                       {row.cliente?.documento
                         ? `DNI/CUIT: ${row.cliente.documento}`
                         : 'Sin documento'}
+                      {row.medio_pago ? ` · ${medioPagoLabel(row.medio_pago)}` : ''}
                     </span>
                   </div>
 
@@ -298,12 +338,18 @@ export default function CobranzasClientesListado() {
                   <div className="hidden md:block text-[11px] text-slate-500 truncate">
                     {row.observaciones || '—'}
                   </div>
-                  <div className="md:hidden text-[11px] text-slate-400">
+                  <div className="md:hidden text-[11px] text-slate-500">
                     {row.observaciones || 'Sin observaciones'}
                   </div>
 
                   {/* Total cobrado */}
-                  <div className="md:text-right font-semibold text-emerald-600">
+                  <div
+                    className={`md:text-right font-semibold ${
+                      row.estado === 'anulada'
+                        ? 'text-slate-600 line-through'
+                        : 'text-emerald-600'
+                    }`}
+                  >
                     {moneyAR(row.total_cobrado)}
                   </div>
 
@@ -317,6 +363,18 @@ export default function CobranzasClientesListado() {
                     >
                       Ver detalle
                     </button>
+                    {row.estado !== 'anulada' && (
+                      <button
+                        type="button"
+                        onClick={() => handleAnular(row)}
+                        disabled={anulandoId === row.id}
+                        className="inline-flex items-center justify-center px-3 py-1.5 rounded-xl text-[11px] sm:text-xs
+                                   bg-rose-100 hover:bg-rose-200 text-rose-700 font-semibold transition
+                                   disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {anulandoId === row.id ? 'Anulando…' : 'Anular'}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -378,7 +436,7 @@ export default function CobranzasClientesListado() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
                 <div>
-                  <p className="text-xs uppercase text-slate-400 tracking-wide">
+                  <p className="text-xs uppercase text-slate-600 tracking-wide">
                     Detalle de cobranza
                   </p>
                   <p className="text-lg font-semibold">
@@ -480,7 +538,7 @@ export default function CobranzasClientesListado() {
                                       : 'Crédito sin venta asociada'}
                                   </p>
                                   {app.venta && (
-                                    <p className="text-slate-400">
+                                    <p className="text-slate-600">
                                       {app.venta.tipo || '—'} · Estado:{' '}
                                       {app.venta.estado || '—'} · Total venta:{' '}
                                       {moneyAR(app.venta.total_neto || 0)}

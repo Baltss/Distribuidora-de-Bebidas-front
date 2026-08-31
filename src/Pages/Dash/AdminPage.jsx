@@ -45,7 +45,7 @@ const DashboardTile = ({ title, description, to, icon: Icon, delay = 0 }) => {
                   {title}
                 </h3>
               </div>
-              <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-blue-500 transition-colors shrink-0" />
+              <ArrowRight className="h-4 w-4 text-slate-600 group-hover:text-blue-500 transition-colors shrink-0" />
             </div>
 
             {description && (
@@ -117,7 +117,7 @@ const AdminPage = () => {
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center text-slate-500">
             <p className="text-lg font-semibold text-slate-700">Cargando panel…</p>
-            <p className="text-sm text-slate-400 mt-2">
+            <p className="text-sm text-slate-600 mt-2">
               Si tarda demasiado, recargá la página.
             </p>
           </div>
@@ -163,7 +163,7 @@ const AdminPage = () => {
             className="flex flex-col items-end gap-3"
           >
             <div className="rounded-2xl border border-slate-200 bg-white px-4 py-2 w-fit">
-              <p className="text-[11px] uppercase tracking-wide text-slate-400">
+              <p className="text-[11px] uppercase tracking-wide text-slate-600">
                 Rol actual
               </p>
               <p className="text-sm font-semibold text-slate-800">
@@ -241,7 +241,7 @@ const AdminPage = () => {
               <DashboardTile
                 title="Vendedores"
                 description="Gestión de vendedores, comisiones y asignación por sucursal."
-                to="/dashboard/vendedores"
+                to="/dashboard/vendedores/vendedores"
                 icon={Users}
                 delay={0.16}
               />

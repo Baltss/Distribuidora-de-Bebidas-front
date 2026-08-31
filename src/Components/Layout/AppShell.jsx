@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutGrid, exact: true },
   { label: 'Productos', to: '/dashboard/productos', icon: Package },
   { label: 'Geografía', to: '/dashboard/geografia', icon: MapPin },
-  { label: 'Vendedores', to: '/dashboard/vendedores', icon: Users },
+  { label: 'Vendedores', to: '/dashboard/vendedores/vendedores', icon: Users },
   { label: 'Clientes', to: '/dashboard/clientes', icon: UserCircle2 },
   { label: 'Ventas', to: '/dashboard/ventas', icon: ShoppingBag },
   { label: 'Deudas y Cobranzas', to: '/dashboard/ventas/deudas', icon: AlertTriangle },
@@ -50,7 +50,7 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
         />
         <div className="leading-tight">
           <p className="text-sm font-extrabold tracking-wide text-slate-900">SODA SALE</p>
-          <p className="text-[10px] uppercase tracking-[0.14em] text-slate-400">
+          <p className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
             Panel Comercial
           </p>
         </div>
@@ -58,7 +58,7 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
 
       {/* Navegación */}
       <div className="flex-1 overflow-y-auto px-3 py-4">
-        <p className="px-2.5 mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+        <p className="px-2.5 mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
           Módulos
         </p>
         <nav className="space-y-1">
@@ -75,7 +75,7 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >
-                <Icon className={`h-4.5 w-4.5 shrink-0 ${active ? 'text-blue-600' : 'text-slate-400'}`} />
+                <Icon className={`h-4.5 w-4.5 shrink-0 ${active ? 'text-blue-600' : 'text-slate-600'}`} />
                 <span className="truncate">{label}</span>
               </Link>
             );
@@ -93,13 +93,13 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
             <p className="truncate text-sm font-semibold text-slate-800">
               {displayUserName || 'Usuario'}
             </p>
-            <p className="truncate text-[11px] text-slate-400">{nivelLabel}</p>
+            <p className="truncate text-[11px] text-slate-600">{nivelLabel}</p>
           </div>
           <button
             type="button"
             onClick={onLogout}
             title="Cerrar sesión"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition"
           >
             <LogOut className="h-4 w-4" />
           </button>
@@ -157,7 +157,7 @@ export default function AppShell({ children }) {
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100"
+              className="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"
               aria-label="Cerrar menú"
             >
               <X className="h-4 w-4" />

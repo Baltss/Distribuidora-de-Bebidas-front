@@ -84,7 +84,7 @@ const AdminPageCobranzas = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-sm sm:text-base text-gray-200/80 max-w-2xl mx-auto"
+              className="text-sm sm:text-base text-slate-500/80 max-w-2xl mx-auto"
             >
               Consultá las deudas de tus clientes, cobrales los fiados y mantené
               actualizada la cuenta corriente de manera simple y ordenada.
@@ -205,10 +205,10 @@ const AdminPageCobranzas = () => {
                   <p className="text-[11px] uppercase tracking-[0.16em] text-orange-300/80">
                     Cobranzas
                   </p>
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-50">
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-500">
                     Listado de Cobranzas Realizadas
                   </h2>
-                  <p className="text-[11px] text-slate-300/80">
+                  <p className="text-[11px] text-slate-600/80">
                     Revisá todas las cobranzas registradas, filtrá por cliente y
                     fecha, y abrí el detalle cuando lo necesites.
                   </p>
@@ -219,7 +219,7 @@ const AdminPageCobranzas = () => {
                              bg-white/5 border border-white/20 hover:bg-white/10 transition"
                   aria-label="Cerrar listado de cobranzas"
                 >
-                  <X className="h-5 w-5 text-slate-100" />
+                  <X className="h-5 w-5 text-slate-500" />
                 </button>
               </div>
 

@@ -99,7 +99,7 @@ export default function ProductTableRow({
 
   return (
     <>
-      <tr className={`border-t border-slate-100 hover:bg-slate-50/80 transition ${isInactive ? 'opacity-60' : ''}`}>
+      <tr className={`border-t border-slate-200 hover:bg-slate-50/80 transition ${isInactive ? 'opacity-60' : ''}`}>
         <td className="px-4 py-3 text-sm text-slate-500">{item?.id}</td>
         <td className="px-4 py-3">
           <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white ${colorFor(item?.nombre)}`}>
@@ -145,7 +145,7 @@ export default function ProductTableRow({
               {stock.stock_minimo != null ? ` / mín. ${stock.stock_minimo}` : ''}
             </span>
           ) : (
-            <span className="text-slate-400">—</span>
+            <span className="text-slate-600">—</span>
           )}
         </td>
         <td className="px-4 py-3">
@@ -163,7 +163,7 @@ export default function ProductTableRow({
             <button
               onClick={() => setViewOpen(true)}
               title="Ver detalle"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-700 transition"
             >
               <Eye className="h-4 w-4" />
             </button>
@@ -171,7 +171,7 @@ export default function ProductTableRow({
               <button
                 onClick={() => onVerStock(item)}
                 title="Ver stock y movimientos"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-teal-700 transition"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-teal-700 transition"
               >
                 <Warehouse className="h-4 w-4" />
               </button>
@@ -179,21 +179,21 @@ export default function ProductTableRow({
             <button
               onClick={() => onToggleActivo?.(item)}
               title={isInactive ? 'Activar' : 'Desactivar'}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-cyan-700 transition"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-cyan-700 transition"
             >
               <Power className="h-4 w-4" />
             </button>
             <button
               onClick={() => onEdit?.(item)}
               title="Editar"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition"
             >
               <Pencil className="h-4 w-4" />
             </button>
             <button
               onClick={() => onDelete?.(item)}
               title="Eliminar"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition"
             >
               <Trash2 className="h-4 w-4" />
             </button>

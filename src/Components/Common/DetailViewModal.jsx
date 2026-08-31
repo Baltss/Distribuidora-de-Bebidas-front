@@ -1,5 +1,6 @@
 // src/Components/Common/DetailViewModal.jsx
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import {
@@ -61,7 +62,7 @@ const RowInline = ({ label, children, Icon, multiline }) => (
     variants={fieldV}
     className="grid grid-cols-1 sm:grid-cols-[220px,1fr] gap-2 sm:gap-5"
   >
-    <div className="text-[11px] uppercase tracking-widest text-slate-400 pt-[2px] sm:text-right">
+    <div className="text-[11px] uppercase tracking-widest text-slate-600 pt-[2px] sm:text-right">
       {label}
     </div>
     <div
@@ -86,7 +87,7 @@ const FieldCard = ({ label, children, Icon, multiline }) => (
     variants={fieldV}
     className="rounded-lg bg-slate-50 border border-slate-200 px-3.5 py-3"
   >
-    <div className="text-[10px] uppercase tracking-widest text-slate-400 mb-1.5">
+    <div className="text-[10px] uppercase tracking-widest text-slate-600 mb-1.5">
       {label}
     </div>
     <div
@@ -144,7 +145,7 @@ export default function DetailViewModal({
   const created = computeStamp(createdAt);
   const updated = computeStamp(updatedAt);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -240,7 +241,7 @@ export default function DetailViewModal({
                   return (
                     <section key={i} className="space-y-4">
                       {sec.title ? (
-                        <div className="text-[11px] uppercase tracking-[0.2em] text-slate-400">
+                        <div className="text-[11px] uppercase tracking-[0.2em] text-slate-600">
                           {sec.title}
                         </div>
                       ) : null}
@@ -306,6 +307,7 @@ export default function DetailViewModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

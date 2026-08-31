@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../api/apiBase';
 
 const axiosWithAuth = () => {
-  const token = localStorage.getItem('authToken');
+  const token = sessionStorage.getItem('authToken');
   return axios.create({
     baseURL: API_BASE_URL,
     headers: {

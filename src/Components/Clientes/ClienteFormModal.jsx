@@ -354,6 +354,12 @@ export default function ClienteFormModal({
     const nombreOK = form.nombre.trim().length > 0;
     if (!nombreOK) out.nombre = 'El nombre es obligatorio.';
 
+    //  - 31-08-2026 - Un cliente "local" (mostrador) solo pide nombre y documento.
+    if (form.tipo === 'local') {
+      const documentoOK = form.documento.trim().length > 0;
+      if (!documentoOK) out.documento = 'El documento es obligatorio.';
+    }
+
     //  - 14-07-2026 - Ciudad y reparto solo son obligatorios para clientes de reparto.
     //  Un cliente "local" (mostrador) no pide datos de entrega.
     if (form.tipo === 'reparto') {
@@ -374,7 +380,7 @@ export default function ClienteFormModal({
 
     //  - 24-02-2026 - Calle y número dejan de ser obligatorios por requerimiento; se permiten vacíos.
     return out;
-  }, [form.nombre, form.tipo, form.ciudad_id, form.reparto_id]);
+  }, [form.nombre, form.tipo, form.documento, form.ciudad_id, form.reparto_id]);
 
   const canSave = useMemo(() => {
     return Object.keys(errors).length === 0;
@@ -520,7 +526,7 @@ export default function ClienteFormModal({
                       Reparto
                     </button>
                   </div>
-                  <p className="mt-2 text-xs text-slate-400">
+                  <p className="mt-2 text-xs text-slate-600">
                     {form.tipo === 'local'
                       ? 'Cliente de mostrador: solo se piden nombre, documento, teléfono y email.'
                       : 'Cliente de reparto: requiere ciudad, dirección y reparto asignado.'}
@@ -549,14 +555,24 @@ export default function ClienteFormModal({
                 {/* Documento / Teléfono / Email / Estado */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
-                    <label className={labelCls}>Documento</label>
+                    <label className={labelCls}>
+                      Documento
+                      {form.tipo === 'local' && (
+                        <span className="text-teal-600"> *</span>
+                      )}
+                    </label>
                     <input
                       name="documento"
                       value={form.documento}
                       onChange={handle}
-                      className={inputCls}
+                      className={`${inputCls} ${showError('documento') ? errorInputCls : ''}`}
                       placeholder="DNI/CUIT"
                     />
+                    {showError('documento') && (
+                      <p className="mt-2 text-xs text-rose-600">
+                        {errors.documento}
+                      </p>
+                    )}
                   </motion.div>
 
                   <motion.div variants={fieldV}>
@@ -738,7 +754,7 @@ export default function ClienteFormModal({
                   {!!form.ciudad_id &&
                     !repartosLoading &&
                     repartosFiltrados.length === 0 && (
-                      <p className="mt-2 text-xs text-slate-400">
+                      <p className="mt-2 text-xs text-slate-600">
                         No hay repartos activos para la ciudad seleccionada.
                       </p>
                     )}
@@ -755,7 +771,7 @@ export default function ClienteFormModal({
                             : ''}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-400 mt-1">
+                      <div className="text-xs text-slate-600 mt-1">
                         Rango de clientes: {repartoSeleccionado.rango_min}–
                         {repartoSeleccionado.rango_max}
                       </div>

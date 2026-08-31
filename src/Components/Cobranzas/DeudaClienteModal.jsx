@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import { MEDIOS_PAGO } from '../../utils/mediosPago';
 
 function formatMoneyARS(value = 0) {
   return Number(value || 0).toLocaleString('es-AR', {
@@ -49,6 +50,7 @@ export default function DeudaClienteModal({
   // estados para COBRAR (VENTAS)
   const [cobros, setCobros] = useState({}); // { [ventaId]: monto }
   const [observaciones, setObservaciones] = useState('');
+  const [medioPago, setMedioPago] = useState('');
   const [savingCobro, setSavingCobro] = useState(false);
 
   // ======================================================
@@ -84,6 +86,7 @@ export default function DeudaClienteModal({
           setData(resp);
           setCobros({});
           setObservaciones('');
+          setMedioPago('');
           setCobroSaldoPrevio('');
           setModoCobro('unico');
           setMontoUnico('');
@@ -381,6 +384,16 @@ export default function DeudaClienteModal({
 
     if (!apps.length) return;
 
+    if (!medioPago) {
+      await Swal.fire({
+        title: 'Falta el medio de pago',
+        text: 'Seleccioná el medio de pago del cobro antes de continuar.',
+        icon: 'warning',
+        confirmButtonColor: '#10b981'
+      });
+      return;
+    }
+
     const totalFmt = formatMoneyARS(total);
     const totalVentasFmt = formatMoneyARS(totalCobrarVentasEfectivo);
     const totalSaldoPrevioFmt = formatMoneyARS(totalCobrarSaldoPrevioEfectivo);
@@ -429,6 +442,7 @@ export default function DeudaClienteModal({
         vendedor_id: null,
         fecha: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
         total_cobrado: Number(total.toFixed(2)),
+        medio_pago: medioPago,
         observaciones: observaciones?.trim() || null,
         aplicaciones: apps
       };
@@ -439,6 +453,7 @@ export default function DeudaClienteModal({
       setData(nuevaDeuda);
       setCobros({});
       setObservaciones('');
+      setMedioPago('');
       setCobroSaldoPrevio('');
       setMontoUnico('');
 
@@ -575,11 +590,11 @@ export default function DeudaClienteModal({
 
                   {/* Total deuda grande */}
                   <div className="flex flex-col items-end gap-2">
-                    <span className="text-[11px] uppercase tracking-widest text-slate-400/70">
+                    <span className="text-[11px] uppercase tracking-widest text-slate-600/70">
                       Deuda total
                     </span>
                     <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-100 border border-emerald-300 px-3.5 py-2.5 shadow-lg">
-                      <BadgeDollarSign className="h-6 w-6 text-slate-400" />
+                      <BadgeDollarSign className="h-6 w-6 text-slate-600" />
                       <span className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-800">
                         {formatMoneyARS(resumen.totalDeuda)}
                       </span>
@@ -755,7 +770,7 @@ export default function DeudaClienteModal({
                                 </p>
                               )}
                               {allocation.excedente > 0 && (
-                                <p className="text-amber-300">
+                                <p className="text-amber-700">
                                   Excedente (sin deuda que cubrir, queda
                                   como crédito a favor):{' '}
                                   <span className="font-semibold">
@@ -1007,7 +1022,7 @@ export default function DeudaClienteModal({
                             {excedenteEfectivo > 0 && (
                               <>
                                 {' · '}
-                                <span className="text-amber-300">
+                                <span className="text-amber-700">
                                   Excedente: {formatMoneyARS(excedenteEfectivo)}
                                 </span>
                               </>
@@ -1022,6 +1037,27 @@ export default function DeudaClienteModal({
                             {formatMoneyARS(saldoPostCobro)}
                           </p>
                         </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] sm:text-xs text-slate-500/80 mb-1">
+                          Medio de pago <span className="text-rose-600">*</span>
+                        </label>
+                        <select
+                          value={medioPago}
+                          onChange={(e) => setMedioPago(e.target.value)}
+                          disabled={loading || savingCobro}
+                          className="w-full rounded-2xl bg-slate-50 border border-emerald-200 px-3 py-2 text-xs sm:text-sm
+                                   text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400/60
+                                   disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                          <option value="">Seleccionar…</option>
+                          {MEDIOS_PAGO.map((m) => (
+                            <option key={m.value} value={m.value}>
+                              {m.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
@@ -1064,7 +1100,10 @@ export default function DeudaClienteModal({
                           type="button"
                           onClick={handleRegistrarCobranza}
                           disabled={
-                            savingCobro || loading || totalCobrarAhoraEfectivo <= 0
+                            savingCobro ||
+                            loading ||
+                            totalCobrarAhoraEfectivo <= 0 ||
+                            !medioPago
                           }
                           className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-sm font-semibold
                                      hover:bg-emerald-400 transition disabled:opacity-60 disabled:cursor-not-allowed"

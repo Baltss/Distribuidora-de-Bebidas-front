@@ -497,7 +497,7 @@ export default function ReporteRepartoCobranza() {
                   <Filter className="h-5 w-5 text-amber-600" />
                 </span>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                  <p className="text-xs uppercase tracking-[0.2em] text-slate-600">
                     Filtros
                   </p>
                   <p className="text-sm text-slate-600">
@@ -543,13 +543,13 @@ export default function ReporteRepartoCobranza() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* Reparto */}
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-200">
+                <label className="text-xs font-semibold text-slate-500">
                   Reparto
                 </label>
                 <select
                   value={repartoId}
                   onChange={(e) => setRepartoId(e.target.value)}
-                  className="h-9 rounded-xl bg-slate-50/70 border border-slate-700 px-3 text-xs text-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                  className="h-9 rounded-xl bg-slate-50/70 border border-slate-700 px-3 text-xs text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
                   disabled={repartosLoading}
                 >
                   {repartosLoading && (
@@ -569,7 +569,7 @@ export default function ReporteRepartoCobranza() {
                     ))}
                 </select>
                 {repartosError && (
-                  <p className="text-[11px] text-red-300 mt-0.5">
+                  <p className="text-[11px] text-red-600 mt-0.5">
                     {repartosError}
                   </p>
                 )}
@@ -620,8 +620,8 @@ export default function ReporteRepartoCobranza() {
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide border transition ${
                           soloConDeuda
-                            ? 'bg-emerald-400/15 text-emerald-200 border-emerald-300/30'
-                            : 'bg-slate-400/10 text-slate-200/80 border-slate-300/20'
+                            ? 'bg-emerald-400/15 text-emerald-700 border-emerald-300/30'
+                            : 'bg-slate-400/10 text-slate-500/80 border-slate-300/20'
                         }`}
                       >
                         {soloConDeuda ? 'ACTIVO' : 'INACTIVO'}
@@ -705,7 +705,7 @@ export default function ReporteRepartoCobranza() {
                 <Users className="h-4 w-4 text-slate-500" />
               </span>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-600">
                   Clientes en zona
                 </p>
                 <p className="text-lg font-semibold">
@@ -716,10 +716,10 @@ export default function ReporteRepartoCobranza() {
 
             <div className="rounded-2xl bg-slate-50 border border-slate-200 px-4 py-3 flex items-center gap-3">
               <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200">
-                <DollarSign className="h-4 w-4 text-emerald-300" />
+                <DollarSign className="h-4 w-4 text-emerald-700" />
               </span>
               <div>
-                <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/80">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-700/80">
                   Clientes con deuda
                 </p>
                 <p className="text-lg font-semibold">
@@ -734,7 +734,7 @@ export default function ReporteRepartoCobranza() {
               </span>
               <div className="flex-1 flex justify-between items-center gap-3">
                 <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-600">
                     Deuda total zona
                   </p>
                   <p className="text-lg font-semibold">
@@ -793,7 +793,7 @@ export default function ReporteRepartoCobranza() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         placeholder="Buscar por nombre o DNI/CUIT..."
-                        className="w-full pl-9 pr-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
+                        className="w-full pl-9 pr-3 py-2 rounded-2xl bg-white border border-slate-200 text-sm text-slate-800 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-amber-300/80"
                       />
                     </div>
                     <p className="mt-1 text-[11px] text-slate-500">
@@ -925,7 +925,7 @@ export default function ReporteRepartoCobranza() {
 
                               <div className="flex flex-col items-end gap-1">
                                 <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-500/10 border border-emerald-400/70 px-3 py-1.5">
-                                  <DollarSign className="h-4 w-4 text-emerald-300" />
+                                  <DollarSign className="h-4 w-4 text-emerald-700" />
                                   <div className="text-right">
                                     {/*  - 25-02-2026 - Checkbox
                                     para seleccionar cliente a imprimir */}
@@ -942,7 +942,7 @@ export default function ReporteRepartoCobranza() {
                                         Imprimir
                                       </span>
                                     </label>
-                                    <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-200/80">
+                                    <p className="text-[11px] uppercase tracking-[0.18em] text-emerald-700/80">
                                       Deuda total
                                     </p>
                                     <p className="text-sm font-semibold text-emerald-100">
@@ -974,7 +974,7 @@ export default function ReporteRepartoCobranza() {
                             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)] gap-4">
                               {/* Ventas pendientes */}
                               <div className="rounded-2xl bg-white border border-slate-200 px-3 py-3 text-xs max-h-64 overflow-y-auto">
-                                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 mb-2 flex items-center gap-1.5">
+                                <p className="text-[11px] uppercase tracking-[0.18em] text-slate-600 mb-2 flex items-center gap-1.5">
                                   Ventas fiado pendientes
                                 </p>
                                 {!ventas_pendientes.length ? (
@@ -1028,7 +1028,7 @@ export default function ReporteRepartoCobranza() {
                                             </p>
                                             <p>
                                               Saldo:{' '}
-                                              <span className="font-semibold text-emerald-300">
+                                              <span className="font-semibold text-emerald-700">
                                                 {moneyAR(
                                                   v.saldo_pendiente
                                                 )}{' '}
@@ -1048,7 +1048,7 @@ export default function ReporteRepartoCobranza() {
                               {/* Planeo de reparto */}
                               <div className="rounded-2xl bg-white border border-slate-200 px-3 py-3 text-xs flex flex-col gap-3">
                                 <div className="flex items-center justify-between gap-2">
-                                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-400 flex items-center gap-1.5">
+                                  <p className="text-[11px] uppercase tracking-[0.18em] text-slate-600 flex items-center gap-1.5">
                                     <Truck className="h-3 w-3" />
                                     Planeo de reparto
                                   </p>
@@ -1063,7 +1063,7 @@ export default function ReporteRepartoCobranza() {
                                     Productos sugeridos (historial de fiado):
                                   </p>
                                   {!productos_sugeridos.length ? (
-                                    <p className="text-[11px] text-slate-400">
+                                    <p className="text-[11px] text-slate-600">
                                       No hay productos sugeridos para este
                                       cliente en el rango filtrado.
                                     </p>
@@ -1105,13 +1105,13 @@ export default function ReporteRepartoCobranza() {
                                                     {p.nombre}
                                                   </p>
                                                   {p.codigo_sku && (
-                                                    <p className="text-slate-400">
+                                                    <p className="text-slate-600">
                                                       SKU: {p.codigo_sku}
                                                     </p>
                                                   )}
                                                 </div>
                                               </div>
-                                              <p className="text-[11px] text-emerald-200">
+                                              <p className="text-[11px] text-emerald-700">
                                                 {moneyAR(p.precio_ultimo)}
                                               </p>
                                             </div>
@@ -1157,10 +1157,10 @@ export default function ReporteRepartoCobranza() {
                                     }
                                     rows={2}
                                     maxLength={140}
-                                    className="w-full rounded-2xl border border-slate-200 bg-white text-[11px] px-2.5 py-2 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
+                                    className="w-full rounded-2xl border border-slate-200 bg-white text-[11px] px-2.5 py-2 text-slate-800 placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-300 resize-none"
                                     placeholder="Ej: dejar en vecino, tocar timbre negro, horario preferido…"
                                   />
-                                  <p className="text-[10px] text-slate-400 text-right mt-0.5">
+                                  <p className="text-[10px] text-slate-600 text-right mt-0.5">
                                     {(planCli.observacion || '').length}/140
                                   </p>
                                 </div>

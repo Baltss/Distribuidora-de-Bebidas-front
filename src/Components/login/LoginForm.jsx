@@ -207,7 +207,7 @@ const LoginForm = () => {
           </div>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-200 italic">
+        <p className="mt-6 text-center text-xs text-slate-500 italic">
           "El esfuerzo de hoy es el éxito de mañana"
         </p>
       </motion.div>

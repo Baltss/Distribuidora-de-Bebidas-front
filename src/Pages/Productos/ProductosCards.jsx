@@ -338,7 +338,7 @@ export default function ProductosCards() {
         <div className="rounded-2xl border border-slate-200 bg-white p-4 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             <div className="relative lg:col-span-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
               <input
                 value={q}
                 onChange={(e) => {
@@ -431,13 +431,13 @@ export default function ProductosCards() {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={11} className="px-4 py-16 text-center text-slate-400">
+                    <td colSpan={11} className="px-4 py-16 text-center text-slate-600">
                       Cargando…
                     </td>
                   </tr>
                 ) : rows.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-4 py-16 text-center text-slate-400">
+                    <td colSpan={11} className="px-4 py-16 text-center text-slate-600">
                       No hay productos con esos filtros.
                     </td>
                   </tr>

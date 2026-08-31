@@ -442,7 +442,7 @@ export default function VentasSaldoPrevioPage() {
                     />
                   </div>
 
-                  <div className="mt-1 text-[11px] text-slate-400">
+                  <div className="mt-1 text-[11px] text-slate-600">
                     {clientesLoading
                       ? 'Cargando clientes…'
                       : !form.ciudad_id
@@ -487,7 +487,7 @@ export default function VentasSaldoPrevioPage() {
                              disabled:opacity-60 disabled:cursor-not-allowed"
                   placeholder="0.00"
                 />
-                <p className="mt-1 text-[11px] text-slate-400">
+                <p className="mt-1 text-[11px] text-slate-600">
                   Registra una deuda histórica del cliente (sin productos).
                 </p>
               </motion.div>

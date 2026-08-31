@@ -143,7 +143,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
               </div>
 
               {loading ? (
-                <div className="text-center text-slate-400 py-10">Cargando…</div>
+                <div className="text-center text-slate-600 py-10">Cargando…</div>
               ) : (
                 <>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-5 flex items-center justify-between">
@@ -155,7 +155,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
                     >
                       {stockActual?.stock_actual ?? '—'}
                       {stockActual?.stock_minimo != null && (
-                        <span className="text-sm font-normal text-slate-400 ml-2">
+                        <span className="text-sm font-normal text-slate-600 ml-2">
                           (mín. {stockActual.stock_minimo})
                         </span>
                       )}
@@ -232,7 +232,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
                         </thead>
                         <tbody>
                           {movimientos.map((m) => (
-                            <tr key={m.id} className="border-t border-slate-100">
+                            <tr key={m.id} className="border-t border-slate-200">
                               <td className="px-3 py-2">
                                 {m.fecha ? new Date(m.fecha).toLocaleDateString() : '—'}
                               </td>

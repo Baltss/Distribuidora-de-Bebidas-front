@@ -91,7 +91,7 @@ export default function DeudaProveedorModal({
               </div>
 
               {loading ? (
-                <div className="text-center text-slate-400 py-10">Cargando…</div>
+                <div className="text-center text-slate-600 py-10">Cargando…</div>
               ) : (
                 <>
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-5 flex items-center justify-between">
@@ -109,7 +109,7 @@ export default function DeudaProveedorModal({
                       Compras pendientes
                     </h4>
                     {!deuda?.compras_pendientes?.length ? (
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-slate-600">
                         No hay compras pendientes de pago.
                       </p>
                     ) : (
@@ -128,7 +128,7 @@ export default function DeudaProveedorModal({
                           </thead>
                           <tbody>
                             {deuda.compras_pendientes.map((c) => (
-                              <tr key={c.id} className="border-t border-slate-100">
+                              <tr key={c.id} className="border-t border-slate-200">
                                 <td className="px-3 py-2">#{c.id}</td>
                                 <td className="px-3 py-2">
                                   {c.fecha ? new Date(c.fecha).toLocaleDateString() : '—'}

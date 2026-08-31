@@ -347,7 +347,7 @@ export default function ProductoFormModal({
                 {/* Nombre */}
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Package className="h-4 w-4 text-slate-400" />
+                    <Package className="h-4 w-4 text-slate-600" />
                     Nombre <span className="text-blue-600">*</span>
                   </label>
                   <input
@@ -367,7 +367,7 @@ export default function ProductoFormModal({
                 {/* Categoría (dinámica) con alta rápida */}
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Layers className="h-4 w-4 text-slate-400" />
+                    <Layers className="h-4 w-4 text-slate-600" />
                     Categoría (opcional)
                   </label>
                   <div className="flex gap-2">
@@ -424,7 +424,7 @@ export default function ProductoFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Tag className="h-4 w-4 text-slate-400" />
+                      <Tag className="h-4 w-4 text-slate-600" />
                       Código SKU <span className="text-blue-600">*</span>
                     </label>
                     <input
@@ -443,7 +443,7 @@ export default function ProductoFormModal({
 
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Barcode className="h-4 w-4 text-slate-400" />
+                      <Barcode className="h-4 w-4 text-slate-600" />
                       EAN (opcional)
                     </label>
                     <input
@@ -466,7 +466,7 @@ export default function ProductoFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Boxes className="h-4 w-4 text-slate-400" />
+                      <Boxes className="h-4 w-4 text-slate-600" />
                       Presentación
                     </label>
                     <div className="flex gap-2">
@@ -501,7 +501,7 @@ export default function ProductoFormModal({
 
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Hash className="h-4 w-4 text-slate-400" />
+                      <Hash className="h-4 w-4 text-slate-600" />
                       Cantidad por pack
                     </label>
                     <input
@@ -533,7 +533,7 @@ export default function ProductoFormModal({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Ruler className="h-4 w-4 text-slate-400" />
+                      <Ruler className="h-4 w-4 text-slate-600" />
                       Unidad de medida
                     </label>
                     <select
@@ -552,7 +552,7 @@ export default function ProductoFormModal({
 
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Ruler className="h-4 w-4 text-slate-400" />
+                      <Ruler className="h-4 w-4 text-slate-600" />
                       Contenido (opcional)
                     </label>
                     <input
@@ -571,7 +571,7 @@ export default function ProductoFormModal({
                 {/* Stock mínimo */}
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Boxes className="h-4 w-4 text-slate-400" />
+                    <Boxes className="h-4 w-4 text-slate-600" />
                     Stock mínimo (opcional)
                   </label>
                   <input
@@ -657,7 +657,7 @@ export default function ProductoFormModal({
                       className={`w-full rounded-xl border px-3.5 py-3 text-slate-800
                                  placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent ${
                                    modoPrecio === 'margen'
-                                     ? 'border-slate-100 bg-slate-50 text-slate-500 cursor-not-allowed'
+                                     ? 'border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed'
                                      : 'border-slate-200 bg-white'
                                  }`}
                       placeholder="ingrese el precio"
@@ -676,7 +676,7 @@ export default function ProductoFormModal({
                   </motion.div>
                   <motion.div variants={fieldV}>
                     <label className={labelCls}>
-                      <Percent className="h-4 w-4 text-slate-400" />
+                      <Percent className="h-4 w-4 text-slate-600" />
                       IVA
                     </label>
                     <input
@@ -702,7 +702,7 @@ export default function ProductoFormModal({
                 {/* Último costo de compra */}
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <DollarSign className="h-4 w-4 text-slate-400" />
+                    <DollarSign className="h-4 w-4 text-slate-600" />
                     Último costo de compra (opcional)
                   </label>
                   <input
@@ -719,7 +719,7 @@ export default function ProductoFormModal({
 
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <Power className="h-4 w-4 text-slate-400" />
+                    <Power className="h-4 w-4 text-slate-600" />
                     Estado
                   </label>
                   <select
@@ -736,7 +736,7 @@ export default function ProductoFormModal({
                 {/* Notas */}
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    <StickyNote className="h-4 w-4 text-slate-400" />
+                    <StickyNote className="h-4 w-4 text-slate-600" />
                     Notas (opcional)
                   </label>
                   <textarea

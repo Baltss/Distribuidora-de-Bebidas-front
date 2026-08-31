@@ -32,7 +32,7 @@ const StatusPill = ({ activa }) => (
 
 const Field = ({ label, children }) => (
   <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2 text-sm">
-    <div className="text-[10px] uppercase tracking-widest text-slate-400">
+    <div className="text-[10px] uppercase tracking-widest text-slate-600">
       {label}
     </div>
     <div className="mt-0.5 truncate text-slate-700">
@@ -158,7 +158,7 @@ export default function CiudadCard({
                 </h3>
                 <StatusPill activa={item?.estado === 'activa'} />
               </div>
-              <div className="mt-1 text-xs text-slate-400">
+              <div className="mt-1 text-xs text-slate-600">
                 {item?.provincia} • ID {item?.id}
               </div>
             </div>

@@ -160,7 +160,7 @@ export default function VendedorBarrioCard({
         <div className="relative z-10 p-5 sm:p-6 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xs text-slate-400 mb-1">
+              <div className="text-xs text-slate-600 mb-1">
                 Asignación
               </div>
               <h3 className="truncate text-lg font-extrabold tracking-tight text-slate-900">

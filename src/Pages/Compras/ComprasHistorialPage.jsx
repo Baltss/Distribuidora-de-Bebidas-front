@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { FaPlus, FaBan, FaSearch, FaArrowLeft } from 'react-icons/fa';
 
 import CompraFormModal from '../../Components/Compras/CompraFormModal';
+import CompraDetalleModal from '../../Components/Compras/CompraDetalleModal';
 import { listCompras, createCompra, anularCompra } from '../../api/compras.js';
 import {
   showErrorSwal,
@@ -23,6 +24,7 @@ export default function ComprasHistorialPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const [detalleCompraId, setDetalleCompraId] = useState(null);
 
   // Filtros de búsqueda
   const [q, setQ] = useState('');
@@ -137,7 +139,7 @@ export default function ComprasHistorialPage() {
           <div className="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
               <div className="relative sm:col-span-2 lg:col-span-1">
-                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -147,7 +149,7 @@ export default function ComprasHistorialPage() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase tracking-wide text-slate-400 mb-1">Desde</label>
+                <label className="block text-[10px] uppercase tracking-wide text-slate-600 mb-1">Desde</label>
                 <input
                   type="date"
                   value={desde}
@@ -156,7 +158,7 @@ export default function ComprasHistorialPage() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase tracking-wide text-slate-400 mb-1">Hasta</label>
+                <label className="block text-[10px] uppercase tracking-wide text-slate-600 mb-1">Hasta</label>
                 <input
                   type="date"
                   value={hasta}
@@ -165,7 +167,7 @@ export default function ComprasHistorialPage() {
                 />
               </div>
               <div>
-                <label className="block text-[10px] uppercase tracking-wide text-slate-400 mb-1">Tipo de pago</label>
+                <label className="block text-[10px] uppercase tracking-wide text-slate-600 mb-1">Tipo de pago</label>
                 <select
                   value={tipoPago}
                   onChange={(e) => setTipoPago(e.target.value)}
@@ -187,9 +189,9 @@ export default function ComprasHistorialPage() {
           </div>
 
           {loading ? (
-            <div className="text-center text-slate-400 py-16">Cargando…</div>
+            <div className="text-center text-slate-600 py-16">Cargando…</div>
           ) : rows.length === 0 ? (
-            <div className="text-center text-slate-400 py-16">No hay compras registradas.</div>
+            <div className="text-center text-slate-600 py-16">No hay compras registradas.</div>
           ) : (
             <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
               <table className="w-full text-sm text-left text-slate-700">
@@ -207,7 +209,11 @@ export default function ComprasHistorialPage() {
                 </thead>
                 <tbody>
                   {rows.map((c) => (
-                    <tr key={c.id} className="border-t border-slate-100">
+                    <tr
+                      key={c.id}
+                      onClick={() => setDetalleCompraId(c.id)}
+                      className="border-t border-slate-200 hover:bg-slate-50 cursor-pointer transition"
+                    >
                       <td className="px-4 py-3">{c.id}</td>
                       <td className="px-4 py-3">{c.proveedor?.razon_social || '—'}</td>
                       <td className="px-4 py-3">
@@ -232,7 +238,10 @@ export default function ComprasHistorialPage() {
                       <td className="px-4 py-3 text-right">
                         {c.estado !== 'anulada' && (
                           <button
-                            onClick={() => onAnular(c)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAnular(c);
+                            }}
                             className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
                           >
                             <FaBan /> Anular
@@ -274,6 +283,12 @@ export default function ComprasHistorialPage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onSubmit={onSubmit}
+      />
+
+      <CompraDetalleModal
+        open={detalleCompraId != null}
+        onClose={() => setDetalleCompraId(null)}
+        compraId={detalleCompraId}
       />
     </AppShell>
   );

@@ -866,12 +866,12 @@ export default function VentaRepartoFormModal({
                 >
                   {/* Reparto select */}
                   <div className="flex flex-col gap-1 min-w-0 lg:col-span-4">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Reparto
                     </span>
 
                     <div className="flex items-center gap-2 min-w-0">
-                      <Truck className="h-4 w-4 text-slate-400 shrink-0" />
+                      <Truck className="h-4 w-4 text-slate-600 shrink-0" />
 
                       <select
                         value={repartoId}
@@ -937,11 +937,11 @@ export default function VentaRepartoFormModal({
 
                   {/* Fecha */}
                   <div className="flex flex-col gap-1 min-w-0 lg:col-span-3">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Fecha de venta
                     </span>
                     <div className="flex items-center gap-2 min-w-0">
-                      <CalendarDays className="h-4 w-4 text-slate-400 shrink-0" />
+                      <CalendarDays className="h-4 w-4 text-slate-600 shrink-0" />
                       <input
                         type="date"
                         value={fecha}
@@ -954,7 +954,7 @@ export default function VentaRepartoFormModal({
 
                   {/* Tipo de venta */}
                   {/* <div className="flex flex-col gap-1">
-    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+    <span className="uppercase text-[10px] tracking-widest text-slate-600">
       Tipo de venta
     </span>
     <div className="inline-flex rounded-full bg-slate-950/70 border border-teal-500/40 p-1">
@@ -985,7 +985,7 @@ export default function VentaRepartoFormModal({
 
                   {/* Tipo de venta */}
                   <div className="flex flex-col gap-1 min-w-0 lg:col-span-2 lg:justify-self-center">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Tipo de venta
                     </span>
 
@@ -999,14 +999,14 @@ export default function VentaRepartoFormModal({
                       </span>
                     </div>
 
-                    <span className="text-[11px] text-slate-400">
+                    <span className="text-[11px] text-slate-600">
                       Seleccionado: {tipoVentaLabel}
                     </span>
                   </div>
 
                   {/* Vendedor + total  */}
                   <div className="flex flex-col gap-1 min-w-0 lg:col-span-3">
-                    <span className="uppercase text-[10px] tracking-widest text-slate-400">
+                    <span className="uppercase text-[10px] tracking-widest text-slate-600">
                       Vendedor / Total estimado
                     </span>
                     <div className="flex items-center gap-2 mb-1 min-w-0">
@@ -1053,7 +1053,7 @@ export default function VentaRepartoFormModal({
                   </label>
 
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
 
                     <input
                       value={clienteSearch}
@@ -1079,7 +1079,7 @@ export default function VentaRepartoFormModal({
                     )}
                   </div>
 
-                  <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                  <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-slate-600">
                     <span className="truncate">
                       Tip: escribí el número de rango (ej: 12) o parte del
                       nombre.
@@ -1107,7 +1107,7 @@ export default function VentaRepartoFormModal({
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <div className="text-xs uppercase tracking-widest text-slate-400">
+                        <div className="text-xs uppercase tracking-widest text-slate-600">
                           Clientes del reparto
                         </div>
                         <div className="text-sm text-slate-600">
@@ -1128,7 +1128,7 @@ export default function VentaRepartoFormModal({
 
                     <div className="flex-1 min-h-[180px] max-h-[340px] overflow-y-auto space-y-2 pr-1">
                       {!clientesUI.length && !loadingClientes ? (
-                        <div className="text-xs text-slate-400 italic">
+                        <div className="text-xs text-slate-600 italic">
                           {clienteSearch?.trim()
                             ? 'No se encontraron clientes con ese criterio.'
                             : 'Este reparto no tiene clientes seleccionados para esta vuelta.'}
@@ -1195,7 +1195,7 @@ export default function VentaRepartoFormModal({
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <div className="text-xs uppercase tracking-widest text-slate-400">
+                        <div className="text-xs uppercase tracking-widest text-slate-600">
                           Productos y cantidades
                         </div>
                         <div className="text-[11px] text-slate-500">
@@ -1210,7 +1210,7 @@ export default function VentaRepartoFormModal({
                     <div className="flex-1 min-h-[220px] max-h-[380px] overflow-y-auto rounded-xl border border-slate-200 bg-white px-2 py-2">
                       {(!productos.length || !clientesUI.length) &&
                       !loadingProductos ? (
-                        <div className="py-10 text-center text-xs text-slate-400">
+                        <div className="py-10 text-center text-xs text-slate-600">
                           {clienteSearch?.trim()
                             ? 'No hay clientes que coincidan con la búsqueda.'
                             : 'Necesitás al menos un cliente visible con productos activos para cargar ventas.'}
@@ -1513,7 +1513,7 @@ export default function VentaRepartoFormModal({
                   </motion.div>
                 </div>
                 {/*  - 24/02/2026 - Ayuda visual para flujo mixto (OK por cliente + submit global opcional) */}
-                <div className="text-[11px] text-slate-400">
+                <div className="text-[11px] text-slate-600">
                   Podés guardar cada venta con el botón OK de cada cliente sin
                   cerrar esta ventana.
                 </div>

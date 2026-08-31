@@ -12,7 +12,7 @@ const Home = () => {
 
       {/* Encabezado superior */}
       <header className="text-center mt-4 z-10">
-        <p className="text-sm md:text-base text-gray-400 font-light">
+        <p className="text-sm md:text-base text-slate-600 font-light">
           Este sistema web está desarrollado por
         </p>
         <h1 className="titulo uppercase text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mt-1">
@@ -67,7 +67,7 @@ const Home = () => {
           transition={{ duration: 0.8 }}
         >
 
-          <p className="mt-10 text-lg md:text-xl text-gray-300 max-w-md mx-auto">
+          <p className="mt-10 text-lg md:text-xl text-slate-600 max-w-md mx-auto">
             Conectamos tecnología con tu negocio de forma eficiente e
             innovadora.
           </p>

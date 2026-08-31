@@ -353,7 +353,7 @@ export default function BarrioFormModal({ open, onClose, onSubmit, initial, fetc
                         Barrios (uno por línea){' '}
                         <span className="text-teal-600">*</span>
                       </label>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-600">
                         {itemsFromBulk.length} líneas
                       </span>
                     </div>
@@ -397,7 +397,7 @@ export default function BarrioFormModal({ open, onClose, onSubmit, initial, fetc
                         {Array.isArray(preview?.omitidas) &&
                           preview.omitidas.length > 0 && (
                             <div className="mt-3">
-                              <div className="text-xs mb-1 text-slate-400">
+                              <div className="text-xs mb-1 text-slate-600">
                                 Omitidas ({preview.omitidas.length}):
                               </div>
                               <ul className="space-y-1 max-h-28 overflow-auto pr-1">
@@ -407,14 +407,14 @@ export default function BarrioFormModal({ open, onClose, onSubmit, initial, fetc
                                     className="flex items-center justify-between gap-2 rounded-lg bg-white border border-slate-200 px-2 py-1"
                                   >
                                     <span className="truncate">{o.nombre}</span>
-                                    <span className="text-[11px] text-slate-400">
+                                    <span className="text-[11px] text-slate-600">
                                       {o.motivo}
                                     </span>
                                   </li>
                                 ))}
                               </ul>
                               {preview.omitidas.length > 30 && (
-                                <div className="text-[11px] text-slate-400 mt-1">
+                                <div className="text-[11px] text-slate-600 mt-1">
                                   +{preview.omitidas.length - 30} más…
                                 </div>
                               )}

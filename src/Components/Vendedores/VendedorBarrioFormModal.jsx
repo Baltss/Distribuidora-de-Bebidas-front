@@ -478,7 +478,7 @@ export default function VendedorBarrioFormModal({
                           className={`${inputCls} py-2.5 pr-9`}
                           placeholder="Buscar por nombre o documento…"
                         />
-                        <FaSearch className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <FaSearch className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-600" />
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -510,7 +510,7 @@ export default function VendedorBarrioFormModal({
                     {/* Lista */}
                     <div className="max-h-56 overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-2.5">
                       {filteredVendedores.length === 0 ? (
-                        <div className="text-sm text-slate-400 px-1 py-1.5">
+                        <div className="text-sm text-slate-600 px-1 py-1.5">
                           Sin resultados para “{qVend}”.
                         </div>
                       ) : (
@@ -539,7 +539,7 @@ export default function VendedorBarrioFormModal({
                             ${
                               checked
                                 ? 'bg-teal-600 border-teal-600 text-white'
-                                : 'bg-white border-slate-300 text-transparent group-hover:text-slate-300'
+                                : 'bg-white border-slate-300 text-transparent group-hover:text-slate-600'
                             }`}
                                   aria-hidden
                                 >
@@ -551,7 +551,7 @@ export default function VendedorBarrioFormModal({
                                     {v.nombre}
                                   </div>
                                   {v.documento ? (
-                                    <div className="truncate text-[11px] text-slate-400">
+                                    <div className="truncate text-[11px] text-slate-600">
                                       {v.documento}
                                     </div>
                                   ) : null}
