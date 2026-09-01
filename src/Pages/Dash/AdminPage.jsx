@@ -5,7 +5,8 @@ import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
 import {
   Package,
-  MapPin,
+  Building2,
+  ShieldCheck,
   Users,
   UserCircle2,
   ShoppingBag,
@@ -151,7 +152,7 @@ const AdminPage = () => {
               className="mt-1 text-sm text-slate-500 max-w-xl"
             >
               Elegí un módulo para administrar productos, clientes,
-              geografía, etc.
+              locales, usuarios, etc.
             </motion.p>
           </div>
 
@@ -231,11 +232,19 @@ const AdminPage = () => {
               />
 
               <DashboardTile
-                title="Geografía"
-                description="Provincias, ciudades, barrios y zonas de entrega o cobertura."
-                to="/dashboard/geografia"
-                icon={MapPin}
+                title="Locales"
+                description="ABM de locales/sucursales del negocio."
+                to="/dashboard/locales"
+                icon={Building2}
                 delay={0.14}
+              />
+
+              <DashboardTile
+                title="Usuarios"
+                description="Gestión de usuarios del sistema, roles y accesos."
+                to="/dashboard/usuarios"
+                icon={ShieldCheck}
+                delay={0.15}
               />
 
               <DashboardTile

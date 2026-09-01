@@ -34,7 +34,7 @@ export default function ClienteFormModal({
   // ------- Form -------
   const [form, setForm] = useState({
     nombre: '',
-    tipo: 'reparto', // 'local' | 'reparto'
+    tipo: 'local', // 'local' | 'reparto'
     documento: '',
     telefono: '',
     email: '',
@@ -175,7 +175,7 @@ export default function ClienteFormModal({
     // Intenta deducir ciudad/localidad desde el barrio_id de initial
     const seed = {
       nombre: initial?.nombre || '',
-      tipo: initial?.tipo === 'local' ? 'local' : 'reparto',
+      tipo: initial?.tipo === 'reparto' ? 'reparto' : 'local',
       documento: initial?.documento || '',
       telefono: initial?.telefono || '',
       email: initial?.email || '',

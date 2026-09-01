@@ -24,13 +24,11 @@ import {
 import { AuthProvider } from './AuthContext';
 import ProtectedRoute from './ProtectedRoute';
 
-import Home from './Pages/Home';
-import Footer from './Components/Footer';
 
 import LoginForm from './Components/login/LoginForm';
 import AdminPage from './Pages/Dash/AdminPage';
 import LocalesGet from './Pages/MetodosGets/LocalesGet';
-import UsuariosGet from './Pages/MetodosGets/UsuariosGet';
+import UsuariosPage from './Pages/Usuarios/UsuariosPage';
 import ProductosCards from './Pages/Productos/ProductosCards';
 import CiudadesCards from './Pages/Geografia/CiudadesCards';
 import AdminPageGeografia from './Pages/Geografia/AdminPageGeografia';
@@ -80,7 +78,7 @@ function AppContent() {
             element={
               <ProtectedRoute roles={['socio']}>
                 {' '}
-                <UsuariosGet />{' '}
+                <UsuariosPage />{' '}
               </ProtectedRoute>
             }
           />

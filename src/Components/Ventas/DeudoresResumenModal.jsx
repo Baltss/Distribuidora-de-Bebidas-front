@@ -9,7 +9,6 @@ import {
   BadgeDollarSign,
   UserCircle2
 } from 'lucide-react';
-import { FaInstagram, FaGlobeAmericas, FaWhatsapp } from 'react-icons/fa';
 
 import {
   backdropV,
@@ -370,47 +369,6 @@ export default function DeudoresResumenModal({ open, onClose, deudores = [] }) {
                     </button>
                   </div>
                 </motion.div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="text-[11px] text-slate-600 text-center sm:text-left">
-                  Módulo de Ventas &amp; Cobranza — Desarrollado por{' '}
-                  <span className="font-semibold text-slate-600">
-                    SoftFusion
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <a
-                    href="https://www.instagram.com/softfusiontechnologies/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                               hover:bg-slate-200 transition"
-                    title="Instagram SoftFusion"
-                  >
-                    <FaInstagram className="text-sm text-slate-500" />
-                  </a>
-                  <a
-                    href="https://softfusion.com.ar/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                               hover:bg-slate-200 transition"
-                    title="Sitio web SoftFusion"
-                  >
-                    <FaGlobeAmericas className="text-sm text-slate-500" />
-                  </a>
-                  <a
-                    href="https://wa.me/5493815430503"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                               hover:bg-slate-200 transition"
-                    title="WhatsApp SoftFusion"
-                  >
-                    <FaWhatsapp className="text-sm text-slate-500" />
-                  </a>
-                </div>
               </div>
             </div>
           </motion.div>

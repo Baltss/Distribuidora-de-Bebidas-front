@@ -1,5 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
+const labelCls = 'block text-sm font-medium text-slate-600 mb-2';
+
 export default function PasswordEditor({
   value,
   onChange,
@@ -40,9 +44,7 @@ export default function PasswordEditor({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        Contraseña
-      </label>
+      <label className={labelCls}>Contraseña</label>
 
       <div className="relative">
         <input
@@ -51,21 +53,21 @@ export default function PasswordEditor({
           onChange={(e) => onChange(e.target.value)}
           placeholder="Nueva contraseña (dejar vacío para no cambiar)"
           autoComplete="new-password"
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 pr-36 sm:pr-28"
+          className={`${inputCls} pr-36 sm:pr-28`}
         />
         <div className="hidden sm:flex items-center gap-3 absolute inset-y-0 right-2">
           <button
             type="button"
             onClick={() => setShow((v) => !v)}
-            className="text-xs text-indigo-600 hover:underline"
+            className="text-xs font-medium text-teal-600 hover:underline"
           >
             {show ? 'Ocultar' : 'Mostrar'}
           </button>
-          <span className="text-slate-600">·</span>
+          <span className="text-slate-300">·</span>
           <button
             type="button"
             onClick={genPassword}
-            className="text-xs text-gray-600 hover:underline"
+            className="text-xs font-medium text-slate-500 hover:underline"
           >
             Generar
           </button>
@@ -76,52 +78,50 @@ export default function PasswordEditor({
         <button
           type="button"
           onClick={() => setShow((v) => !v)}
-          className="text-indigo-600 hover:underline"
+          className="font-medium text-teal-600 hover:underline"
         >
           {show ? 'Ocultar' : 'Mostrar'}
         </button>
-        <span className="text-slate-600">·</span>
+        <span className="text-slate-300">·</span>
         <button
           type="button"
           onClick={genPassword}
-          className="text-gray-600 hover:underline"
+          className="font-medium text-slate-500 hover:underline"
         >
           Generar
         </button>
       </div>
 
       {/* Fuerza */}
-      <div className="h-1 w-full bg-gray-200 rounded">
+      <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
         <div
-          className={`h-1 rounded ${
+          className={`h-1.5 rounded-full transition-all ${
             [
               'bg-red-500',
-              'bg-yellow-500',
-              'bg-yellow-500',
-              'bg-green-500',
-              'bg-green-600'
+              'bg-amber-500',
+              'bg-amber-500',
+              'bg-emerald-500',
+              'bg-emerald-600'
             ][score]
           }`}
           style={{ width: `${(score / 4) * 100}%` }}
         />
       </div>
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-slate-500">
         Usá 12+ caracteres, mayúsculas, minúsculas, números y símbolos.
       </p>
 
       {showConfirm && (
         <>
-          <label className="block text-sm font-medium text-gray-700">
-            Confirmar contraseña
-          </label>
+          <label className={labelCls}>Confirmar contraseña</label>
           <input
             type={show ? 'text' : 'password'}
             value={confirmValue}
             onChange={(e) => onConfirmChange(e.target.value)}
             placeholder="Repetir contraseña"
             autoComplete="new-password"
-            className={`w-full px-4 py-2 rounded-lg border ${
-              mismatch ? 'border-rose-400' : 'border-gray-300'
+            className={`${inputCls} ${
+              mismatch ? 'border-rose-400 focus:ring-rose-400/40' : ''
             }`}
           />
           {mismatch && (

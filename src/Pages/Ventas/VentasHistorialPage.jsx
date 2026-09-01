@@ -12,17 +12,14 @@ import {
   listVentas,
   getVenta,
   anularVenta,
-  createVenta,
   createVentasRepartoMasiva
 } from '../../api/ventas';
 import { moneyAR } from '../../utils/money';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import VentaFormModal from '../../Components/Ventas/VentaFormModal';
 import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
-import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 // ======================================================
 //  - 17-01-2026
@@ -82,43 +79,9 @@ const VentasHistorialPage = () => {
   const location = useLocation();
 
   // ------------ acciones sobre el listado (antes en AdminPageVentas) ------------
-  const [ventaModalOpen, setVentaModalOpen] = useState(false);
   const [ventasRepartoModalOpen, setVentasRepartoModalOpen] = useState(false);
   const [exportarModalOpen, setExportarModalOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
   const [creatingMasiva, setCreatingMasiva] = useState(false);
-
-  const handleNuevaVenta = async ({ venta, items }) => {
-    try {
-      setCreating(true);
-      const creada = await createVenta({ ...venta, items });
-      const result = await Swal.fire({
-        icon: 'success',
-        title: 'Venta creada',
-        text: 'La venta se registró correctamente.',
-        showDenyButton: !!creada?.id,
-        denyButtonText: 'Imprimir comprobante',
-        denyButtonColor: '#0ea5e9',
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: '#10b981'
-      });
-      if (result.isDenied && creada?.id) {
-        window.open(`${API_URL}/ventas/${creada.id}/recibo-pdf`, '_blank');
-      }
-      setVentaModalOpen(false);
-      await fetchVentas();
-    } catch (err) {
-      console.error('Error creando venta:', err);
-      const msg =
-        err?.response?.data?.mensajeError ||
-        err?.message ||
-        'No se pudo crear la venta.';
-      Swal.fire({ icon: 'error', title: 'Error', text: msg });
-      throw err;
-    } finally {
-      setCreating(false);
-    }
-  };
 
   const handleVentasRepartoMasiva = async (payload) => {
     try {
@@ -458,14 +421,12 @@ const VentasHistorialPage = () => {
 
           {/* Acciones centralizadas del módulo de Ventas */}
           <div className="flex flex-wrap gap-2 md:justify-end">
-            <button
-              type="button"
-              onClick={() => setVentaModalOpen(true)}
-              disabled={creating}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 disabled:opacity-60 transition"
+            <Link
+              to="/dashboard/nueva-venta"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-semibold hover:bg-orange-600 transition"
             >
-              <FaPlus /> {creating ? 'Creando…' : 'Nueva venta'}
-            </button>
+              <FaPlus /> Nueva venta
+            </Link>
             <button
               type="button"
               onClick={() => setVentasRepartoModalOpen(true)}
@@ -1241,12 +1202,6 @@ const VentasHistorialPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
-      <VentaFormModal
-        open={ventaModalOpen}
-        onClose={() => setVentaModalOpen(false)}
-        onSubmit={handleNuevaVenta}
-      />
 
       <VentaRepartoFormModal
         open={ventasRepartoModalOpen}

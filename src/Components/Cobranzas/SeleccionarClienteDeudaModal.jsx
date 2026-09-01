@@ -265,34 +265,6 @@ export default function SeleccionarClienteDeudaModal({
                     Ver deuda y cobrar
                   </button>
                 </motion.div>
-
-                {/* Footer mini */}
-                <motion.div
-                  variants={fieldV}
-                  className="mt-2 pt-3 border-t border-slate-200 flex items-center justify-between gap-3"
-                >
-                  <span className="text-[11px] text-slate-600">
-                    Módulo CxC · SodaSale · SoftFusion
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href="https://www.instagram.com/softfusiontechnologies/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-7 w-7 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition text-[11px] text-slate-600"
-                    >
-                      IG
-                    </a>
-                    <a
-                      href="https://softfusion.com.ar/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-7 px-3 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition text-[11px] text-slate-600"
-                    >
-                      Web
-                    </a>
-                  </div>
-                </motion.div>
               </motion.div>
             </div>
           </motion.div>

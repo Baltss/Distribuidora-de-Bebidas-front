@@ -1,68 +1,60 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaPlus, FaEdit, FaTrash, FaSearchLocation } from 'react-icons/fa';
-import Modal from 'react-modal';
-import ParticlesBackground from '../../Components/ParticlesBackground';
-import ButtonBack from '../../Components/ButtonBack';
-import { getUserId } from '../../utils/authUtils';
-import { API_BASE_URL } from '../../api/apiBase';
+import { FaPlus, FaSearch, FaArrowLeft, FaBuilding } from 'react-icons/fa';
 
-Modal.setAppElement('#root');
+import AppShell from '../../Components/Layout/AppShell';
+import LocalCard from '../../Components/Locales/LocalCard';
+import LocalFormModal from '../../Components/Locales/LocalFormModal';
 
-const API = `${API_BASE_URL}/locales`;
-
-const defaultFormValues = {
-  nombre: '',
-  codigo: '',
-  direccion: '',
-  ciudad: '',
-  provincia: 'Tucumán',
-  telefono: '',
-  email: '',
-  responsable_nombre: '',
-  responsable_dni: '',
-  horario_apertura: '09:00',
-  horario_cierre: '18:00',
-  printer_nombre: '',
-  estado: 'activo'
-};
+import { listLocales, createLocal, updateLocal, deleteLocal } from '../../api/locales';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
+import { showErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
 
 const LocalesGet = () => {
+  const navigate = useNavigate();
+
   const [data, setData] = useState([]);
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState('');
+  const debouncedQ = useDebouncedValue(search, 500);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(6);
   const [orderBy, setOrderBy] = useState('id');
   const [orderDir, setOrderDir] = useState('ASC');
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [formValues, setFormValues] = useState(defaultFormValues);
-  const [editId, setEditId] = useState(null);
-  const usuarioId = getUserId();
-
-  const debouncedQ = useMemo(() => search.trim(), [search]);
+  const [editing, setEditing] = useState(null);
 
   const fetchLocales = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(API, {
-        params: { page, limit, q: debouncedQ || undefined, orderBy, orderDir }
+      const resp = await listLocales({
+        page,
+        limit,
+        q: debouncedQ || undefined,
+        orderBy,
+        orderDir
       });
 
       // Compat: si backend devuelve array plano
-      if (Array.isArray(res.data)) {
-        setData(res.data);
+      if (Array.isArray(resp)) {
+        setData(resp);
         setMeta(null);
       } else {
-        setData(res.data.data || []);
-        setMeta(res.data.meta || null);
+        setData(resp.data || []);
+        setMeta(resp.meta || null);
       }
     } catch (e) {
       console.error('Error al obtener locales:', e);
+      const { mensajeError, tips } = e || {};
+      await showErrorSwal({
+        title: 'Error',
+        text: mensajeError || 'No se pudieron cargar los locales',
+        tips
+      });
     } finally {
       setLoading(false);
     }
@@ -74,7 +66,7 @@ const LocalesGet = () => {
   }, [page, limit, orderBy, orderDir, debouncedQ]);
 
   const filteredWhenNoMeta = useMemo(() => {
-    // Si NO hay meta (array plano por compat), mantené tu filtrado local
+    // Si NO hay meta (array plano por compat), mantené el filtrado local
     if (meta) return data;
     const q = search.toLowerCase();
     return data.filter((l) =>
@@ -85,41 +77,71 @@ const LocalesGet = () => {
   }, [data, meta, search]);
 
   const openModal = (local = null) => {
-    if (local) {
-      setEditId(local.id);
-      setFormValues({ ...defaultFormValues, ...local });
-    } else {
-      setEditId(null);
-      setFormValues(defaultFormValues);
-    }
+    setEditing(local);
     setModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    await axios.delete(`${API}/${id}`, { data: { usuario_log_id: usuarioId } });
-    if (meta && data.length === 1 && page > 1) {
-      setPage((p) => p - 1);
-    } else {
-      fetchLocales();
+  const onSubmit = async (form) => {
+    try {
+      if (editing?.id) {
+        await updateLocal(editing.id, form);
+        await showSuccessSwal({ title: 'Guardado', text: 'Local actualizado' });
+      } else {
+        await createLocal(form);
+        await showSuccessSwal({ title: 'Creado', text: 'Local creado' });
+      }
+      setModalOpen(false);
+      setEditing(null);
+      setPage(1);
+      await fetchLocales();
+    } catch (err) {
+      const { code, mensajeError, tips } = err || {};
+      if (code === 'DUPLICATE') {
+        return showErrorSwal({
+          title: 'Duplicado',
+          text: mensajeError || 'El código o nombre ya están en uso.',
+          tips: tips?.length ? tips : ['Verificá el código del local.']
+        });
+      }
+      if (code === 'MODEL_VALIDATION' || code === 'BAD_REQUEST') {
+        return showErrorSwal({
+          title: 'Datos inválidos',
+          text: mensajeError || 'Revisá los campos del formulario.',
+          tips
+        });
+      }
+      return showErrorSwal({
+        title: 'No se pudo guardar',
+        text: mensajeError || 'Ocurrió un error inesperado',
+        tips
+      });
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const payload = { ...formValues, usuario_log_id: usuarioId };
-    if (editId) {
-      await axios.put(`${API}/${editId}`, payload);
-    } else {
-      await axios.post(API, payload);
-    }
-    setModalOpen(false);
-    setPage(1);
-    fetchLocales();
-  };
+  const onDelete = async (item) => {
+    const isConfirmed = await showConfirmSwal({
+      title: '¿Eliminar local?',
+      text: `Se eliminará "${item?.nombre}". Esta acción no se puede deshacer.`,
+      confirmText: 'Sí, eliminar'
+    });
+    if (!isConfirmed) return;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    try {
+      await deleteLocal(item.id);
+      await showSuccessSwal({ title: 'Eliminado', text: 'Se borró correctamente.' });
+      if (meta && data.length === 1 && page > 1) {
+        setPage((p) => p - 1);
+      } else {
+        await fetchLocales();
+      }
+    } catch (err) {
+      const { mensajeError, tips } = err || {};
+      await showErrorSwal({
+        title: 'No se pudo eliminar',
+        text: mensajeError || 'Ocurrió un error al eliminar',
+        tips
+      });
+    }
   };
 
   const total = meta?.total ?? filteredWhenNoMeta.length;
@@ -133,44 +155,148 @@ const LocalesGet = () => {
     ? data
     : filteredWhenNoMeta.slice((page - 1) * limit, page * limit);
 
+  const Pager = (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="text-slate-500 text-xs sm:text-sm">
+        Total: <b className="text-slate-700">{total}</b> · Página{' '}
+        <b className="text-slate-700">{currPage}</b> de{' '}
+        <b className="text-slate-700">{totalPages}</b>
+      </div>
+      <div className="-mx-2 sm:mx-0">
+        <div className="overflow-x-auto no-scrollbar px-2 sm:px-0">
+          <div className="inline-flex items-center whitespace-nowrap gap-2">
+            <button
+              className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              onClick={() => setPage(1)}
+              disabled={!hasPrev}
+            >
+              «
+            </button>
+            <button
+              className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={!hasPrev}
+            >
+              ‹
+            </button>
+
+            <div className="flex flex-wrap gap-2 max-w-[80vw]">
+              {Array.from({ length: totalPages })
+                .slice(
+                  Math.max(0, currPage - 3),
+                  Math.max(0, currPage - 3) + 6
+                )
+                .map((_, idx) => {
+                  const start = Math.max(1, currPage - 2);
+                  const num = start + idx;
+                  if (num > totalPages) return null;
+                  const active = num === currPage;
+                  return (
+                    <button
+                      key={num}
+                      onClick={() => setPage(num)}
+                      className={`px-3 py-2 rounded-lg border text-sm ${
+                        active
+                          ? 'bg-teal-600 border-teal-600 text-white'
+                          : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      }`}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      {num}
+                    </button>
+                  );
+                })}
+            </div>
+
+            <button
+              className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              disabled={!hasNext}
+            >
+              ›
+            </button>
+            <button
+              className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+              onClick={() => setPage(totalPages)}
+              disabled={!hasNext}
+            >
+              »
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0c0e24] via-[#0f112b] to-[#131538] py-10 px-6 text-white relative overflow-hidden">
-      <ButtonBack />
-      <ParticlesBackground />
-      <div className="max-w-6xl mx-auto z-10 relative">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl titulo uppercase font-extrabold text-pink-400 flex items-center gap-3 drop-shadow-lg">
-            <FaSearchLocation className="animate-pulse" /> Locales
-          </h1>
+    <AppShell>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 transition"
+          >
+            <FaArrowLeft className="h-3.5 w-3.5" /> Volver
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3"
+            >
+              <FaBuilding className="text-teal-600" /> Locales
+            </motion.h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Gestioná las sucursales y puntos de venta.
+            </p>
+          </div>
+
           <button
             onClick={() => openModal()}
-            className="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 transition-colors px-5 py-2 rounded-xl font-bold shadow-md flex items-center gap-2"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-teal-600 text-white font-semibold hover:bg-teal-700 transition shadow-sm"
           >
             <FaPlus /> Nuevo Local
           </button>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        {/* Barra de acciones */}
+        <div className="mt-6 flex flex-col md:flex-row items-stretch md:items-center gap-3">
+          <div className="relative flex-1">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, dirección o teléfono…"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="w-full pl-10 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+            />
+          </div>
+
           <div className="flex items-center gap-2">
             <select
               value={orderBy}
               onChange={(e) => setOrderBy(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-gray-900 border border-gray-700"
               aria-label="Ordenar por"
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
             >
               <option value="id">ID</option>
               <option value="nombre">Nombre</option>
               <option value="codigo">Código</option>
               <option value="ciudad">Ciudad</option>
               <option value="provincia">Provincia</option>
-              {/* <option value="created_at">Creación</option>
-              <option value="updated_at">Actualización</option> */}
             </select>
             <select
               value={orderDir}
               onChange={(e) => setOrderDir(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-gray-900 border border-gray-700"
               aria-label="Dirección de orden"
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
             >
               <option value="ASC">Ascendente</option>
               <option value="DESC">Descendente</option>
@@ -181,8 +307,8 @@ const LocalesGet = () => {
                 setLimit(Number(e.target.value));
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg bg-gray-900 border border-gray-700"
               aria-label="Items por página"
+              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
             >
               <option value={6}>6</option>
               <option value={12}>12</option>
@@ -190,292 +316,47 @@ const LocalesGet = () => {
               <option value={48}>48</option>
             </select>
           </div>
-
-          <input
-            type="text"
-            placeholder="Buscar local..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-700 bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder:text-slate-600"
-          />
         </div>
 
-        {/* Info + Paginador superior */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-          <div className="text-white/80 text-xs sm:text-sm">
-            Total: <b>{total}</b> · Página <b>{currPage}</b> de{' '}
-            <b>{totalPages}</b>
-          </div>
-          <div className="-mx-2 sm:mx-0">
-            <div className="overflow-x-auto no-scrollbar px-2 sm:px-0">
-              <div className="inline-flex items-center whitespace-nowrap gap-2">
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage(1)}
-                  disabled={!hasPrev}
-                >
-                  «
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={!hasPrev}
-                >
-                  ‹
-                </button>
-
-                <div className="flex flex-wrap gap-2 max-w-[80vw]">
-                  {Array.from({ length: totalPages })
-                    .slice(
-                      Math.max(0, currPage - 3),
-                      Math.max(0, currPage - 3) + 6
-                    )
-                    .map((_, idx) => {
-                      const start = Math.max(1, currPage - 2);
-                      const num = start + idx;
-                      if (num > totalPages) return null;
-                      const active = num === currPage;
-                      return (
-                        <button
-                          key={num}
-                          onClick={() => setPage(num)}
-                          className={`px-3 py-2 rounded-lg border ${
-                            active
-                              ? 'bg-pink-600 border-pink-400'
-                              : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
-                          }`}
-                          aria-current={active ? 'page' : undefined}
-                        >
-                          {num}
-                        </button>
-                      );
-                    })}
-                </div>
-
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={!hasNext}
-                >
-                  ›
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage(totalPages)}
-                  disabled={!hasNext}
-                >
-                  »
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="mt-4">{Pager}</div>
 
         {/* Grid */}
-        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {loading
-            ? Array.from({ length: Math.min(limit, 8) }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-40 rounded-2xl bg-white/5 border border-white/10 animate-pulse"
-                />
-              ))
-            : rows.map((local) => (
-                <motion.div
-                  key={local.id}
-                  layout
-                  className="bg-white/10 p-6 rounded-2xl shadow-xl backdrop-blur-lg border border-white/10 hover:scale-[1.02] transition-transform"
-                >
-                  <h2 className="text-xl font-bold text-white">
-                    ID: {local.id}
-                  </h2>
-                  <h2 className="text-xl font-bold text-pink-300">
-                    {local.nombre}
-                  </h2>
-                  <p className="text-sm text-slate-600 italic">
-                    {local.direccion}
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    📍 {local.ciudad}, {local.provincia}
-                  </p>
-                  <p className="text-sm text-slate-600">📞 {local.telefono}</p>
-                  <p className="text-sm text-slate-600">
-                    Responsable: {local.responsable_nombre} (
-                    {local.responsable_dni})
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    🕒 {local.horario_apertura} - {local.horario_cierre}
-                  </p>
-                  <p className="text-sm text-slate-600">
-                    🖨️ {local.printer_nombre}
-                  </p>
-                  <p className="text-sm text-slate-600">✉️ {local.email}</p>
-                  <p className="text-sm text-green-400 font-bold">
-                    Estado: {local.estado}
-                  </p>
-
-                  <div className="mt-4 flex justify-end gap-4">
-                    <button
-                      onClick={() => openModal(local)}
-                      className="text-yellow-400 hover:text-yellow-300 text-xl"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(local.id)}
-                      className="text-red-500 hover:text-red-400 text-xl"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-        </motion.div>
-
-        {/* Paginador inferior (igual al superior) */}
-        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="text-white/80 text-xs sm:text-sm">
-            Total: <b>{total}</b> · Página <b>{currPage}</b> de{' '}
-            <b>{totalPages}</b>
-          </div>
-          <div className="-mx-2 sm:mx-0">
-            <div className="overflow-x-auto no-scrollbar px-2 sm:px-0">
-              <div className="inline-flex items-center whitespace-nowrap gap-2">
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage(1)}
-                  disabled={!hasPrev}
-                >
-                  «
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  disabled={!hasPrev}
-                >
-                  ‹
-                </button>
-                <div className="flex flex-wrap gap-2 max-w-[80vw]">
-                  {Array.from({ length: totalPages })
-                    .slice(
-                      Math.max(0, currPage - 3),
-                      Math.max(0, currPage - 3) + 6
-                    )
-                    .map((_, idx) => {
-                      const start = Math.max(1, currPage - 2);
-                      const num = start + idx;
-                      if (num > totalPages) return null;
-                      const active = num === currPage;
-                      return (
-                        <button
-                          key={num}
-                          onClick={() => setPage(num)}
-                          className={`px-3 py-2 rounded-lg border ${
-                            active
-                              ? 'bg-pink-600 border-pink-400'
-                              : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
-                          }`}
-                        >
-                          {num}
-                        </button>
-                      );
-                    })}
-                </div>
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                  disabled={!hasNext}
-                >
-                  ›
-                </button>
-                <button
-                  className="px-3 py-2 rounded-lg bg-gray-700 text-white disabled:opacity-40"
-                  onClick={() => setPage(totalPages)}
-                  disabled={!hasNext}
-                >
-                  »
-                </button>
-              </div>
+        <div className="mt-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="h-10 w-10 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
             </div>
-          </div>
+          ) : rows.length === 0 ? (
+            <div className="text-center text-slate-600 py-24">
+              No hay locales con esos filtros.
+            </div>
+          ) : (
+            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {rows.map((local) => (
+                <LocalCard
+                  key={local.id}
+                  item={local}
+                  onEdit={openModal}
+                  onDelete={onDelete}
+                />
+              ))}
+            </motion.div>
+          )}
         </div>
 
-        {/* Modal Crear/Editar */}
-        <Modal
-          isOpen={modalOpen}
-          onRequestClose={() => setModalOpen(false)}
-          overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50"
-          className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl border-l-4 border-pink-500 overflow-y-auto max-h-[90vh] scrollbar-thin scrollbar-thumb-pink-300"
-        >
-          <h2 className="text-2xl font-bold mb-4 text-pink-600">
-            {editId ? 'Editar Local' : 'Nuevo Local'}
-          </h2>
-
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          >
-            {Object.entries(defaultFormValues).map(([key]) => {
-              const label = key
-                .replace(/_/g, ' ')
-                .replace(/\b\w/g, (c) => c.toUpperCase());
-
-              if (key === 'estado') {
-                return (
-                  <div key={key} className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      {label}
-                    </label>
-                    <select
-                      name={key}
-                      value={formValues[key]}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                    >
-                      <option value="activo">Activo</option>
-                      <option value="inactivo">Inactivo</option>
-                    </select>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={key} className="w-full">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {label}
-                  </label>
-                  <input
-                    type={
-                      key.includes('email')
-                        ? 'email'
-                        : key.includes('horario')
-                        ? 'time'
-                        : 'text'
-                    }
-                    name={key}
-                    value={formValues[key]}
-                    onChange={handleChange}
-                    placeholder={label}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400"
-                  />
-                </div>
-              );
-            })}
-            <div className="md:col-span-2 text-right mt-4">
-              <button
-                type="submit"
-                className="bg-pink-500 hover:bg-pink-600 transition px-6 py-2 text-white font-semibold rounded-lg shadow-md"
-              >
-                {editId ? 'Actualizar' : 'Guardar'}
-              </button>
-            </div>
-          </form>
-        </Modal>
+        <div className="mt-6">{Pager}</div>
       </div>
-    </div>
+
+      <LocalFormModal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          setEditing(null);
+        }}
+        onSubmit={onSubmit}
+        initial={editing}
+      />
+    </AppShell>
   );
 };
 

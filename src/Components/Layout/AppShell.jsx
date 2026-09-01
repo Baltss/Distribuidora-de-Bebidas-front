@@ -8,7 +8,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid,
   Package,
-  MapPin,
+  Building2,
+  ShieldCheck,
   Users,
   UserCircle2,
   ShoppingBag,
@@ -27,7 +28,8 @@ import { useAuth } from '../../AuthContext';
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutGrid, exact: true },
   { label: 'Productos', to: '/dashboard/productos', icon: Package },
-  { label: 'Geografía', to: '/dashboard/geografia', icon: MapPin },
+  { label: 'Locales', to: '/dashboard/locales', icon: Building2 },
+  { label: 'Usuarios', to: '/dashboard/usuarios', icon: ShieldCheck },
   { label: 'Vendedores', to: '/dashboard/vendedores/vendedores', icon: Users },
   { label: 'Clientes', to: '/dashboard/clientes', icon: UserCircle2 },
   { label: 'Ventas', to: '/dashboard/nueva-venta', icon: ShoppingBag },
@@ -45,13 +47,13 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
       <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200">
         <img
           src={logoSueno}
-          alt="SodaSale"
+          alt="Soldi"
           className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200"
         />
         <div className="leading-tight">
-          <p className="text-sm font-extrabold tracking-wide text-slate-900">SODA SALE</p>
+          <p className="text-sm font-extrabold tracking-wide text-slate-900">SOLDI</p>
           <p className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
-            Panel Comercial
+            Sistema de Ventas
           </p>
         </div>
       </div>
@@ -179,8 +181,8 @@ export default function AppShell({ children }) {
         {/* Barra superior móvil */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <div className="flex items-center gap-2.5">
-            <img src={logoSueno} alt="SodaSale" className="h-8 w-8 rounded-lg object-cover" />
-            <span className="text-sm font-extrabold text-slate-900">SODA SALE</span>
+            <img src={logoSueno} alt="Soldi" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="text-sm font-extrabold text-slate-900">SOLDI</span>
           </div>
           <button
             type="button"

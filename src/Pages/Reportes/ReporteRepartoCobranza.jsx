@@ -31,7 +31,7 @@ import {
   ChevronRight,
   FileText
 } from 'lucide-react';
-import { FaInstagram, FaGlobeAmericas, FaArrowLeft } from 'react-icons/fa';
+import { FaArrowLeft } from 'react-icons/fa';
 
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../Components/Layout/AppShell';
@@ -1231,36 +1231,6 @@ export default function ReporteRepartoCobranza() {
               </>
             )}
           </motion.div>
-
-          {/* Footer mini */}
-          <div className="mt-10 pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-[11px] text-slate-500 text-center sm:text-left">
-              Módulo Reparto &amp; CxC ·{' '}
-              <span className="font-semibold text-slate-500">SodaSale</span> ·
-              Desarrollado por{' '}
-              <span className="font-semibold text-slate-500">SoftFusion</span>
-            </p>
-            <div className="flex items-center gap-2">
-              <a
-                href="https://www.instagram.com/softfusiontechnologies/"
-                target="_blank"
-                rel="noreferrer"
-                className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
-                title="Instagram SoftFusion"
-              >
-                <FaInstagram className="text-sm text-slate-800" />
-              </a>
-              <a
-                href="https://softfusion.com.ar/"
-                target="_blank"
-                rel="noreferrer"
-                className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200 transition"
-                title="Sitio web SoftFusion"
-              >
-                <FaGlobeAmericas className="text-sm text-slate-800" />
-              </a>
-            </div>
-          </div>
         </div>
         {/* ======================================================
      - 25-02-2026

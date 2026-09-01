@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X, AlertTriangle, Clock, BadgeDollarSign } from 'lucide-react';
-import { FaInstagram, FaGlobe, FaWhatsapp, FaLinkedin } from 'react-icons/fa';
 
 import { getCxcDeudaCliente } from '../../api/cxc';
 import { createCobranzaCliente } from '../../api/cobranzasClientes';
@@ -1078,7 +1077,7 @@ export default function DeudaClienteModal({
                     </motion.div>
                   )}
 
-                {/* Footer acciones + redes SoftFusion */}
+                {/* Footer acciones */}
                 <motion.div
                   variants={fieldV}
                   className="mt-4 flex flex-col gap-3"
@@ -1119,50 +1118,6 @@ export default function DeudaClienteModal({
                       Recordá registrar las cobranzas para mantener actualizada
                       la cuenta corriente del cliente.
                     </p>
-                  </div>
-
-                  {/* Redes SoftFusion */}
-                  <div className="pt-2 border-t border-slate-200 flex items-center justify-center gap-3">
-                    <a
-                      href="https://www.instagram.com/softfusiontechnologies/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                                 hover:bg-slate-200 hover:scale-105 transition"
-                      title="Instagram SoftFusion"
-                    >
-                      <FaInstagram className="text-lg text-slate-500" />
-                    </a>
-                    <a
-                      href="https://softfusion.com.ar/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                                 hover:bg-slate-200 hover:scale-105 transition"
-                      title="Web SoftFusion"
-                    >
-                      <FaGlobe className="text-lg text-slate-500" />
-                    </a>
-                    <a
-                      href="https://wa.me/5493815430503"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                                 hover:bg-slate-200 hover:scale-105 transition"
-                      title="WhatsApp SoftFusion"
-                    >
-                      <FaWhatsapp className="text-lg text-slate-500" />
-                    </a>
-                    <a
-                      href="https://www.linkedin.com/in/soft-fusionsa/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-8 w-8 flex items-center justify-center rounded-full bg-slate-100 border border-slate-200
-                                 hover:bg-slate-200 hover:scale-105 transition"
-                      title="LinkedIn SoftFusion"
-                    >
-                      <FaLinkedin className="text-lg text-slate-500" />
-                    </a>
                   </div>
                 </motion.div>
               </motion.div>
