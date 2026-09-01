@@ -35,7 +35,7 @@ const ventasLinks = [
     icon: <FaCashRegister />
   },
   {
-    to: '/dashboard/ventas/nueva', // esta NO navega: abre modal
+    to: '/dashboard/nueva-venta', // abre nueva page de "nueva venta"
     label: 'Nueva Venta',
     icon: <FaCashRegister />
   },
