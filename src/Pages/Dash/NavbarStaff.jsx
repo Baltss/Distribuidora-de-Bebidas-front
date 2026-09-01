@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiBell, FiLogOut, FiChevronDown } from 'react-icons/fi';
-import logoSueno from '../../Images/staff/imgLogoSueño.jpg';
+import logoSoldi from '../../Images/staff/LOGO-SOLDI.png';
 import { useAuth } from '../../AuthContext';
 // import NotificationBell from './NotificationBell'; // si ya lo tenés, descomenta
 
@@ -129,8 +129,8 @@ const NavbarStaff = () => {
               className="shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-400 rounded-lg"
             >
               <motion.img
-                src={logoSueno}
-                alt="Sueño"
+                src={logoSoldi}
+                alt="Soldi"
                 className="h-9 w-9 rounded-lg shadow-sm ring-1 ring-white/15 object-cover"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -333,8 +333,8 @@ const NavbarStaff = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <img
-                    src={logoSueno}
-                    alt="Sueño"
+                    src={logoSoldi}
+                    alt="Soldi"
                     className="h-9 w-9 rounded-md ring-1 ring-white/10 object-cover"
                   />
                   <div>

@@ -22,7 +22,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import logoSueno from '../../Images/staff/imgLogoSueño.jpg';
+import logoSoldi from '../../Images/staff/LOGO-SOLDI.png';
 import { useAuth } from '../../AuthContext';
 
 const NAV_ITEMS = [
@@ -46,7 +46,7 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
       {/* Logo / marca */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200">
         <img
-          src={logoSueno}
+          src={logoSoldi}
           alt="Soldi"
           className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200"
         />
@@ -181,7 +181,7 @@ export default function AppShell({ children }) {
         {/* Barra superior móvil */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <div className="flex items-center gap-2.5">
-            <img src={logoSueno} alt="Soldi" className="h-8 w-8 rounded-lg object-cover" />
+            <img src={logoSoldi} alt="Soldi" className="h-8 w-8 rounded-lg object-cover" />
             <span className="text-sm font-extrabold text-slate-900">SOLDI</span>
           </div>
           <button
