@@ -41,6 +41,7 @@ import VendedoresCards from './Pages/Vendedores/VendedoresCards';
 import VendedorBarriosCards from './Pages/Vendedores/VendedorBarriosCards';
 import ClientesCards from './Pages/Clientes/ClientesCards';
 import VentasHistorialPage from './Pages/Ventas/VentasHistorialPage';
+import NuevaVentaPage from './Pages/Ventas/NuevaVentaPage';
 import VentasDeudasPage from './Pages/Ventas/VentasDeudasPage';
 import VentasReportesPage from './Pages/Ventas/VentasReportesPage';
 import AdminPageRepartos from './Pages/Repartos/AdminPageRepartos';
@@ -170,6 +171,15 @@ function AppContent() {
               <ProtectedRoute>
                 {' '}
                 <ClientesCards />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/nueva-venta"
+            element={
+              <ProtectedRoute>
+                {' '}
+                <NuevaVentaPage />{' '}
               </ProtectedRoute>
             }
           />

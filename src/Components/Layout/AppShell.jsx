@@ -30,7 +30,7 @@ const NAV_ITEMS = [
   { label: 'Geografía', to: '/dashboard/geografia', icon: MapPin },
   { label: 'Vendedores', to: '/dashboard/vendedores/vendedores', icon: Users },
   { label: 'Clientes', to: '/dashboard/clientes', icon: UserCircle2 },
-  { label: 'Ventas', to: '/dashboard/ventas', icon: ShoppingBag },
+  { label: 'Ventas', to: '/dashboard/nueva-venta', icon: ShoppingBag },
   { label: 'Deudas y Cobranzas', to: '/dashboard/ventas/deudas', icon: AlertTriangle },
   { label: 'Reporte de Repartos', to: '/dashboard/generacion-informes', icon: FileText },
   { label: 'Proveedores', to: '/dashboard/proveedores', icon: Truck },

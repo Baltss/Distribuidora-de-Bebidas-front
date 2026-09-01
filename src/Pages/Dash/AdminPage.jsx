@@ -257,7 +257,7 @@ const AdminPage = () => {
               <DashboardTile
                 title="Ventas"
                 description="Consulta de ventas, tickets, comprobantes y métricas clave."
-                to="/dashboard/ventas"
+                to="/dashboard/nueva-venta"
                 icon={ShoppingBag}
                 delay={0.2}
               />
