@@ -332,7 +332,13 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           aCuentaNumber >= 0 &&
           aCuentaNumber <= moneyRound(totalNeto) + 0.01;
 
-    const hasMedioPago = !!form.medio_pago;
+    // Medio de pago sólo es obligatorio cuando la venta cobra algo ahora
+    // mismo (contado, o a_cuenta con un monto > 0). Un fiado puro no
+    // mueve caja, así que no tiene medio de pago que elegir.
+    const requiereMedioPago =
+      form.tipo === 'contado' ||
+      (form.tipo === 'a_cuenta' && aCuentaNumber > 0);
+    const hasMedioPago = !requiereMedioPago || !!form.medio_pago;
 
     return (
       hasCliente && hasVendedor && hasItemsValidos && aCuentaOk && hasMedioPago
@@ -1273,15 +1279,22 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 {/* Medio de pago */}
                 <motion.div variants={fieldV}>
                   <label className="block text-sm font-medium text-slate-600 mb-2">
-                    Medio de pago <span className="text-orange-600">*</span>
+                    Medio de pago{' '}
+                    {form.tipo === 'fiado' ? (
+                      <span className="text-slate-500 font-normal">(no aplica en fiado)</span>
+                    ) : (
+                      <span className="text-orange-600">*</span>
+                    )}
                   </label>
                   <select
                     value={form.medio_pago}
+                    disabled={form.tipo === 'fiado'}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, medio_pago: e.target.value }))
                     }
                     className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
-                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
+                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
+                               disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
                   >
                     <option value="">Seleccionar…</option>
                     {MEDIOS_PAGO.map((m) => (
