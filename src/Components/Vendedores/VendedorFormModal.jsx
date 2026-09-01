@@ -8,6 +8,8 @@ import {
   formContainerV,
   fieldV
 } from '../../ui/animHelpers';
+import SearchableSelect from '../Common/SearchableSelect';
+import { listUsuarios } from '../../api/usuarios';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
@@ -30,6 +32,10 @@ export default function VendedorFormModal({
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial?.id;
 
+  const [usuariosOptions, setUsuariosOptions] = useState([]);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
+  const [selectedUsuario, setSelectedUsuario] = useState(null);
+
   useEffect(() => {
     if (!open) return;
     setForm({
@@ -40,6 +46,41 @@ export default function VendedorFormModal({
       estado: initial?.estado || 'activo',
       notas: initial?.notas || ''
     });
+    setSelectedUsuario(null);
+  }, [open, initial]);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingUsuarios(true);
+      try {
+        const data = await listUsuarios({
+          page: 1,
+          limit: 200,
+          pageSize: 200,
+          estado: 'activo',
+          orderBy: 'nombre',
+          orderDir: 'ASC'
+        });
+        if (cancelled) return;
+        const list = data?.data || data || [];
+        setUsuariosOptions(list);
+        if (initial?.usuario_id) {
+          const match = list.find(
+            (u) => String(u.id) === String(initial.usuario_id)
+          );
+          if (match) setSelectedUsuario(match);
+        }
+      } catch (err) {
+        console.error('VendedorFormModal listUsuarios error:', err);
+      } finally {
+        if (!cancelled) setLoadingUsuarios(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [open, initial]);
 
   const canSave = useMemo(() => form.nombre.trim().length > 1, [form.nombre]);
@@ -64,7 +105,8 @@ export default function VendedorFormModal({
         email: form.email?.trim() || null,
         telefono: form.telefono?.trim() || null,
         estado: form.estado,
-        notas: form.notas?.trim() || null
+        notas: form.notas?.trim() || null,
+        usuario_id: selectedUsuario?.id || null
       });
       onClose();
     } finally {
@@ -135,6 +177,35 @@ export default function VendedorFormModal({
                     className={inputCls}
                     placeholder="Nombre y apellido"
                   />
+                </motion.div>
+
+                {/* Usuario vinculado */}
+                <motion.div variants={fieldV}>
+                  <label className={labelCls}>Usuario vinculado</label>
+                  <SearchableSelect
+                    items={usuariosOptions}
+                    value={selectedUsuario?.id ?? ''}
+                    onChange={(_id, opt) => setSelectedUsuario(opt || null)}
+                    placeholder={
+                      loadingUsuarios
+                        ? 'Cargando usuarios…'
+                        : 'Buscar por nombre, email… (opcional)'
+                    }
+                    disabled={loadingUsuarios}
+                    getOptionLabel={(u) =>
+                      `${u.nombre || 'Usuario'}${
+                        u.email ? ` • ${u.email}` : ''
+                      }`
+                    }
+                    getOptionValue={(u) => u.id}
+                    portal
+                    portalZIndex={2300}
+                  />
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    Si se vincula, este vendedor se preselecciona
+                    automáticamente al iniciar sesión con ese usuario en
+                    Nueva Venta.
+                  </p>
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
