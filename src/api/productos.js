@@ -65,10 +65,26 @@ export async function deleteProducto(id, opts = {}) {
   };
 }
 
+/** Descarga el Excel con todos los productos (dispara el guardado en el navegador) */
+export async function exportProductosXlsx(params = {}) {
+  const res = await http.get(`/productos/export/xlsx${toQS(params)}`, {
+    responseType: 'blob'
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'productos.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default {
   listProductos,
   createProducto,
   updateProducto,
   patchProductoEstado,
-  deleteProducto
+  deleteProducto,
+  exportProductosXlsx
 };

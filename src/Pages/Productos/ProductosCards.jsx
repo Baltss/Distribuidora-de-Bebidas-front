@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '../../Components/Layout/AppShell';
-import { Search, Plus, Layers, ArrowLeft, X } from 'lucide-react';
+import { Search, Plus, Layers, ArrowLeft, X, FileSpreadsheet } from 'lucide-react';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import ProductTableRow from '../../Components/Productos/ProductTableRow';
@@ -15,7 +15,8 @@ import {
   createProducto,
   updateProducto,
   patchProductoEstado,
-  deleteProducto
+  deleteProducto,
+  exportProductosXlsx
 } from '../../api/productos.js';
 import { getStockResumen } from '../../api/stock.js';
 import { listCategorias } from '../../api/categorias.js';
@@ -147,6 +148,21 @@ export default function ProductosCards() {
   const onNew = () => {
     setEditing(null);
     setModalOpen(true);
+  };
+
+  const [exportando, setExportando] = useState(false);
+  const onExport = async () => {
+    setExportando(true);
+    try {
+      await exportProductosXlsx();
+    } catch (err) {
+      await showErrorSwal({
+        title: 'No se pudo exportar',
+        text: err?.mensajeError || 'Ocurrió un error inesperado'
+      });
+    } finally {
+      setExportando(false);
+    }
   };
 
   const onEdit = (item) => {
@@ -324,6 +340,13 @@ export default function ProductosCards() {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600 text-sm font-semibold text-white hover:bg-violet-700 transition"
             >
               <Layers className="h-4 w-4" /> Nueva Categoría
+            </button>
+            <button
+              onClick={onExport}
+              disabled={exportando}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition disabled:opacity-60"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> {exportando ? 'Exportando…' : 'Exportar Excel'}
             </button>
             <button
               onClick={onNew}

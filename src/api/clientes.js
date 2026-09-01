@@ -67,11 +67,27 @@ export async function deleteCliente(id, opts = {}) {
   };
 }
 
+/** Descarga el Excel con todos los clientes (dispara el guardado en el navegador) */
+export async function exportClientesXlsx(params = {}) {
+  const res = await http.get(`/clientes/export/xlsx${toQS(params)}`, {
+    responseType: 'blob'
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'clientes.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default {
   listClientes,
   getCliente,
   createCliente,
   updateCliente,
   patchClienteEstado,
-  deleteCliente
+  deleteCliente,
+  exportClientesXlsx
 };

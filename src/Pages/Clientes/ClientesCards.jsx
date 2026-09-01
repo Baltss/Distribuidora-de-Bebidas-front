@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '../../Components/Layout/AppShell';
 import { motion } from 'framer-motion';
-import { FaPlus, FaSearch, FaArrowLeft } from 'react-icons/fa';
+import { FaPlus, FaSearch, FaArrowLeft, FaFileExcel } from 'react-icons/fa';
 
 import ClienteCard from '../../Components/Clientes/ClienteCard';
 import ClienteFormModal from '../../Components/Clientes/ClienteFormModal';
@@ -15,7 +15,8 @@ import {
   createCliente,
   updateCliente,
   patchClienteEstado,
-  deleteCliente
+  deleteCliente,
+  exportClientesXlsx
 } from '../../api/clientes';
 
 import { listVendedores } from '../../api/vendedores';
@@ -148,6 +149,20 @@ export default function ClientesCards() {
   const onNew = () => {
     setEditing(null);
     setModalOpen(true);
+  };
+  const [exportando, setExportando] = useState(false);
+  const onExport = async () => {
+    setExportando(true);
+    try {
+      await exportClientesXlsx();
+    } catch (err) {
+      await showErrorSwal({
+        title: 'No se pudo exportar',
+        text: err?.mensajeError || 'Ocurrió un error inesperado'
+      });
+    } finally {
+      setExportando(false);
+    }
   };
   const onEdit = (item) => {
     setEditing(item);
@@ -386,6 +401,14 @@ export default function ClientesCards() {
                 </option>
               ))}
             </select>
+
+            <button
+              onClick={onExport}
+              disabled={exportando}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 font-semibold hover:bg-slate-50 transition disabled:opacity-60"
+            >
+              <FaFileExcel className="text-emerald-600" /> {exportando ? 'Exportando…' : 'Exportar Excel'}
+            </button>
 
             <button
               onClick={onNew}
