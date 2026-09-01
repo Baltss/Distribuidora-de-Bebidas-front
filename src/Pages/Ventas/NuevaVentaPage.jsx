@@ -16,27 +16,20 @@ import Swal from 'sweetalert2';
 import { Plus, Trash2, ScanLine } from 'lucide-react';
 import {
   FaHistory,
-  FaCashRegister,
   FaMoneyBillWave,
   FaUsers,
-  FaChartLine,
   FaFileExport
 } from 'react-icons/fa';
 
 import AppShell from '../../Components/Layout/AppShell';
 import SearchableSelect from '../../Components/Common/SearchableSelect';
-import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
 
 import { useAuth } from '../../AuthContext';
 import { listClientes } from '../../api/clientes';
 import { listProductos } from '../../api/productos';
 import { listVendedores } from '../../api/vendedores';
-import {
-  createVenta,
-  createVentasRepartoMasiva
-} from '../../api/ventas';
-import { moneyAR } from '../../utils/money';
+import { createVenta } from '../../api/ventas';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
@@ -86,7 +79,6 @@ export default function NuevaVentaPage() {
     vendedor_id: '',
     tipo: 'contado', // contado | fiado | a_cuenta
     medio_pago: 'efectivo',
-    observaciones: '',
     monto_a_cuenta: ''
   });
   const [items, setItems] = useState([makeEmptyItem()]);
@@ -103,10 +95,8 @@ export default function NuevaVentaPage() {
   const [scanError, setScanError] = useState('');
   const scanInputRef = useRef(null);
 
-  // Acciones de la botonera (Carga masiva / Exportar) — sin modificar.
-  const [ventasRepartoModalOpen, setVentasRepartoModalOpen] = useState(false);
+  // Acción de la botonera (Exportar) — sin modificar.
   const [exportarModalOpen, setExportarModalOpen] = useState(false);
-  const [creatingMasiva, setCreatingMasiva] = useState(false);
 
   // ---------- Carga de catálogos al montar ----------
   useEffect(() => {
@@ -320,10 +310,6 @@ export default function NuevaVentaPage() {
     }));
   };
 
-  const handleObservaciones = (e) => {
-    setForm((f) => ({ ...f, observaciones: e.target.value }));
-  };
-
   const handleMontoACuenta = (e) => {
     const raw = e.target.value;
     if (raw === '') {
@@ -459,7 +445,6 @@ export default function NuevaVentaPage() {
       vendedor_id: defaultVendedorId || '',
       tipo: 'contado',
       medio_pago: 'efectivo',
-      observaciones: '',
       monto_a_cuenta: ''
     });
     setSelectedCliente(defaultClienteId || null);
@@ -496,7 +481,7 @@ export default function NuevaVentaPage() {
         tipo: form.tipo,
         canal: 'local',
         medio_pago: form.medio_pago,
-        observaciones: form.observaciones?.trim() || null,
+        observaciones: null,
         reparto_id: null,
         monto_a_cuenta: moneyRound(Number(form.monto_a_cuenta || 0)),
         items: itemsPayload
@@ -535,42 +520,6 @@ export default function NuevaVentaPage() {
     requestAnimationFrame(() => scanInputRef.current?.focus());
   };
 
-  const handleVentasRepartoMasiva = async (payload) => {
-    try {
-      setCreatingMasiva(true);
-      const resp = await createVentasRepartoMasiva(payload);
-      const cant =
-        resp?.meta?.ventasCreadas ??
-        (Array.isArray(resp?.ventas) ? resp.ventas.length : 0);
-      const total = resp?.meta?.totalGeneral;
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Ventas generadas',
-        html:
-          cant && total != null
-            ? `Se generaron <b>${cant}</b> venta(s) por reparto.<br/>Total general: <b>${moneyAR(
-                total
-              )}</b>.`
-            : 'Las ventas por reparto se registraron correctamente.',
-        timer: 2800,
-        showConfirmButton: false
-      });
-
-      setVentasRepartoModalOpen(false);
-    } catch (err) {
-      console.error('Error generando ventas por reparto:', err);
-      const msg =
-        err?.response?.data?.mensajeError ||
-        err?.message ||
-        'No se pudieron generar las ventas por reparto.';
-      Swal.fire({ icon: 'error', title: 'Error', text: msg });
-      throw err;
-    } finally {
-      setCreatingMasiva(false);
-    }
-  };
-
   // ---------- Render ----------
   return (
     <AppShell>
@@ -603,14 +552,6 @@ export default function NuevaVentaPage() {
             >
               <FaHistory /> Historial ventas
             </Link>
-            <button
-              type="button"
-              onClick={() => setVentasRepartoModalOpen(true)}
-              disabled={creatingMasiva}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 disabled:opacity-60 transition"
-            >
-              <FaCashRegister /> {creatingMasiva ? 'Generando…' : 'Carga masiva'}
-            </button>
             <Link
               to="/dashboard/ventas/saldo-previo"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
@@ -622,12 +563,6 @@ export default function NuevaVentaPage() {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
             >
               <FaUsers /> Deudas
-            </Link>
-            <Link
-              to="/dashboard/ventas/reportes"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition"
-            >
-              <FaChartLine /> Reportes
             </Link>
             <button
               type="button"
@@ -642,33 +577,8 @@ export default function NuevaVentaPage() {
         {/* Formulario de venta rápida */}
         <form onSubmit={submit} className="space-y-5">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-5">
-            {/* Vendedor + Cliente */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">
-                  Vendedor <span className="text-orange-600">*</span>
-                </label>
-                <select
-                  value={form.vendedor_id || ''}
-                  onChange={handleVendedorLocal}
-                  disabled={loadingVendedoresLocal}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
-                             focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
-                             disabled:opacity-60"
-                >
-                  <option className="text-black" value="">
-                    {loadingVendedoresLocal
-                      ? 'Cargando vendedores…'
-                      : 'Seleccioná quién atiende…'}
-                  </option>
-                  {vendedoresLocal.map((v) => (
-                    <option className="text-black" key={v.id} value={v.id}>
-                      {v.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
+            {/* Cliente + Tipo de venta + Medio de pago */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2">
                   Cliente <span className="text-orange-600">*</span>
@@ -692,41 +602,25 @@ export default function NuevaVentaPage() {
                   solo si la venta va a quedar fiada o a cuenta.
                 </p>
               </div>
-            </div>
 
-            {/* Tipo de venta + Medio de pago */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-600 mb-2">
                   Tipo de venta
                 </label>
-                <div className="inline-flex rounded-xl bg-slate-100 border border-slate-200 p-1">
-                  {[
-                    { key: 'contado', label: 'Contado' },
-                    { key: 'fiado', label: 'Fiado' },
-                    { key: 'a_cuenta', label: 'A cuenta' }
-                  ].map((opt) => {
-                    const disabled = esConsumidorFinal && opt.key !== 'contado';
-                    return (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => handleTipo(opt.key)}
-                        className={`px-3.5 py-1.5 text-sm rounded-lg transition
-                          ${
-                            form.tipo === opt.key
-                              ? 'bg-orange-500 text-white shadow'
-                              : disabled
-                                ? 'text-slate-600 cursor-not-allowed'
-                                : 'text-slate-500 hover:bg-slate-100'
-                          }`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
+                <select
+                  value={form.tipo}
+                  onChange={(e) => handleTipo(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                             focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
+                >
+                  <option value="contado">Contado</option>
+                  <option value="fiado" disabled={esConsumidorFinal}>
+                    Fiado
+                  </option>
+                  <option value="a_cuenta" disabled={esConsumidorFinal}>
+                    A cuenta
+                  </option>
+                </select>
                 {esConsumidorFinal && (
                   <p className="mt-2 text-xs text-slate-500">
                     Consumidor Final solo admite venta al contado.
@@ -759,6 +653,34 @@ export default function NuevaVentaPage() {
                   {MEDIOS_PAGO.map((m) => (
                     <option key={m.value} value={m.value}>
                       {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Vendedor (debajo, a la izquierda) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  Vendedor <span className="text-orange-600">*</span>
+                </label>
+                <select
+                  value={form.vendedor_id || ''}
+                  onChange={handleVendedorLocal}
+                  disabled={loadingVendedoresLocal}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                             focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
+                             disabled:opacity-60"
+                >
+                  <option className="text-black" value="">
+                    {loadingVendedoresLocal
+                      ? 'Cargando vendedores…'
+                      : 'Seleccioná quién atiende…'}
+                  </option>
+                  {vendedoresLocal.map((v) => (
+                    <option className="text-black" key={v.id} value={v.id}>
+                      {v.nombre}
                     </option>
                   ))}
                 </select>
@@ -798,21 +720,6 @@ export default function NuevaVentaPage() {
                 Cada escaneo suma 1 unidad — si el producto ya está en la
                 lista, se acumula en la misma línea.
               </p>
-            </div>
-
-            {/* Observaciones */}
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
-                Observaciones
-              </label>
-              <textarea
-                value={form.observaciones}
-                onChange={handleObservaciones}
-                rows={2}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
-                           placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
-                placeholder="Notas internas de la operación (opcional)"
-              />
             </div>
 
             {/* Detalle de productos: cada producto es una fila de tabla */}
@@ -1020,12 +927,6 @@ export default function NuevaVentaPage() {
           </div>
         </form>
       </div>
-
-      <VentaRepartoFormModal
-        open={ventasRepartoModalOpen}
-        onClose={() => setVentasRepartoModalOpen(false)}
-        onSubmit={handleVentasRepartoMasiva}
-      />
 
       <ExportarVentasModal
         open={exportarModalOpen}
