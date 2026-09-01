@@ -198,8 +198,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     const itemErrors = items.map((it) => {
       const ie = {};
       if (!it.producto_id) ie.producto_id = 'Requerido';
-      if (!Number.isInteger(Number(it.cantidad)) || Number(it.cantidad) <= 0)
-        ie.cantidad = 'Debe ser un entero > 0';
+      if (!Number.isFinite(Number(it.cantidad)) || Number(it.cantidad) <= 0)
+        ie.cantidad = 'Debe ser mayor a 0';
       if (!(Number(it.costo_unit) >= 0)) ie.costo_unit = 'Debe ser ≥ 0';
       return ie;
     });
@@ -549,8 +549,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                             <input
                               type="number"
                               onWheel={blockWheelChange}
-                              min="1"
-                              step="1"
+                              min="0.001"
+                              step="0.001"
                               value={it.cantidad}
                               onChange={(e) => setItem(idx, { cantidad: e.target.value })}
                               className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800

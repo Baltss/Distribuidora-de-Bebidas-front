@@ -66,10 +66,10 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
   const submitAjuste = async (e) => {
     e.preventDefault();
     const cantidad = Number(ajusteCantidad);
-    if (!Number.isInteger(cantidad) || cantidad === 0) {
+    if (!Number.isFinite(cantidad) || cantidad === 0) {
       return showWarnSwal({
         title: 'Cantidad inválida',
-        text: 'Ingresá un entero distinto de 0 (positivo suma, negativo resta).'
+        text: 'Ingresá un número distinto de 0 (positivo suma, negativo resta).'
       });
     }
 
@@ -183,7 +183,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
                       <input
                         type="number"
                         onWheel={blockWheelChange}
-                        step="1"
+                        step="0.001"
                         value={ajusteCantidad}
                         onChange={(e) => setAjusteCantidad(e.target.value)}
                         placeholder="± cantidad"
