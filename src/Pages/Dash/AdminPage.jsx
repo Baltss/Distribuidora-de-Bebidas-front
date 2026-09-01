@@ -11,7 +11,6 @@ import {
   UserCircle2,
   ShoppingBag,
   AlertTriangle,
-  FileText,
   Truck,
   ShoppingCart,
   Receipt,
@@ -277,14 +276,6 @@ const AdminPage = () => {
                 to="/dashboard/ventas/deudas"
                 icon={AlertTriangle}
                 delay={0.22}
-              />
-
-              <DashboardTile
-                title="Reporte de Repartos"
-                description="Generá y descargá el PDF del reparto diario para organizar entregas y cobranzas."
-                to="/dashboard/generacion-informes"
-                icon={FileText}
-                delay={0.28}
               />
 
               <DashboardTile

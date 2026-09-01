@@ -14,7 +14,6 @@ import {
   UserCircle2,
   ShoppingBag,
   AlertTriangle,
-  FileText,
   Truck,
   ShoppingCart,
   Receipt,
@@ -34,7 +33,6 @@ const NAV_ITEMS = [
   { label: 'Clientes', to: '/dashboard/clientes', icon: UserCircle2 },
   { label: 'Ventas', to: '/dashboard/nueva-venta', icon: ShoppingBag },
   { label: 'Deudas y Cobranzas', to: '/dashboard/ventas/deudas', icon: AlertTriangle },
-  { label: 'Reporte de Repartos', to: '/dashboard/generacion-informes', icon: FileText },
   { label: 'Proveedores', to: '/dashboard/proveedores', icon: Truck },
   { label: 'Compras', to: '/dashboard/compras', icon: ShoppingCart },
   { label: 'Caja y Finanzas', to: '/dashboard/caja', icon: Receipt }
