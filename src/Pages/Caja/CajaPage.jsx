@@ -32,6 +32,7 @@ import CerrarCajaModal from '../../Components/Caja/CerrarCajaModal';
 import CajaDetalleModal from '../../Components/Caja/CajaDetalleModal';
 import {
   getCajaActual,
+  getCajaDetalle,
   listCajaMovimientos,
   getCajaResumen,
   createCajaMovimientoManual,
@@ -40,6 +41,7 @@ import {
   cerrarCaja,
   listCajasHistorial
 } from '../../api/caja.js';
+import { listLocales } from '../../api/locales.js';
 import { createGasto } from '../../api/gastos.js';
 import { listGastosCategorias } from '../../api/gastosCategorias.js';
 import { showErrorSwal, showSuccessSwal, showConfirmSwal, showWarnSwal } from '../../ui/swal';
@@ -79,6 +81,10 @@ export default function CajaPage() {
   const navigate = useNavigate();
   const { userLevel } = useAuth();
   const esAdmin = String(userLevel || '').toLowerCase() === 'socio';
+  const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
+
+  const [locales, setLocales] = useState([]);
+  const [localSeleccionado, setLocalSeleccionado] = useState('');
 
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -94,7 +100,7 @@ export default function CajaPage() {
   const [movModalOpen, setMovModalOpen] = useState(false);
   const [movModalTipo, setMovModalTipo] = useState('ingreso');
   const [movModalEdit, setMovModalEdit] = useState(null);
-  const [cerrarModalOpen, setCerrarModalOpen] = useState(false);
+  const [cajaACerrar, setCajaACerrar] = useState(null);
 
   const [detalleCajaId, setDetalleCajaId] = useState(null);
   const [historialCajas, setHistorialCajas] = useState([]);
@@ -122,9 +128,24 @@ export default function CajaPage() {
     }
   };
 
+  const fetchLocales = async () => {
+    try {
+      const resp = await listLocales();
+      const activos = (Array.isArray(resp) ? resp : []).filter((l) => l.estado !== 'inactivo');
+      setLocales(activos);
+      if (esAdmin && activos.length > 0) {
+        setLocalSeleccionado((prev) => prev || String(activos[0].id));
+      }
+    } catch {
+      // no bloqueamos si falla
+    }
+  };
+
+  const localIdParam = esAdmin && localSeleccionado ? localSeleccionado : undefined;
+
   const fetchCajaActual = async () => {
     try {
-      const resp = await getCajaActual();
+      const resp = await getCajaActual({ local_id: localIdParam });
       setCajaActual(resp?.caja || null);
       setAlertaCajaAnterior(resp?.alerta_caja_anterior_pendiente || null);
     } catch {
@@ -134,7 +155,7 @@ export default function CajaPage() {
 
   const fetchResumen = async () => {
     try {
-      const resp = await getCajaResumen({ desde, hasta });
+      const resp = await getCajaResumen({ desde, hasta, local_id: localIdParam });
       setResumen(resp);
     } catch {
       // no bloqueamos si falla
@@ -143,7 +164,7 @@ export default function CajaPage() {
 
   const fetchHistorial = async () => {
     try {
-      const resp = await listCajasHistorial({ limit: 15 });
+      const resp = await listCajasHistorial({ limit: 15, local_id: localIdParam });
       setHistorialCajas(resp?.data || []);
     } catch {
       // no bloqueamos si falla
@@ -160,7 +181,8 @@ export default function CajaPage() {
         origen_tipo: origenTipo || undefined,
         medio_pago: medioPago || undefined,
         desde: desde || undefined,
-        hasta: hasta || undefined
+        hasta: hasta || undefined,
+        local_id: localIdParam
       });
       setRows(resp?.data || []);
       setMeta(resp?.meta || null);
@@ -178,9 +200,19 @@ export default function CajaPage() {
 
   useEffect(() => {
     fetchCategorias();
+    fetchLocales();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Local elegido (o recién cargado para admin): recarga todo.
+  useEffect(() => {
     fetchCajaActual();
     fetchHistorial();
-  }, []);
+    fetchResumen();
+    fetchData(1);
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localIdParam]);
 
   // Filtros cambiados (debounced): volvemos a página 1
   useEffect(() => {
@@ -286,13 +318,34 @@ export default function CajaPage() {
   };
 
   const onCerrarCaja = async (payload) => {
-    if (!cajaActual?.id) return;
-    const resp = await cerrarCaja(cajaActual.id, payload);
+    if (!cajaACerrar?.id) return;
+    const resp = await cerrarCaja(cajaACerrar.id, payload);
     await showSuccessSwal({
       title: 'Caja cerrada',
       text: resp?.estado_diferencia === 'ok' ? 'El efectivo contado cuadra con lo esperado.' : undefined
     });
+    setCajaACerrar(null);
     await refreshAll(page);
+  };
+
+  // Abre el cierre para la caja pendiente que avisa el banner de arriba
+  // (trae su resumen completo, incluido el desglose por medio de pago).
+  const abrirCierreDesdeAlerta = async () => {
+    if (!alertaCajaAnterior?.id) return;
+    try {
+      const resp = await getCajaDetalle(alertaCajaAnterior.id);
+      if (resp?.caja) setCajaACerrar(resp.caja);
+    } catch (err) {
+      await showErrorSwal({
+        title: 'No se pudo abrir el cierre',
+        text: err?.mensajeError || 'Ocurrió un error inesperado'
+      });
+    }
+  };
+
+  const abrirCierreDesdeDetalle = (caja) => {
+    setDetalleCajaId(null);
+    setCajaACerrar(caja);
   };
 
   return (
@@ -325,11 +378,39 @@ export default function CajaPage() {
           cobros, pagos, gastos, y ventas/compras de contado.
         </motion.p>
 
+        {esAdmin && locales.length > 1 && (
+          <div className="mt-4">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Local</label>
+            <select
+              value={localSeleccionado}
+              onChange={(e) => setLocalSeleccionado(e.target.value)}
+              className="w-full sm:w-64 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
+                         focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+            >
+              {locales.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="mt-6 space-y-6">
           {alertaCajaAnterior && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              La caja del {fmtFecha(alertaCajaAnterior.fecha_jornada)} quedó sin cerrar. Cerrala para que los
-              cierres queden al día.
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex flex-wrap items-center justify-between gap-3">
+              <span>
+                La caja del {fmtFecha(alertaCajaAnterior.fecha_jornada)} quedó sin cerrar. Cerrala para que los
+                cierres queden al día.
+              </span>
+              {esAdmin && (
+                <button
+                  onClick={abrirCierreDesdeAlerta}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition shrink-0"
+                >
+                  <FaLock className="h-3 w-3" /> Cerrar esa caja
+                </button>
+              )}
             </div>
           )}
 
@@ -338,14 +419,16 @@ export default function CajaPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-2.5">
-                  <h2 className="text-lg font-bold text-slate-900">Caja de hoy · {fmtFecha(cajaActual.fecha_jornada)}</h2>
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Caja de hoy{cajaActual.local?.nombre ? ` · ${cajaActual.local.nombre}` : ''} · {fmtFecha(cajaActual.fecha_jornada)}
+                  </h2>
                   <span className={`px-2 py-1 rounded-full text-xs border ${ESTADO_BADGE[cajaActual.estado] || ''}`}>
                     {ESTADO_LABEL[cajaActual.estado] || cajaActual.estado}
                   </span>
                 </div>
                 {esAdmin && cajaActual.estado !== 'cerrada' && (
                   <button
-                    onClick={() => setCerrarModalOpen(true)}
+                    onClick={() => setCajaACerrar(cajaActual)}
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
                   >
                     <FaLock className="h-3.5 w-3.5" /> Cerrar caja
@@ -393,18 +476,14 @@ export default function CajaPage() {
             >
               <FaHistory /> {historialOpen ? 'Ocultar historial de cajas' : 'Historial de cajas'}
             </button>
-            <button
-              onClick={() => openNuevoMovimiento('ingreso')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition"
-            >
-              <FaPlus /> Nuevo ingreso
-            </button>
-            <button
-              onClick={() => openNuevoMovimiento('egreso')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition"
-            >
-              <FaPlus /> Nuevo egreso
-            </button>
+            {!esVendedor && (
+              <button
+                onClick={() => openNuevoMovimiento('ingreso')}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition"
+              >
+                <FaPlus /> Nuevo ingreso
+              </button>
+            )}
             <button
               onClick={() => setGastoModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition"
@@ -423,6 +502,7 @@ export default function CajaPage() {
                   <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="px-3 py-2">Jornada</th>
+                      {esAdmin && <th className="px-3 py-2">Local</th>}
                       <th className="px-3 py-2">Estado</th>
                       <th className="px-3 py-2 text-right">Saldo esperado</th>
                       <th className="px-3 py-2 text-right">Diferencia</th>
@@ -436,6 +516,7 @@ export default function CajaPage() {
                         onClick={() => setDetalleCajaId(c.id)}
                       >
                         <td className="px-3 py-2 whitespace-nowrap">{fmtFecha(c.fecha_jornada)}</td>
+                        {esAdmin && <td className="px-3 py-2">{c.local?.nombre || '—'}</td>}
                         <td className="px-3 py-2">
                           <span className={`px-2 py-0.5 rounded-full text-[11px] border ${ESTADO_BADGE[c.estado] || ''}`}>
                             {ESTADO_LABEL[c.estado] || c.estado}
@@ -449,7 +530,7 @@ export default function CajaPage() {
                     ))}
                     {historialCajas.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="px-3 py-6 text-center text-slate-400">
+                        <td colSpan={esAdmin ? 5 : 4} className="px-3 py-6 text-center text-slate-400">
                           Sin cajas registradas todavía.
                         </td>
                       </tr>
@@ -661,7 +742,7 @@ export default function CajaPage() {
                           {moneyAR(m.monto)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {esManual && !m.anulado && (
+                          {esManual && !m.anulado && !esVendedor && (
                             <div className="inline-flex items-center gap-1.5">
                               <button
                                 onClick={() => openEditarMovimiento(m)}
@@ -724,15 +805,17 @@ export default function CajaPage() {
         initialData={movModalEdit}
       />
       <CerrarCajaModal
-        open={cerrarModalOpen}
-        onClose={() => setCerrarModalOpen(false)}
+        open={cajaACerrar != null}
+        onClose={() => setCajaACerrar(null)}
         onSubmit={onCerrarCaja}
-        caja={cajaActual}
+        caja={cajaACerrar}
       />
       <CajaDetalleModal
         open={detalleCajaId != null}
         onClose={() => setDetalleCajaId(null)}
         cajaId={detalleCajaId}
+        esAdmin={esAdmin}
+        onCerrar={abrirCierreDesdeDetalle}
       />
     </AppShell>
   );

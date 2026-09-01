@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { X, Wallet, ArrowUp, ArrowDown } from 'lucide-react';
+import { X, Wallet, ArrowUp, ArrowDown, Lock } from 'lucide-react';
 import { backdropV, panelV } from '../../ui/animHelpers';
 import { getCajaDetalle } from '../../api/caja.js';
 import moneyAR from '../../utils/money';
@@ -33,7 +33,7 @@ const fmtFecha = (v) => (v ? new Date(v).toLocaleDateString('es-AR') : '—');
 const fmtFechaHora = (v) =>
   v ? new Date(v).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
-export default function CajaDetalleModal({ open, onClose, cajaId }) {
+export default function CajaDetalleModal({ open, onClose, cajaId, esAdmin, onCerrar }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -106,6 +106,14 @@ export default function CajaDetalleModal({ open, onClose, cajaId }) {
                   <span className={`px-2 py-1 rounded-full text-xs border ${ESTADO_BADGE[caja.estado] || ''}`}>
                     {ESTADO_LABEL[caja.estado] || caja.estado}
                   </span>
+                )}
+                {esAdmin && caja?.estado && caja.estado !== 'cerrada' && (
+                  <button
+                    onClick={() => onCerrar?.(caja)}
+                    className="ml-auto inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
+                  >
+                    <Lock className="h-3.5 w-3.5" /> Cerrar esta caja
+                  </button>
                 )}
               </div>
 

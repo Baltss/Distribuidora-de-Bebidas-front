@@ -13,15 +13,15 @@ const toQS = (params = {}) => {
   return `?${s.toString()}`;
 };
 
-/** Caja (jornada) de hoy — la abre automáticamente si todavía no existe */
-export async function getCajaActual() {
-  const { data } = await http.get('/caja/actual');
+/** Caja (jornada) de hoy — la abre automáticamente si todavía no existe. params: { local_id? } */
+export async function getCajaActual(params = {}) {
+  const { data } = await http.get(`/caja/actual${toQS(params)}`);
   return data;
 }
 
 /** A qué jornada correspondería un movimiento con esa fecha */
-export async function getCajaPorFecha(fecha) {
-  const { data } = await http.get(`/caja/por-fecha${toQS({ fecha })}`);
+export async function getCajaPorFecha(fecha, localId) {
+  const { data } = await http.get(`/caja/por-fecha${toQS({ fecha, local_id: localId })}`);
   return data;
 }
 
