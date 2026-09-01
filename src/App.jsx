@@ -77,7 +77,7 @@ function AppContent() {
           <Ruta
             path="/dashboard/usuarios"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={['socio']}>
                 {' '}
                 <UsuariosGet />{' '}
               </ProtectedRoute>
@@ -86,7 +86,7 @@ function AppContent() {
           <Ruta
             path="/dashboard/locales"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute roles={['socio']}>
                 {' '}
                 <LocalesGet />{' '}
               </ProtectedRoute>

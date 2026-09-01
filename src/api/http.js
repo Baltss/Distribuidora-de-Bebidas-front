@@ -11,8 +11,14 @@ const http = axios.create({
   timeout: 20000
 });
 
-/** Inyecta usuario_log_id en TODAS las requests */
+/** Inyecta el token JWT (Authorization: Bearer) y usuario_log_id en TODAS las requests */
 http.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem('authToken');
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
   const raw = getUserId?.();
   const uid = raw != null ? Number(raw) : null; // asegurar número
   if (!uid || Number.isNaN(uid)) return config;

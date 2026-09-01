@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Modal from 'react-modal';
-import { FaUser, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaUser, FaPlus, FaEdit, FaBan, FaCheckCircle } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import ParticlesBackground from '../../Components/ParticlesBackground';
 import ButtonBack from '../../Components/ButtonBack';
@@ -196,15 +196,39 @@ export default function UsuariosGet() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleToggleEstado = async (u) => {
+    const desactivando = u.estado !== 'inactivo';
+    const confirm = await Swal.fire({
+      title: desactivando ? '¿Desactivar usuario?' : '¿Reactivar usuario?',
+      text: desactivando
+        ? `${u.nombre} no va a poder iniciar sesión hasta que lo reactives.`
+        : `${u.nombre} va a poder volver a iniciar sesión.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: desactivando ? 'Sí, desactivar' : 'Sí, reactivar'
+    });
+    if (!confirm.isConfirmed) return;
+
     try {
       const client = axiosWithAuth();
-      await client.delete(`/usuarios/${id}`, {
-        data: { usuario_log_id: usuarioId }
-      });
+      if (desactivando) {
+        await client.delete(`/usuarios/${u.id}`, {
+          data: { usuario_log_id: usuarioId }
+        });
+      } else {
+        await client.put(`/usuarios/${u.id}`, {
+          estado: 'activo',
+          usuario_log_id: usuarioId
+        });
+      }
       fetchUsuarios();
     } catch (err) {
-      console.error('Error al eliminar usuario:', err);
+      console.error('Error al cambiar estado del usuario:', err);
+      await Swal.fire(
+        'ERROR',
+        err?.response?.data?.mensajeError || 'No se pudo cambiar el estado.',
+        'error'
+      );
     }
   };
 
@@ -297,7 +321,7 @@ export default function UsuariosGet() {
                 <th className="px-6 py-4">Email</th>
                 <th className="px-6 py-4">Rol</th>
                 <th className="px-6 py-4">Local</th>
-                {/* <th className="px-6 py-4">Reemplazante</th> nuevo */}
+                <th className="px-6 py-4">Estado</th>
                 <th className="px-6 py-4 text-center">Acciones</th>
               </tr>
             </thead>
@@ -317,35 +341,36 @@ export default function UsuariosGet() {
                   <td className="px-6 py-3 text-white/80">
                     {locales.find((l) => l.id === u.local_id)?.nombre || '-'}
                   </td>
-                   {/* pill
                   <td className="px-6 py-3">
-                    <div className="flex justify-center">
-                      {u.es_reemplazante ? (
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/30">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />{' '}
-                          Sí
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-rose-500/20 text-rose-600 ring-1 ring-rose-400/30">
-                          <span className="w-2 h-2 rounded-full bg-rose-400" />{' '}
-                          No
-                        </span>
-                      )}
-                    </div>
-                  </td> */}
+                    {u.estado === 'inactivo' ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 ring-1 ring-rose-400/30">
+                        Inactivo
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/30">
+                        Activo
+                      </span>
+                    )}
+                  </td>
 
                   <td className="px-6 py-3 text-center flex justify-center gap-4">
                     <button
                       onClick={() => openModal(u)}
                       className="text-yellow-400 hover:text-yellow-300"
+                      title="Editar"
                     >
                       <FaEdit />
                     </button>
                     <button
-                      onClick={() => handleDelete(u.id)}
-                      className="text-red-500 hover:text-red-400"
+                      onClick={() => handleToggleEstado(u)}
+                      className={
+                        u.estado === 'inactivo'
+                          ? 'text-emerald-400 hover:text-emerald-300'
+                          : 'text-red-500 hover:text-red-400'
+                      }
+                      title={u.estado === 'inactivo' ? 'Reactivar' : 'Desactivar'}
                     >
-                      <FaTrash />
+                      {u.estado === 'inactivo' ? <FaCheckCircle /> : <FaBan />}
                     </button>
                   </td>
                 </tr>

@@ -10,6 +10,7 @@ import {
 } from '../../api/stock.js';
 import { showErrorSwal, showSuccessSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
+import { useAuth } from '../../AuthContext';
 
 const TIPO_LABEL = {
   compra: 'Compra',
@@ -20,6 +21,8 @@ const TIPO_LABEL = {
 };
 
 export default function StockMovimientosModal({ open, producto, onClose, onChanged }) {
+  const { userLevel } = useAuth();
+  const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
   const [loading, setLoading] = useState(false);
   const [movimientos, setMovimientos] = useState([]);
   const [stockActual, setStockActual] = useState(null);
@@ -166,16 +169,18 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
                     <h4 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">
                       Últimos movimientos
                     </h4>
-                    <button
-                      type="button"
-                      onClick={() => setAjusteOpen((v) => !v)}
-                      className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
-                    >
-                      <Plus className="h-3.5 w-3.5" /> Ajuste manual
-                    </button>
+                    {!esVendedor && (
+                      <button
+                        type="button"
+                        onClick={() => setAjusteOpen((v) => !v)}
+                        className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> Ajuste manual
+                      </button>
+                    )}
                   </div>
 
-                  {ajusteOpen && (
+                  {ajusteOpen && !esVendedor && (
                     <form
                       onSubmit={submitAjuste}
                       className="mb-4 grid grid-cols-1 sm:grid-cols-[110px,140px,1fr,auto] gap-2 items-start rounded-xl border border-slate-200 bg-slate-50 p-3"

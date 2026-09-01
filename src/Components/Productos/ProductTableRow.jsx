@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import DetailViewModal from '../Common/DetailViewModal';
 import moneyAR from '../../utils/money';
+import { useAuth } from '../../AuthContext';
 
 const AVATAR_COLORS = [
   'bg-blue-500', 'bg-teal-500', 'bg-violet-500', 'bg-amber-500',
@@ -37,6 +38,8 @@ export default function ProductTableRow({
   onVerStock,
   stock
 }) {
+  const { userLevel } = useAuth();
+  const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
   const [viewOpen, setViewOpen] = useState(false);
 
   const initial = item?.nombre ? item.nombre[0]?.toUpperCase() : 'P';
@@ -176,27 +179,31 @@ export default function ProductTableRow({
                 <Warehouse className="h-4 w-4" />
               </button>
             )}
-            <button
-              onClick={() => onToggleActivo?.(item)}
-              title={isInactive ? 'Activar' : 'Desactivar'}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-cyan-700 transition"
-            >
-              <Power className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => onEdit?.(item)}
-              title="Editar"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => onDelete?.(item)}
-              title="Eliminar"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {!esVendedor && (
+              <>
+                <button
+                  onClick={() => onToggleActivo?.(item)}
+                  title={isInactive ? 'Activar' : 'Desactivar'}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-cyan-700 transition"
+                >
+                  <Power className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => onEdit?.(item)}
+                  title="Editar"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-blue-50 hover:text-blue-600 transition"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => onDelete?.(item)}
+                  title="Eliminar"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
+            )}
           </div>
         </td>
       </tr>

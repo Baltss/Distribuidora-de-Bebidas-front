@@ -78,7 +78,7 @@ const fmtFechaChart = (v) =>
 export default function CajaPage() {
   const navigate = useNavigate();
   const { userLevel } = useAuth();
-  const esAdmin = ['socio', 'administrador', 'admin'].includes(String(userLevel || '').toLowerCase());
+  const esAdmin = String(userLevel || '').toLowerCase() === 'socio';
 
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);

@@ -15,11 +15,17 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
-const ProtectedRoute = ({ children }) => {
-  const { authToken } = useAuth();
+// `roles`: lista opcional de roles permitidos (ej: ['socio']). Si no se
+// pasa, sólo exige estar logueado (comportamiento de siempre).
+const ProtectedRoute = ({ children, roles }) => {
+  const { authToken, userLevel } = useAuth();
 
   if (!authToken) {
     return <Navigate to="/login" />;
+  }
+
+  if (roles && roles.length > 0 && !roles.includes(String(userLevel || ''))) {
+    return <Navigate to="/dashboard" />;
   }
 
   return children;

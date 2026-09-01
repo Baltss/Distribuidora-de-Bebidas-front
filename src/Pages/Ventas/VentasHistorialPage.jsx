@@ -19,6 +19,7 @@ import { moneyAR } from '../../utils/money';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import VentaFormModal from '../../Components/Ventas/VentaFormModal';
+import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
@@ -71,6 +72,8 @@ const fmtFecha = (v) => {
 };
 
 const VentasHistorialPage = () => {
+  const { userLevel } = useAuth();
+  const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
   // ------------ estado base ------------
   const [ventas, setVentas] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -928,7 +931,7 @@ const VentasHistorialPage = () => {
                                     Ver
                                   </button>
 
-                                  {v.estado !== 'anulada' && (
+                                  {v.estado !== 'anulada' && !esVendedor && (
                                     <button
                                       type="button"
                                       onClick={() => handleAnular(v)}

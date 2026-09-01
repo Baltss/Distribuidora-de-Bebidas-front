@@ -12,19 +12,19 @@ const linksDef = [
     id: 1,
     href: 'dashboard',
     title: 'Dashboard',
-    roles: ['socio', 'empleado', 'administrador', 'admin']
+    roles: ['socio', 'administrativo', 'vendedor', 'contador']
   },
   {
     id: 2,
     href: 'dashboard/usuarios',
     title: 'Usuarios',
-    roles: ['socio', 'administrador', 'admin']
+    roles: ['socio']
   },
   {
     id: 3,
     href: 'dashboard/locales',
     title: 'Locales',
-    roles: ['socio', 'administrador', 'admin']
+    roles: ['socio']
   }
 ];
 
@@ -43,13 +43,15 @@ const NavbarStaff = () => {
   );
 
   const nivelLabel =
-    currentRole === 'admin' || currentRole === 'administrador'
+    currentRole === 'socio'
       ? 'Administrador'
-      : currentRole === 'socio'
-        ? 'Socio'
-        : currentRole === 'empleado'
-          ? 'Empleado'
-          : currentRole || 'Staff';
+      : currentRole === 'administrativo'
+        ? 'Administrativo'
+        : currentRole === 'vendedor'
+          ? 'Vendedor'
+          : currentRole === 'contador'
+            ? 'Contador'
+            : currentRole || 'Staff';
 
   // Derivar nombre para saludo/avatar
   const displayUserName = useMemo(() => {
