@@ -36,6 +36,37 @@ import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
 
+// Manda el ticket térmico directo al diálogo de impresión del navegador
+// (sin descargar/abrir un PDF a mano): lo carga en un iframe invisible y
+// dispara print() apenas termina de cargar. El usuario solo elige la
+// impresora térmica en el diálogo del sistema y confirma.
+function imprimirTicket(url) {
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.src = url;
+
+  iframe.onload = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch {
+      // Si el navegador bloquea imprimir desde el iframe, al menos abrimos
+      // el ticket en una pestaña para que lo impriman manualmente.
+      window.open(url, '_blank');
+    }
+  };
+
+  document.body.appendChild(iframe);
+  setTimeout(() => {
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  }, 60000);
+}
+
 // Key estable por ítem (no el índice del array): evita que, al insertar un
 // ítem nuevo arriba de la lista, React "recicle" el DOM/estado interno de
 // un SearchableSelect que en realidad pertenece a otra fila.
@@ -490,15 +521,20 @@ export default function NuevaVentaPage() {
       const result = await Swal.fire({
         icon: 'success',
         title: 'Venta creada',
-        text: 'La venta se registró correctamente.',
+        text: 'La venta se registró correctamente. ¿Cómo querés el comprobante?',
         showDenyButton: !!creada?.id,
-        denyButtonText: 'Imprimir comprobante',
+        showCancelButton: !!creada?.id,
+        denyButtonText: 'Comprobante PDF',
         denyButtonColor: '#0ea5e9',
+        cancelButtonText: 'Ticket térmico',
+        cancelButtonColor: '#8b5cf6',
         confirmButtonText: 'Aceptar',
         confirmButtonColor: '#10b981'
       });
       if (result.isDenied && creada?.id) {
         window.open(`${API_URL}/ventas/${creada.id}/recibo-pdf`, '_blank');
+      } else if (result.dismiss === Swal.DismissReason.cancel && creada?.id) {
+        imprimirTicket(`${API_URL}/ventas/${creada.id}/recibo-ticket`);
       }
 
       resetForm();

@@ -21,7 +21,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import logoSoldi from '../../Images/staff/LOGO-SOLDI.png';
+import logoDonNene from '../../Images/staff/LOGO-DON-NENE.jpeg';
 import { useAuth } from '../../AuthContext';
 
 const NAV_ITEMS = [
@@ -44,14 +44,16 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
       {/* Logo / marca */}
       <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-200">
         <img
-          src={logoSoldi}
-          alt="Soldi"
+          src={logoDonNene}
+          alt="Vinoteca Don Nene"
           className="h-9 w-9 rounded-xl object-cover ring-1 ring-slate-200"
         />
         <div className="leading-tight">
-          <p className="text-sm font-extrabold tracking-wide text-slate-900">SOLDI</p>
+          <p className="text-sm font-extrabold tracking-wide text-slate-900">
+            VINOTECA DON NENE
+          </p>
           <p className="text-[10px] uppercase tracking-[0.14em] text-slate-600">
-            Sistema de Ventas
+            Sistema de Ventas - Soldi Servicios
           </p>
         </div>
       </div>
@@ -179,8 +181,12 @@ export default function AppShell({ children }) {
         {/* Barra superior móvil */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
           <div className="flex items-center gap-2.5">
-            <img src={logoSoldi} alt="Soldi" className="h-8 w-8 rounded-lg object-cover" />
-            <span className="text-sm font-extrabold text-slate-900">SOLDI</span>
+            <img
+              src={logoDonNene}
+              alt="Vinoteca Don Nene"
+              className="h-8 w-8 rounded-lg object-cover"
+            />
+            <span className="text-sm font-extrabold text-slate-900">VINOTECA DON NENE</span>
           </div>
           <button
             type="button"
