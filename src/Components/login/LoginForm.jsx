@@ -16,13 +16,13 @@ import Modal from 'react-modal';
 import Alerta from '../Error';
 import { useNavigate } from 'react-router-dom';
 import Validation from './LoginValidation';
-import axios from 'axios';
 import '../../Styles/login.css';
 import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import VideoLogin from '../../Images/staff/videoBienvenida.mp4';
 import ParticlesBackground from '../ParticlesBackground';
+import http from '../../api/http';
 Modal.setAppElement('#root');
 
 const LoginForm = () => {
@@ -66,8 +66,8 @@ const LoginForm = () => {
     if (Object.keys(validationErrors).length === 0) {
       setLoading(true);
 
-      axios
-        .post('https://vps-5697083-x.dattaweb.com/login', {
+      http
+        .post('/login', {
           email: values.email,
           password: values.password
         })

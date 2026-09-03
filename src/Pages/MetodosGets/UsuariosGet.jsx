@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import Modal from 'react-modal';
 import { FaUser, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -64,7 +63,7 @@ export default function UsuariosGet() {
 
   const fetchLocales = async () => {
     try {
-      const res = await axios.get('https://vps-5697083-x.dattaweb.com/locales');
+      const res = await axiosWithAuth().get('/locales');
       setLocales(res.data);
     } catch (error) {
       console.error('Error al obtener locales:', error);
