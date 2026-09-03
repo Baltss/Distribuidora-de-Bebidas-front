@@ -18,7 +18,8 @@ import './App.css';
 import {
   BrowserRouter as Router,
   Routes as Rutas,
-  Route as Ruta
+  Route as Ruta,
+  Navigate
 } from 'react-router-dom'; // IMPORTAMOS useLocation PARA OCULTAR COMPONENTES
 
 import { AuthProvider } from './AuthContext';
@@ -299,6 +300,10 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          {/* Red de seguridad: cualquier ruta que no exista (ej. un link roto
+              o un redirect apuntando a algo que ya no está) manda al
+              dashboard en vez de dejar la pantalla en blanco. */}
+          <Ruta path="*" element={<Navigate to="/dashboard" replace />} />
         </Rutas>
         
       </div>

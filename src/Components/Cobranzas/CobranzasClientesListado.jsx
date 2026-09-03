@@ -17,7 +17,6 @@ import {
 } from '../../api/cobranzasClientes';
 import { showConfirmSwal, showErrorSwal, showSuccessSwal } from '../../ui/swal';
 import { medioPagoLabel } from '../../utils/mediosPago';
-import { useAuth } from '../../AuthContext';
 
 // Helpers locales
 const moneyAR = (n) =>
@@ -41,8 +40,6 @@ const fmtFecha = (iso) => {
 };
 
 export default function CobranzasClientesListado() {
-  const { userLevel } = useAuth();
-  const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState({
     total: 0,
@@ -366,7 +363,7 @@ export default function CobranzasClientesListado() {
                     >
                       Ver detalle
                     </button>
-                    {row.estado !== 'anulada' && !esVendedor && (
+                    {row.estado !== 'anulada' && (
                       <button
                         type="button"
                         onClick={() => handleAnular(row)}

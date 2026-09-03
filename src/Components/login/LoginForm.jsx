@@ -86,7 +86,7 @@ const LoginForm = () => {
             );
 
             if (res.data.rol === 'vendedor') {
-              navigate('/dashboard/ventas/pos');
+              navigate('/dashboard/nueva-venta');
             } else {
               navigate('/dashboard');
             }

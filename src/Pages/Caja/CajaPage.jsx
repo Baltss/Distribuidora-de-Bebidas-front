@@ -81,7 +81,6 @@ export default function CajaPage() {
   const navigate = useNavigate();
   const { userLevel } = useAuth();
   const esAdmin = String(userLevel || '').toLowerCase() === 'socio';
-  const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
 
   const [locales, setLocales] = useState([]);
   const [localSeleccionado, setLocalSeleccionado] = useState('');
@@ -476,14 +475,12 @@ export default function CajaPage() {
             >
               <FaHistory /> {historialOpen ? 'Ocultar historial de cajas' : 'Historial de cajas'}
             </button>
-            {!esVendedor && (
-              <button
-                onClick={() => openNuevoMovimiento('ingreso')}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition"
-              >
-                <FaPlus /> Nuevo ingreso
-              </button>
-            )}
+            <button
+              onClick={() => openNuevoMovimiento('ingreso')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition"
+            >
+              <FaPlus /> Nuevo ingreso
+            </button>
             <button
               onClick={() => setGastoModalOpen(true)}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition"
@@ -742,7 +739,7 @@ export default function CajaPage() {
                           {moneyAR(m.monto)}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {esManual && !m.anulado && !esVendedor && (
+                          {esManual && !m.anulado && (
                             <div className="inline-flex items-center gap-1.5">
                               <button
                                 onClick={() => openEditarMovimiento(m)}
