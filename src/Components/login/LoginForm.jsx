@@ -21,7 +21,7 @@ import '../../Styles/login.css';
 import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import VideoLogin from '../../Images/staff/videoBienvenida.mp4';
+import LoginBg from '../../Images/staff/LOGO-SOLDI-HORIZONTAL.png';
 import ParticlesBackground from '../ParticlesBackground';
 import { API_BASE_URL } from '../../api/apiBase';
 Modal.setAppElement('#root');
@@ -106,14 +106,11 @@ const LoginForm = () => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black loginbg">
-      {/* VIDEO DE FONDO */}
-      <video
+      {/* FONDO */}
+      <img
         className="absolute top-0 left-0 w-full h-full object-cover z-0"
-        src={VideoLogin}
-        autoPlay
-        muted
-        loop
-        playsInline
+        src={LoginBg}
+        alt="Vinoteca Don Nene"
       />
 
       {/* CAPA OSCURA (opcional para contraste) */}
@@ -127,11 +124,11 @@ const LoginForm = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         whileHover={{
           scale: 1.02,
-          boxShadow: '0 10px 40px rgba(236, 72, 153, 0.5)' // más fuerte
+          boxShadow: '0 10px 40px rgba(37, 99, 235, 0.5)' // más fuerte
         }}
-        className="relative z-20 bg-transparent  shadow-xl border border-white/30 hover:border-pink-400 rounded-2xl p-8 w-[95%] max-w-md mx-auto transition-all duration-300"
+        className="relative z-20 bg-transparent  shadow-xl border border-white/30 hover:border-blue-400 rounded-2xl p-8 w-[95%] max-w-md mx-auto transition-all duration-300"
       >
-        <h1 className="text-5xl titulo uppercase font-bold text-center text-pink-600 mb-2">
+        <h1 className="text-5xl titulo uppercase font-bold text-center text-blue-500 mb-2">
           Bienvenido
         </h1>
         <motion.p
@@ -158,7 +155,7 @@ const LoginForm = () => {
               type="email"
               name="email"
               placeholder="ejemplo@correo.com"
-              className="w-full mt-1 p-3 bg-pink-50 rounded-lg border border-white-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all"
+              className="w-full mt-1 p-3 bg-blue-50 rounded-lg border border-white-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
               onChange={handleInput}
             />
             {errors.email && <Alerta>{errors.email}</Alerta>}
@@ -179,13 +176,13 @@ const LoginForm = () => {
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 placeholder="••••••••"
-                className="w-full mt-1 p-3 bg-pink-50 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all pr-10"
+                className="w-full mt-1 p-3 bg-blue-50 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all pr-10"
                 onChange={handleInput}
               />
               <button
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-white-500 hover:text-pink-500"
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-white-500 hover:text-blue-600"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -200,7 +197,7 @@ const LoginForm = () => {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="bg-pink-500 text-white w-full py-3 rounded-lg font-semibold text-lg shadow-md hover:bg-pink-600 transition-all"
+              className="bg-blue-600 text-white w-full py-3 rounded-lg font-semibold text-lg shadow-md hover:bg-blue-700 transition-all"
             >
               {loading ? 'Cargando...' : 'Iniciar Sesión'}
             </motion.button>
@@ -220,11 +217,11 @@ const LoginForm = () => {
         className="fixed inset-0 flex items-center justify-center z-50"
         overlayClassName="fixed inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-300 ease-in-out z-40"
       >
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border-l-4 border-[#ff3b80] animate-fadeIn">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border-l-4 border-red-600 animate-fadeIn">
           <div className="flex items-center gap-4 mb-5">
-            <div className="bg-[#ff3b80]/10 p-3 rounded-full">
+            <div className="bg-red-600/10 p-3 rounded-full">
               <svg
-                className="w-7 h-7 text-[#ff3b80]"
+                className="w-7 h-7 text-red-600"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -236,14 +233,14 @@ const LoginForm = () => {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#ff3b80]">¡Atención!</h2>
+              <h2 className="text-xl font-bold text-red-600">¡Atención!</h2>
               <p className="text-gray-700 mt-1 leading-snug">{modalMessage}</p>
             </div>
           </div>
           <div className="text-end">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="mt-2 bg-[#ff3b80] hover:bg-[#e02b6c] text-white font-semibold py-2 px-6 rounded-lg transition-all"
+              className="mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-all"
             >
               Cerrar
             </button>
