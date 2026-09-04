@@ -28,7 +28,11 @@ import ProductoFormModal from '../Productos/ProductoFormModal';
 import { showErrorSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
-import { normalizeScanCode, findProductoByScan } from '../../utils/barcodeScan';
+import {
+  normalizeScanCode,
+  findProductoByScan,
+  fetchProductoByScan
+} from '../../utils/barcodeScan';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -145,18 +149,22 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
   // respaldo) y suma 1 unidad — si ya está en el carrito, incrementa esa
   // línea; si no, la agrega arriba precargando el último costo conocido.
   // ======================================================
-  const handleScan = () => {
+  const handleScan = async () => {
     const code = normalizeScanCode(scanValue);
     setScanValue('');
     if (!code) return;
 
-    const prod = findProductoByScan(productos, code);
+    let prod = findProductoByScan(productos, code);
+    if (!prod) prod = await fetchProductoByScan(code);
     if (!prod) {
       setScanError(`Producto no encontrado (código: ${code})`);
       scanInputRef.current?.focus();
       return;
     }
     setScanError('');
+    setProductos((prev) =>
+      prev.some((p) => String(p.id) === String(prod.id)) ? prev : [prod, ...prev]
+    );
 
     setItems((prev) => {
       const idx = prev.findIndex((it) => String(it.producto_id) === String(prod.id));

@@ -33,6 +33,11 @@ import { createVenta } from '../../api/ventas';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import {
+  normalizeScanCode,
+  findProductoByScan,
+  fetchProductoByScan
+} from '../../utils/barcodeScan';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
 
@@ -78,19 +83,6 @@ const makeEmptyItem = () => ({
   cantidad: '',
   precio_unit: ''
 });
-
-// Normaliza un código escaneado para comparar EAN-13 vs UPC-A (12 dígitos)
-// que a veces llegan con o sin el 0 inicial según la configuración del lector.
-const normalizeScanCode = (raw) => String(raw || '').trim();
-const scanVariants = (code) => {
-  const c = normalizeScanCode(code);
-  const variants = new Set([c]);
-  if (/^\d+$/.test(c)) {
-    if (c.length === 12) variants.add(`0${c}`);
-    if (c.length === 13 && c.startsWith('0')) variants.add(c.slice(1));
-  }
-  return Array.from(variants);
-};
 
 const moneyRound = (n) =>
   Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
@@ -406,35 +398,22 @@ export default function NuevaVentaPage() {
     );
   };
 
-  const findProductoByScan = (code) => {
-    const variants = scanVariants(code).map((v) => v.toUpperCase());
-    return (
-      productos.find(
-        (p) =>
-          p?.barra_ean13 &&
-          variants.includes(String(p.barra_ean13).toUpperCase())
-      ) ||
-      productos.find(
-        (p) =>
-          p?.codigo_sku &&
-          variants.includes(String(p.codigo_sku).toUpperCase())
-      ) ||
-      null
-    );
-  };
-
-  const handleScan = () => {
+  const handleScan = async () => {
     const code = normalizeScanCode(scanValue);
     setScanValue('');
     if (!code) return;
 
-    const prod = findProductoByScan(code);
+    let prod = findProductoByScan(productos, code);
+    if (!prod) prod = await fetchProductoByScan(code);
     if (!prod) {
       setScanError(`Producto no encontrado (código: ${code})`);
       scanInputRef.current?.focus();
       return;
     }
     setScanError('');
+    setProductos((prev) =>
+      prev.some((p) => String(p.id) === String(prod.id)) ? prev : [prod, ...prev]
+    );
 
     setItems((prev) => {
       const idx = prev.findIndex(

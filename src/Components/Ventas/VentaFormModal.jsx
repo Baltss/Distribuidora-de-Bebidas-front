@@ -19,6 +19,11 @@ import SearchableSelect from '../Common/SearchableSelect';
 import http from '../../api/http';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import {
+  normalizeScanCode,
+  findProductoByScan,
+  fetchProductoByScan
+} from '../../utils/barcodeScan';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
 
@@ -34,18 +39,6 @@ const makeEmptyItem = () => ({
   precio_unit: ''
 });
 
-// Normaliza un código escaneado para comparar EAN-13 vs UPC-A (12 dígitos)
-// que a veces llegan con o sin el 0 inicial según la configuración del lector.
-const normalizeScanCode = (raw) => String(raw || '').trim();
-const scanVariants = (code) => {
-  const c = normalizeScanCode(code);
-  const variants = new Set([c]);
-  if (/^\d+$/.test(c)) {
-    if (c.length === 12) variants.add(`0${c}`);
-    if (c.length === 13 && c.startsWith('0')) variants.add(c.slice(1));
-  }
-  return Array.from(variants);
-};
 export default function VentaFormModal({ open, onClose, onSubmit }) {
   const [form, setForm] = useState({
     fecha: new Date(),
@@ -784,35 +777,26 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   // busca el producto por barra_ean13 (o codigo_sku como respaldo) y
   // suma 1 unidad — si ya está en el carrito, incrementa esa línea.
   // ======================================================
-  const findProductoByScan = (code) => {
-    const variants = scanVariants(code).map((v) => v.toUpperCase());
-    return (
-      productos.find((p) =>
-        p?.barra_ean13 && variants.includes(String(p.barra_ean13).toUpperCase())
-      ) ||
-      productos.find((p) =>
-        p?.codigo_sku && variants.includes(String(p.codigo_sku).toUpperCase())
-      ) ||
-      null
-    );
-  };
-
   // Nota: NO es un <form> — un <form> anidado dentro del formulario grande
   // de la venta hace que el submit de este input burbujee y dispare
   // también el submit de la venta completa (guardando una venta parcial
   // en cada escaneo). Se maneja directo con onKeyDown (Enter).
-  const handleScan = () => {
+  const handleScan = async () => {
     const code = normalizeScanCode(scanValue);
     setScanValue('');
     if (!code) return;
 
-    const prod = findProductoByScan(code);
+    let prod = findProductoByScan(productos, code);
+    if (!prod) prod = await fetchProductoByScan(code);
     if (!prod) {
       setScanError(`Producto no encontrado (código: ${code})`);
       scanInputRef.current?.focus();
       return;
     }
     setScanError('');
+    setProductos((prev) =>
+      prev.some((p) => String(p.id) === String(prod.id)) ? prev : [prod, ...prev]
+    );
 
     setItems((prev) => {
       const idx = prev.findIndex((it) => Number(it.producto_id) === Number(prod.id));
