@@ -319,9 +319,14 @@ export default function CajaPage() {
   const onCerrarCaja = async (payload) => {
     if (!cajaACerrar?.id) return;
     const resp = await cerrarCaja(cajaACerrar.id, payload);
+    const textoPorEstado = {
+      ok: 'El efectivo contado cuadra con lo esperado.',
+      menor: 'Hubo una diferencia menor, dentro de lo tolerable.',
+      relevante: 'Hubo una diferencia relevante: quedó registrada en las observaciones del cierre.'
+    };
     await showSuccessSwal({
       title: 'Caja cerrada',
-      text: resp?.estado_diferencia === 'ok' ? 'El efectivo contado cuadra con lo esperado.' : undefined
+      text: textoPorEstado[resp?.estado_diferencia]
     });
     setCajaACerrar(null);
     await refreshAll(page);
