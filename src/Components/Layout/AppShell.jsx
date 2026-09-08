@@ -17,6 +17,9 @@ import {
   Truck,
   ShoppingCart,
   Receipt,
+  Landmark,
+  ClipboardCheck,
+  FileText,
   LogOut,
   Menu,
   X
@@ -24,6 +27,7 @@ import {
 import logoSoldi from '../../Images/staff/LOGO-SOLDI.png';
 import { useAuth } from '../../AuthContext';
 
+// `roles`: opcional — si se define, el ítem sólo se muestra a esos roles.
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutGrid, exact: true },
   { label: 'Productos', to: '/dashboard/productos', icon: Package },
@@ -35,10 +39,19 @@ const NAV_ITEMS = [
   { label: 'Deudas y Cobranzas', to: '/dashboard/ventas/deudas', icon: AlertTriangle },
   { label: 'Proveedores', to: '/dashboard/proveedores', icon: Truck },
   { label: 'Compras', to: '/dashboard/compras', icon: ShoppingCart },
-  { label: 'Caja y Finanzas', to: '/dashboard/caja', icon: Receipt }
+  { label: 'Caja y Finanzas', to: '/dashboard/caja', icon: Receipt },
+  {
+    label: 'Facturación',
+    to: '/dashboard/facturacion',
+    icon: FileText,
+    roles: ['socio', 'administrativo', 'contador']
+  },
+  { label: 'Datos Fiscales', to: '/dashboard/datos-fiscales', icon: Landmark, roles: ['socio'] },
+  { label: 'Aprobaciones', to: '/dashboard/aprobaciones-fiscales', icon: ClipboardCheck, roles: ['soldi_admin'] }
 ];
 
-function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, onLogout, onNavigate }) {
+function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, userLevel, onLogout, onNavigate }) {
+  const navItems = NAV_ITEMS.filter((item) => !item.roles || item.roles.includes(String(userLevel || '')));
   return (
     <div className="flex h-full flex-col">
       {/* Logo / marca */}
@@ -62,7 +75,7 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, on
           Módulos
         </p>
         <nav className="space-y-1">
-          {NAV_ITEMS.map(({ label, to, icon: Icon, exact }) => {
+          {navItems.map(({ label, to, icon: Icon, exact }) => {
             const active = exact ? pathname === to : pathname.startsWith(to);
             return (
               <Link
@@ -145,6 +158,7 @@ export default function AppShell({ children }) {
           displayUserName={displayUserName}
           nivelLabel={nivelLabel}
           userInitial={userInitial}
+          userLevel={userLevel}
           onLogout={handleLogout}
         />
       </aside>
@@ -167,6 +181,7 @@ export default function AppShell({ children }) {
               displayUserName={displayUserName}
               nivelLabel={nivelLabel}
               userInitial={userInitial}
+              userLevel={userLevel}
               onLogout={handleLogout}
               onNavigate={() => setMobileOpen(false)}
             />

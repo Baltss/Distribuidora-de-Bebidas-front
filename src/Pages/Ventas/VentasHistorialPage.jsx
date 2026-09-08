@@ -20,6 +20,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
+import { facturarVentas } from '../../api/facturacion';
 
 // ======================================================
 //  - 17-01-2026
@@ -342,6 +343,23 @@ const VentasHistorialPage = () => {
   const cerrarDetalle = () => {
     setDetalleOpen(false);
     setDetalle(null);
+  };
+
+  const [facturandoId, setFacturandoId] = useState(null);
+  const handleFacturar = async (venta) => {
+    const ok = window.confirm(`¿Facturar la venta #${venta.id}?`);
+    if (!ok) return;
+    try {
+      setFacturandoId(venta.id);
+      const resp = await facturarVentas([venta.id]);
+      alert(`Comprobante emitido. CAE: ${resp.cae}`);
+      await fetchVentas();
+    } catch (e) {
+      console.error('No se pudo facturar la venta:', e);
+      alert(e?.mensajeError || 'No se pudo facturar la venta.');
+    } finally {
+      setFacturandoId(null);
+    }
   };
 
   const handleAnular = async (venta) => {
@@ -865,6 +883,17 @@ const VentasHistorialPage = () => {
                                 >
                                   {v.estado}
                                 </span>
+                                {v.facturas_autorizadas_count > 0 ? (
+                                  <span className="ml-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border bg-emerald-50 text-emerald-700 border-emerald-200">
+                                    Facturada
+                                  </span>
+                                ) : (
+                                  v.estado === 'confirmada' && (
+                                    <span className="ml-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border bg-amber-50 text-amber-700 border-amber-200">
+                                      Sin facturar
+                                    </span>
+                                  )
+                                )}
                               </td>
 
                               <td className="px-4 py-2 text-right font-semibold text-gray-900">
@@ -891,6 +920,19 @@ const VentasHistorialPage = () => {
                                   >
                                     Ver
                                   </button>
+
+                                  {v.estado === 'confirmada' &&
+                                    !v.facturas_autorizadas_count &&
+                                    !esVendedor && (
+                                      <button
+                                        type="button"
+                                        disabled={facturandoId === v.id}
+                                        onClick={() => handleFacturar(v)}
+                                        className="text-xs px-2.5 py-1 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-50 transition"
+                                      >
+                                        {facturandoId === v.id ? 'Facturando…' : 'Facturar'}
+                                      </button>
+                                    )}
 
                                   {v.estado !== 'anulada' && !esVendedor && (
                                     <button

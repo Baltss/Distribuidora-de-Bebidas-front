@@ -56,6 +56,11 @@ import ComprasHistorialPage from './Pages/Compras/ComprasHistorialPage.jsx';
 //  - 16/07/2026 - Gastos se renombra y amplía a "Caja y Finanzas"
 import CajaPage from './Pages/Caja/CajaPage.jsx';
 
+//  - 08/09/2026 - Facturación Electrónica
+import DatosFiscalesPage from './Pages/Facturacion/DatosFiscalesPage.jsx';
+import AprobacionesPage from './Pages/Facturacion/AprobacionesPage.jsx';
+import FacturacionPage from './Pages/Facturacion/FacturacionPage.jsx';
+
 function AppContent() {
   return (
     <>
@@ -296,6 +301,34 @@ function AppContent() {
               <ProtectedRoute>
                 {' '}
                 <CajaPage />{' '}
+              </ProtectedRoute>
+            }
+          />
+          {/*  - 08/09/2026 - Facturación Electrónica */}
+          <Ruta
+            path="/dashboard/datos-fiscales"
+            element={
+              <ProtectedRoute roles={['socio']}>
+                {' '}
+                <DatosFiscalesPage />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/aprobaciones-fiscales"
+            element={
+              <ProtectedRoute roles={['soldi_admin']}>
+                {' '}
+                <AprobacionesPage />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/facturacion"
+            element={
+              <ProtectedRoute roles={['socio', 'administrativo', 'contador']}>
+                {' '}
+                <FacturacionPage />{' '}
               </ProtectedRoute>
             }
           />

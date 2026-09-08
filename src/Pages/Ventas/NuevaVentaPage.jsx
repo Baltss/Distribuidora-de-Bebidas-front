@@ -79,7 +79,8 @@ export default function NuevaVentaPage() {
     vendedor_id: '',
     tipo: 'contado', // contado | fiado | a_cuenta
     medio_pago: 'efectivo',
-    monto_a_cuenta: ''
+    monto_a_cuenta: '',
+    facturar: false
   });
   const [items, setItems] = useState([makeEmptyItem()]);
   const [saving, setSaving] = useState(false);
@@ -445,7 +446,8 @@ export default function NuevaVentaPage() {
       vendedor_id: defaultVendedorId || '',
       tipo: 'contado',
       medio_pago: 'efectivo',
-      monto_a_cuenta: ''
+      monto_a_cuenta: '',
+      facturar: false
     });
     setSelectedCliente(defaultClienteId || null);
     setItems([makeEmptyItem()]);
@@ -484,13 +486,22 @@ export default function NuevaVentaPage() {
         observaciones: null,
         reparto_id: null,
         monto_a_cuenta: moneyRound(Number(form.monto_a_cuenta || 0)),
-        items: itemsPayload
+        items: itemsPayload,
+        facturar: form.facturar
       });
 
+      const facturacionMsg = !form.facturar
+        ? ''
+        : creada?.facturacion?.ok
+        ? ` Factura emitida (CAE ${creada.facturacion.cae}).`
+        : creada?.facturacion
+        ? ` No se pudo facturar: ${creada.facturacion.mensajeError} (podés reintentar desde Facturación).`
+        : '';
+
       const result = await Swal.fire({
-        icon: 'success',
+        icon: form.facturar && !creada?.facturacion?.ok ? 'warning' : 'success',
         title: 'Venta creada',
-        text: 'La venta se registró correctamente.',
+        text: `La venta se registró correctamente.${facturacionMsg}`,
         showDenyButton: !!creada?.id,
         denyButtonText: 'Imprimir comprobante',
         denyButtonColor: '#0ea5e9',
@@ -889,6 +900,19 @@ export default function NuevaVentaPage() {
               )}
             </div>
           </div>
+
+          {/* Facturación electrónica: elegir si esta venta se factura al confirmarla */}
+          <label className="flex items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-4 py-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.facturar}
+              onChange={(e) => setForm((f) => ({ ...f, facturar: e.target.checked }))}
+              className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+            />
+            <span className="text-sm text-slate-700">
+              Facturar esta venta (emite el comprobante electrónico ante AFIP al confirmar)
+            </span>
+          </label>
 
           {/* Total estimado + Acciones: fijo, no se pierde con muchos ítems */}
           <div className="sticky bottom-0 z-10 rounded-2xl border border-slate-200 bg-white shadow-lg px-4 sm:px-5 py-4
