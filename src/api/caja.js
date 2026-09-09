@@ -43,6 +43,12 @@ export async function cerrarCaja(id, payload) {
   return data;
 }
 
+/** Corrige el saldo inicial de la caja abierta. { saldo_inicial_nuevo, motivo } — sólo Administrador */
+export async function corregirSaldoInicial(id, payload) {
+  const { data } = await http.patch(`/caja/${id}/saldo-inicial`, payload);
+  return data;
+}
+
 /** Listado de movimientos de caja con filtros y paginación */
 export async function listCajaMovimientos(params = {}) {
   const { data } = await http.get(`/caja/movimientos${toQS(params)}`);
@@ -85,6 +91,7 @@ export default {
   listCajasHistorial,
   getCajaDetalle,
   cerrarCaja,
+  corregirSaldoInicial,
   listCajaMovimientos,
   getCajaResumen,
   createCajaMovimientoManual,

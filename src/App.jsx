@@ -18,7 +18,8 @@ import './App.css';
 import {
   BrowserRouter as Router,
   Routes as Rutas,
-  Route as Ruta
+  Route as Ruta,
+  Navigate
 } from 'react-router-dom'; // IMPORTAMOS useLocation PARA OCULTAR COMPONENTES
 
 import { AuthProvider } from './AuthContext';
@@ -30,6 +31,7 @@ import AdminPage from './Pages/Dash/AdminPage';
 import LocalesGet from './Pages/MetodosGets/LocalesGet';
 import UsuariosPage from './Pages/Usuarios/UsuariosPage';
 import ProductosCards from './Pages/Productos/ProductosCards';
+import ProductosReposicionPage from './Pages/Productos/ProductosReposicionPage';
 import CiudadesCards from './Pages/Geografia/CiudadesCards';
 import AdminPageGeografia from './Pages/Geografia/AdminPageGeografia';
 import LocalidadesCards from './Pages/Geografia/LocalidadesCards';
@@ -102,6 +104,15 @@ function AppContent() {
               <ProtectedRoute>
                 {' '}
                 <ProductosCards />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/productos/reposicion"
+            element={
+              <ProtectedRoute>
+                {' '}
+                <ProductosReposicionPage />{' '}
               </ProtectedRoute>
             }
           />
@@ -332,6 +343,9 @@ function AppContent() {
               </ProtectedRoute>
             }
           />
+          {/*  - 09/09/2026 - Ruta comodín: cualquier link roto o desactualizado
+              cae acá en vez de dejar la pantalla en blanco. */}
+          <Ruta path="*" element={<Navigate to="/dashboard" replace />} />
         </Rutas>
         
       </div>

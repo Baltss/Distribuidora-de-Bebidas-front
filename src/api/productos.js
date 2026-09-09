@@ -80,11 +80,53 @@ export async function exportProductosXlsx(params = {}) {
   window.URL.revokeObjectURL(url);
 }
 
+/**
+ * Listado de reposición: productos activos con poco stock, filtrable por
+ * categoría/búsqueda/stock máximo/sólo-bajo-mínimo. Sin paginado.
+ */
+export async function listProductosReposicion(params = {}) {
+  const { data } = await http.get(`/productos/reposicion${toQS(params)}`);
+  return data;
+}
+
+/** Descarga el Excel del listado de reposición (mismos filtros, o &ids=1,2,3 para la selección manual) */
+export async function exportReposicionXlsx(params = {}) {
+  const res = await http.get(`/productos/reposicion/xlsx${toQS(params)}`, {
+    responseType: 'blob'
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'listado-reposicion.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+/** Descarga el PDF del listado de reposición (mismos filtros, o &ids=1,2,3 para la selección manual) */
+export async function exportReposicionPdf(params = {}) {
+  const res = await http.get(`/productos/reposicion/pdf${toQS(params)}`, {
+    responseType: 'blob'
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'listado-reposicion.pdf';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 export default {
   listProductos,
   createProducto,
   updateProducto,
   patchProductoEstado,
   deleteProducto,
-  exportProductosXlsx
+  exportProductosXlsx,
+  listProductosReposicion,
+  exportReposicionXlsx,
+  exportReposicionPdf
 };

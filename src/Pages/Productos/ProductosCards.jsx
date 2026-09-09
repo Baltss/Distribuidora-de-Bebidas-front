@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '../../Components/Layout/AppShell';
-import { Search, Plus, Layers, ArrowLeft, X, FileSpreadsheet } from 'lucide-react';
+import { Search, Plus, Layers, ArrowLeft, X, FileSpreadsheet, PackageSearch } from 'lucide-react';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 
 import ProductTableRow from '../../Components/Productos/ProductTableRow';
@@ -341,6 +341,12 @@ export default function ProductosCards() {
             >
               <Layers className="h-4 w-4" /> Nueva Categoría
             </button>
+            <Link
+              to="/dashboard/productos/reposicion"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+            >
+              <PackageSearch className="h-4 w-4 text-blue-600" /> Listado de reposición
+            </Link>
             <button
               onClick={onExport}
               disabled={exportando}

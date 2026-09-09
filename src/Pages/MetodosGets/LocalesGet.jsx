@@ -7,7 +7,7 @@ import AppShell from '../../Components/Layout/AppShell';
 import LocalCard from '../../Components/Locales/LocalCard';
 import LocalFormModal from '../../Components/Locales/LocalFormModal';
 
-import { listLocales, createLocal, updateLocal, deleteLocal } from '../../api/locales';
+import { listLocales, createLocal, updateLocal, deleteLocal, updateLocalEstado } from '../../api/locales';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import { showErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
 
@@ -135,11 +135,45 @@ const LocalesGet = () => {
         await fetchLocales();
       }
     } catch (err) {
-      const { mensajeError, tips } = err || {};
+      const { code, mensajeError, tips } = err || {};
+      if (code === 'LOCAL_CON_DEPENDENCIAS') {
+        return showErrorSwal({
+          title: 'No se puede eliminar',
+          text: mensajeError,
+          tips: ['Usá el botón "Desactivar" en su lugar.']
+        });
+      }
       await showErrorSwal({
         title: 'No se pudo eliminar',
         text: mensajeError || 'Ocurrió un error al eliminar',
         tips
+      });
+    }
+  };
+
+  const onToggleEstado = async (item) => {
+    const activando = (item?.estado || '').toLowerCase() !== 'activo';
+    const isConfirmed = await showConfirmSwal({
+      title: activando ? '¿Activar local?' : '¿Desactivar local?',
+      text: activando
+        ? `"${item?.nombre}" va a volver a estar disponible.`
+        : `"${item?.nombre}" no va a estar disponible hasta que lo reactives.`,
+      confirmText: activando ? 'Sí, activar' : 'Sí, desactivar'
+    });
+    if (!isConfirmed) return;
+
+    try {
+      await updateLocalEstado(item.id, activando ? 'activo' : 'inactivo');
+      await showSuccessSwal({
+        title: activando ? 'Activado' : 'Desactivado',
+        text: 'Estado actualizado correctamente.'
+      });
+      await fetchLocales();
+    } catch (err) {
+      const { mensajeError } = err || {};
+      await showErrorSwal({
+        title: 'No se pudo cambiar el estado',
+        text: mensajeError || 'Ocurrió un error inesperado'
       });
     }
   };
@@ -338,6 +372,7 @@ const LocalesGet = () => {
                   item={local}
                   onEdit={openModal}
                   onDelete={onDelete}
+                  onToggleEstado={onToggleEstado}
                 />
               ))}
             </motion.div>

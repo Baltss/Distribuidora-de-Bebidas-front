@@ -105,10 +105,13 @@ export default function NuevaVentaPage() {
 
     (async () => {
       try {
+        // Traemos el catálogo completo (no solo los primeros N) para que el
+        // escaneo de código de barras y el selector manual encuentren
+        // cualquier producto, no solo los más recientes.
         const pRes = await listProductos({
           orderBy: 'created_at',
           orderDir: 'DESC',
-          limit: 1000
+          limit: 20000
         });
         if (!alive) return;
         const prods = Array.isArray(pRes?.data) ? pRes.data : pRes || [];

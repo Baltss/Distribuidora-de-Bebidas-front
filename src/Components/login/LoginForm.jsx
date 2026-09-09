@@ -21,7 +21,7 @@ import '../../Styles/login.css';
 import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import VideoLogin from '../../Images/staff/videoBienvenida.mp4';
+import LogoSoldi from '../../Images/staff/LOGO-SOLDI.png';
 import ParticlesBackground from '../ParticlesBackground';
 import { API_BASE_URL } from '../../api/apiBase';
 Modal.setAppElement('#root');
@@ -86,7 +86,7 @@ const LoginForm = () => {
             );
 
             if (res.data.rol === 'vendedor') {
-              navigate('/dashboard/ventas/pos');
+              navigate('/dashboard/nueva-venta');
             } else {
               navigate('/dashboard');
             }
@@ -105,19 +105,13 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black loginbg">
-      {/* VIDEO DE FONDO */}
-      <video
-        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-        src={VideoLogin}
-        autoPlay
-        muted
-        loop
-        playsInline
+    <div className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#0b1f3f] via-[#0f2a54] to-[#12336b] loginbg">
+      {/* LOGO SOLDI DE FONDO (marca de agua) */}
+      <div
+        className="absolute inset-0 z-0 bg-no-repeat bg-center opacity-[0.07]"
+        style={{ backgroundImage: `url(${LogoSoldi})`, backgroundSize: 'min(70vw, 640px)' }}
       />
 
-      {/* CAPA OSCURA (opcional para contraste) */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/40 z-10" />
       <ParticlesBackground></ParticlesBackground>
 
       {/* FORMULARIO */}
@@ -127,11 +121,12 @@ const LoginForm = () => {
         transition={{ duration: 0.6, ease: 'easeOut' }}
         whileHover={{
           scale: 1.02,
-          boxShadow: '0 10px 40px rgba(236, 72, 153, 0.5)' // más fuerte
+          boxShadow: '0 10px 40px rgba(37, 99, 235, 0.45)'
         }}
-        className="relative z-20 bg-transparent  shadow-xl border border-white/30 hover:border-pink-400 rounded-2xl p-8 w-[95%] max-w-md mx-auto transition-all duration-300"
+        className="relative z-20 bg-white/10 backdrop-blur-md shadow-xl border border-white/20 hover:border-blue-400 rounded-2xl p-8 w-[95%] max-w-md mx-auto transition-all duration-300"
       >
-        <h1 className="text-5xl titulo uppercase font-bold text-center text-pink-600 mb-2">
+        <img src={LogoSoldi} alt="Soldi" className="h-16 w-16 mx-auto mb-3 rounded-2xl shadow-lg" />
+        <h1 className="text-5xl titulo uppercase font-bold text-center text-blue-400 mb-2">
           Bienvenido
         </h1>
         <motion.p
@@ -158,7 +153,7 @@ const LoginForm = () => {
               type="email"
               name="email"
               placeholder="ejemplo@correo.com"
-              className="w-full mt-1 p-3 bg-pink-50 rounded-lg border border-white-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all"
+              className="w-full mt-1 p-3 bg-blue-50 rounded-lg border border-white-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
               onChange={handleInput}
             />
             {errors.email && <Alerta>{errors.email}</Alerta>}
@@ -179,13 +174,13 @@ const LoginForm = () => {
                 type={showPassword ? 'text' : 'password'}
                 name="password"
                 placeholder="••••••••"
-                className="w-full mt-1 p-3 bg-pink-50 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all pr-10"
+                className="w-full mt-1 p-3 bg-blue-50 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all pr-10"
                 onChange={handleInput}
               />
               <button
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-white-500 hover:text-pink-500"
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-white-500 hover:text-blue-500"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -200,16 +195,12 @@ const LoginForm = () => {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={loading}
-              className="bg-pink-500 text-white w-full py-3 rounded-lg font-semibold text-lg shadow-md hover:bg-pink-600 transition-all"
+              className="bg-blue-600 text-white w-full py-3 rounded-lg font-semibold text-lg shadow-md hover:bg-blue-700 transition-all"
             >
               {loading ? 'Cargando...' : 'Iniciar Sesión'}
             </motion.button>
           </div>
         </form>
-
-        <p className="mt-6 text-center text-xs text-slate-500 italic">
-          "El esfuerzo de hoy es el éxito de mañana"
-        </p>
       </motion.div>
 
       {/* MODAL ERROR */}
@@ -220,11 +211,11 @@ const LoginForm = () => {
         className="fixed inset-0 flex items-center justify-center z-50"
         overlayClassName="fixed inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-300 ease-in-out z-40"
       >
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border-l-4 border-[#ff3b80] animate-fadeIn">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl border-l-4 border-[#dc2626] animate-fadeIn">
           <div className="flex items-center gap-4 mb-5">
-            <div className="bg-[#ff3b80]/10 p-3 rounded-full">
+            <div className="bg-[#dc2626]/10 p-3 rounded-full">
               <svg
-                className="w-7 h-7 text-[#ff3b80]"
+                className="w-7 h-7 text-[#dc2626]"
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -236,14 +227,14 @@ const LoginForm = () => {
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#ff3b80]">¡Atención!</h2>
+              <h2 className="text-xl font-bold text-[#dc2626]">¡Atención!</h2>
               <p className="text-gray-700 mt-1 leading-snug">{modalMessage}</p>
             </div>
           </div>
           <div className="text-end">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="mt-2 bg-[#ff3b80] hover:bg-[#e02b6c] text-white font-semibold py-2 px-6 rounded-lg transition-all"
+              className="mt-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-semibold py-2 px-6 rounded-lg transition-all"
             >
               Cerrar
             </button>

@@ -21,6 +21,7 @@ import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
 import { facturarVentas } from '../../api/facturacion';
+import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 
 // ======================================================
 //  - 17-01-2026
@@ -40,12 +41,7 @@ import {
   FaUsers,
   FaChartLine,
   FaFileExport,
-  FaCashRegister,
-  // ======================================================
-  //  - 17-01-2026
-  // Icono para reparto
-  // ======================================================
-  FaTruck
+  FaCashRegister
 } from 'react-icons/fa';
 
 const badgeTipoClasses = {
@@ -126,13 +122,7 @@ const VentasHistorialPage = () => {
     q: '',
     tipo: '',
     estado: '',
-    desde: '',
-    hasta: '',
-    // ======================================================
-    //  - 17-01-2026
-    // Nuevo filtro: reparto_id
-    // ======================================================
-    reparto_id: '',
+    ...getRangoPreset(DEFAULT_PRESET),
     page: 1,
     limit: 20
   });
@@ -144,20 +134,16 @@ const VentasHistorialPage = () => {
 
   // ======================================================
   //  - 17-01-2026
-  // Repartos para filtro de historial
+  // Repartos: sólo para mostrar el nombre de reparto en cada fila de la
+  // tabla (repartoById más abajo) — el filtro por reparto se sacó.
   // ======================================================
   const [repartos, setRepartos] = useState([]);
-  const [repartosLoading, setRepartosLoading] = useState(false);
-  const [repartosError, setRepartosError] = useState('');
 
   useEffect(() => {
     let alive = true;
 
     (async () => {
       try {
-        setRepartosLoading(true);
-        setRepartosError('');
-
         const r = await http.get('/repartos', {
           params: {
             limit: 9999,
@@ -178,12 +164,7 @@ const VentasHistorialPage = () => {
         if (alive) setRepartos(activos);
       } catch (e) {
         console.error('Error cargando repartos:', e);
-        if (alive) {
-          setRepartos([]);
-          setRepartosError('No se pudieron cargar los repartos.');
-        }
-      } finally {
-        if (alive) setRepartosLoading(false);
+        if (alive) setRepartos([]);
       }
     })();
 
@@ -204,18 +185,6 @@ const VentasHistorialPage = () => {
 
       // limpiamos page si viene override
       if (overrides.page) params.page = overrides.page;
-
-      // ======================================================
-      //  - 17-01-2026
-      // Normalizamos reparto_id para querystring
-      // ======================================================
-      if (
-        params.reparto_id === '' ||
-        params.reparto_id === null ||
-        params.reparto_id === undefined
-      ) {
-        delete params.reparto_id;
-      }
 
       const resp = await listVentas(params); // { data, meta }
       setVentas(resp.data || []);
@@ -249,17 +218,9 @@ const VentasHistorialPage = () => {
         tipo: filtros.tipo,
         estado: filtros.estado,
         desde: filtros.desde,
-        hasta: filtros.hasta,
-        reparto_id: filtros.reparto_id
+        hasta: filtros.hasta
       }),
-    [
-      filtros.q,
-      filtros.tipo,
-      filtros.estado,
-      filtros.desde,
-      filtros.hasta,
-      filtros.reparto_id
-    ]
+    [filtros.q, filtros.tipo, filtros.estado, filtros.desde, filtros.hasta]
   );
   const debouncedFiltroCriteriaKey = useDebouncedValue(filtroCriteriaKey, 500);
   const isFirstFiltroRun = useRef(true);
@@ -296,18 +257,16 @@ const VentasHistorialPage = () => {
       q: '',
       tipo: '',
       estado: '',
-      desde: '',
-      hasta: '',
-      // ======================================================
-      //  - 17-01-2026
-      // Reset reparto
-      // ======================================================
-      reparto_id: '',
+      ...getRangoPreset(DEFAULT_PRESET),
       page: 1,
       limit: filtros.limit
     };
     setFiltros(reset);
     fetchVentas(reset);
+  };
+
+  const handleFechaChange = ({ desde, hasta }) => {
+    setFiltros((f) => ({ ...f, desde, hasta }));
   };
 
   const handlePageChange = (dir) => {
@@ -552,7 +511,7 @@ const VentasHistorialPage = () => {
               className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm mb-6"
             >
               {/* Fila principal */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                 {/* q */}
                 <div className="md:col-span-2">
                   <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
@@ -570,54 +529,6 @@ const VentasHistorialPage = () => {
                      bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
                     />
                   </div>
-                </div>
-
-                {/* ======================================================
-       - 17-01-2026
-      Filtro Reparto
-    ====================================================== */}
-                <div className="w-full">
-                  <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
-                    <span className="inline-flex items-center gap-2">
-                      <FaTruck className="text-gray-500" />
-                      Reparto
-                    </span>
-                  </label>
-
-                  <div className="relative">
-                    <select
-                      name="reparto_id"
-                      value={filtros.reparto_id}
-                      onChange={handleFiltroChange}
-                      disabled={repartosLoading}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800
-                     focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent
-                     disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      <option value="">
-                        {repartosLoading ? 'Cargando…' : 'Todos'}
-                      </option>
-
-                      {repartos.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.nombre}{' '}
-                          {r?.ciudad?.nombre ? `· ${r.ciudad.nombre}` : ''}
-                        </option>
-                      ))}
-                    </select>
-
-                    {repartosLoading && (
-                      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-600">
-                        …
-                      </span>
-                    )}
-                  </div>
-
-                  {repartosError && (
-                    <p className="mt-1 text-[11px] text-rose-600/90">
-                      {repartosError}
-                    </p>
-                  )}
                 </div>
 
                 {/* tipo */}
@@ -661,34 +572,8 @@ const VentasHistorialPage = () => {
               {/* Fila secundaria: fechas + acciones */}
               <div className="mt-4 flex flex-col md:flex-row md:items-end gap-3">
                 {/* fechas */}
-                <div className="w-full md:max-w-md flex gap-2">
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
-                      Desde
-                    </label>
-                    <input
-                      type="date"
-                      name="desde"
-                      value={filtros.desde}
-                      onChange={handleFiltroChange}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800
-                     focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <label className="block text-xs font-semibold text-gray-600 mb-1 uppercase tracking-wide">
-                      Hasta
-                    </label>
-                    <input
-                      type="date"
-                      name="hasta"
-                      value={filtros.hasta}
-                      onChange={handleFiltroChange}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800
-                     focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
-                    />
-                  </div>
+                <div className="w-full md:max-w-lg">
+                  <DateRangeFilter desde={filtros.desde} hasta={filtros.hasta} onChange={handleFechaChange} />
                 </div>
 
                 {/* acciones */}
@@ -884,12 +769,12 @@ const VentasHistorialPage = () => {
                                   {v.estado}
                                 </span>
                                 {v.facturas_autorizadas_count > 0 ? (
-                                  <span className="ml-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border bg-emerald-50 text-emerald-700 border-emerald-200">
+                                  <span className="ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border bg-emerald-50 text-emerald-700 border-emerald-200">
                                     Facturada
                                   </span>
                                 ) : (
                                   v.estado === 'confirmada' && (
-                                    <span className="ml-1.5 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs border bg-amber-50 text-amber-700 border-amber-200">
+                                    <span className="ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border bg-amber-50 text-amber-700 border-amber-200">
                                       Sin facturar
                                     </span>
                                   )

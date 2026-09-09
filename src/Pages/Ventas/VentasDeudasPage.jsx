@@ -25,7 +25,6 @@ import {
   FaUserTie,
   FaSearch,
   FaFilter,
-  FaTruck,
   FaMoneyBill,
   FaHistory,
   FaTimes,
@@ -40,18 +39,14 @@ import CobranzasClientesListado from '../../Components/Cobranzas/CobranzasClient
 
 import { listVentas } from '../../api/ventas';
 import { listVendedores } from '../../api/vendedores';
-import { listCiudades } from '../../api/ciudades';
-import { listLocalidades } from '../../api/localidades';
-import { listBarrios } from '../../api/barrios';
 
-// ======================================================
-//  - 17-01-2026
-// Nuevo: Repartos (filtro por reparto en deudas)
-// ======================================================
+// Repartos: sólo para mostrar el nombre del reparto en la tabla de
+// ventas (repartoById más abajo) — el filtro por reparto se sacó.
 import { listRepartos } from '../../api/repartos';
 
 import SearchableSelect from '../../Components/Common/SearchableSelect';
 import { moneyAR } from '../../utils/money';
+import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 
 //  - 25-02-2026 - http client para consumir GET /cxc/deudas (deuda real por cliente, incluye saldo_previo).
 import http from '../../api/http';
@@ -109,20 +104,15 @@ const VentasDeudasPage = () => {
 
   // AHORA guardamos IDs numéricos, no objetos
   const [vendedorId, setVendedorId] = useState(null);
-  const [ciudadId, setCiudadId] = useState(null);
-  const [localidadId, setLocalidadId] = useState(null);
-  const [barrioId, setBarrioId] = useState(null);
 
-  const [fechaDesde, setFechaDesde] = useState('');
-  const [fechaHasta, setFechaHasta] = useState('');
+  const [{ desde: fechaDesde, hasta: fechaHasta }, setRangoFechas] = useState(
+    getRangoPreset(DEFAULT_PRESET)
+  );
 
   const [error, setError] = useState('');
 
   // Listas para selects
   const [vendedores, setVendedores] = useState([]);
-  const [ciudades, setCiudades] = useState([]);
-  const [localidades, setLocalidades] = useState([]);
-  const [barrios, setBarrios] = useState([]);
 
   // Datos
   const [ventas, setVentas] = useState([]);
@@ -140,15 +130,7 @@ const VentasDeudasPage = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // ======================================================
-  //  - 17-01-2026
-  // Nuevo: filtro reparto
-  // ======================================================
-  const [repartoId, setRepartoId] = useState(null);
-
   const [repartos, setRepartos] = useState([]);
-  const [repartosLoading, setRepartosLoading] = useState(false);
-  const [repartosError, setRepartosError] = useState('');
 
   // --------- Carga inicial de vendedores ---------
   useEffect(() => {
@@ -167,125 +149,22 @@ const VentasDeudasPage = () => {
     })();
   }, []);
 
-  // Ciudades
+  // Repartos: sólo para mostrar el nombre en la tabla (repartoById).
   useEffect(() => {
     (async () => {
       try {
-        const res = await listCiudades({ estado: 'activa', limit: 200 });
+        const res = await listRepartos({ limit: 500 });
         const arr = Array.isArray(res?.data)
           ? res.data
           : Array.isArray(res)
             ? res
             : [];
-        setCiudades(arr);
-      } catch (err) {
-        console.error('Error cargando ciudades:', err);
-      }
-    })();
-  }, []);
-
-  // ======================================================
-  //  - 17-01-2026
-  // Cargar repartos (activos) para filtro
-  // Nota: traemos todos y filtramos en front por ciudadId si aplica.
-  // ======================================================
-  useEffect(() => {
-    (async () => {
-      try {
-        setRepartosLoading(true);
-        setRepartosError('');
-
-        const res = await listRepartos({ limit: 500 }); // si soporta estado: 'activo', podés agregarlo
-        const arr = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res)
-            ? res
-            : [];
-
-        // si tu endpoint devuelve inactivos, podés filtrar acá:
-        // const activos = arr.filter((r) => r.estado === 'activo');
         setRepartos(arr);
       } catch (err) {
         console.error('Error cargando repartos:', err);
-        setRepartosError('No se pudieron cargar los repartos.');
-      } finally {
-        setRepartosLoading(false);
       }
     })();
   }, []);
-
-  // Localidades cuando cambia ciudadId
-  useEffect(() => {
-    //  - 25-02-2026 - En fuente CxC, la geografía disponible es ciudad (clientes.ciudad_id). Localidad/Barrio no aplican.
-    if (fuente === 'cxc') {
-      setLocalidades([]);
-      setLocalidadId(null);
-      setBarrios([]);
-      setBarrioId(null);
-      return;
-    }
-
-    if (!ciudadId) {
-      setLocalidades([]);
-      setLocalidadId(null);
-      setBarrios([]);
-      setBarrioId(null);
-      return;
-    }
-    (async () => {
-      try {
-        const res = await listLocalidades({
-          ciudad_id: ciudadId,
-          estado: 'activa',
-          limit: 200
-        });
-        const arr = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res)
-            ? res
-            : [];
-        setLocalidades(arr);
-        setLocalidadId(null);
-        setBarrios([]);
-        setBarrioId(null);
-      } catch (err) {
-        console.error('Error cargando localidades:', err);
-      }
-    })();
-  }, [ciudadId, fuente]);
-
-  // Barrios cuando cambia localidadId
-  useEffect(() => {
-    if (fuente === 'cxc') {
-      setBarrios([]);
-      setBarrioId(null);
-      return;
-    }
-
-    if (!localidadId) {
-      setBarrios([]);
-      setBarrioId(null);
-      return;
-    }
-    (async () => {
-      try {
-        const res = await listBarrios({
-          localidad_id: localidadId,
-          estado: 'activa',
-          limit: 300
-        });
-        const arr = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res)
-            ? res
-            : [];
-        setBarrios(arr);
-        setBarrioId(null);
-      } catch (err) {
-        console.error('Error cargando barrios:', err);
-      }
-    })();
-  }, [localidadId, fuente]);
 
   // --------- Fetch ventas (deudas desde Ventas) ---------
   const fetchVentas = async (page = 1) => {
@@ -314,26 +193,6 @@ const VentasDeudasPage = () => {
           ? Number(vendedorId)
           : undefined;
 
-      const safeCiudadId =
-        ciudadId !== null && ciudadId !== undefined && ciudadId !== ''
-          ? Number(ciudadId)
-          : undefined;
-
-      const safeLocalidadId =
-        localidadId !== null && localidadId !== undefined && localidadId !== ''
-          ? Number(localidadId)
-          : undefined;
-
-      const safeBarrioId =
-        barrioId !== null && barrioId !== undefined && barrioId !== ''
-          ? Number(barrioId)
-          : undefined;
-
-      const safeRepartoId =
-        repartoId !== null && repartoId !== undefined && repartoId !== ''
-          ? Number(repartoId)
-          : undefined;
-
       const params = {
         // sólo ventas con saldo pendiente
         deuda: '1',
@@ -347,18 +206,6 @@ const VentasDeudasPage = () => {
           : undefined,
         desde: fechaDesde || undefined,
         hasta: fechaHasta || undefined,
-
-        // Geografía
-        ciudad_id: Number.isFinite(safeCiudadId) ? safeCiudadId : undefined,
-        localidad_id: Number.isFinite(safeLocalidadId)
-          ? safeLocalidadId
-          : undefined,
-        barrio_id: Number.isFinite(safeBarrioId) ? safeBarrioId : undefined,
-        // ======================================================
-        //  - 17-01-2026
-        // Filtro por reparto
-        // ======================================================
-        reparto_id: Number.isFinite(safeRepartoId) ? safeRepartoId : undefined,
 
         page,
         limit: 20
@@ -406,14 +253,8 @@ const VentasDeudasPage = () => {
       setLoading(true);
       setError('');
 
-      const safeCiudadId =
-        ciudadId !== null && ciudadId !== undefined && ciudadId !== ''
-          ? Number(ciudadId)
-          : undefined;
-
       const params = {
         q: q?.trim() ? q.trim() : undefined,
-        ciudad_id: Number.isFinite(safeCiudadId) ? safeCiudadId : undefined,
         desde: fechaDesde || undefined,
         hasta: fechaHasta || undefined,
         saldo_min: '0.01',
@@ -468,25 +309,10 @@ const VentasDeudasPage = () => {
         tipo,
         estado,
         vendedorId,
-        ciudadId,
-        localidadId,
-        barrioId,
         fechaDesde,
-        fechaHasta,
-        repartoId
+        fechaHasta
       }),
-    [
-      q,
-      tipo,
-      estado,
-      vendedorId,
-      ciudadId,
-      localidadId,
-      barrioId,
-      fechaDesde,
-      fechaHasta,
-      repartoId
-    ]
+    [q, tipo, estado, vendedorId, fechaDesde, fechaHasta]
   );
   const debouncedFiltroCriteriaKey = useDebouncedValue(filtroCriteriaKey, 500);
   const isFirstFiltroRun = useRef(true);
@@ -506,12 +332,7 @@ const VentasDeudasPage = () => {
     setTipo('a_cuenta');
     setEstado('confirmada');
     setVendedorId(null);
-    setCiudadId(null);
-    setLocalidadId(null);
-    setBarrioId(null);
-    setFechaDesde('');
-    setFechaHasta('');
-    setRepartoId(null);
+    setRangoFechas(getRangoPreset(DEFAULT_PRESET));
     if (fuente === 'cxc') fetchCxCDeudas(1);
     else fetchVentas(1);
   };
@@ -565,16 +386,6 @@ const VentasDeudasPage = () => {
     const ticketPromedio = cantidad > 0 ? totalDeudas / cantidad : 0;
     return { totalDeudas, cantidad, ticketPromedio };
   }, [ventas, cxcDeudas, fuente]);
-
-  // ======================================================
-  //  - 17-01-2026
-  // Repartos filtrados por ciudad (si hay ciudadId seleccionado)
-  // ======================================================
-  const repartosFiltrados = useMemo(() => {
-    const base = Array.isArray(repartos) ? repartos : [];
-    if (!ciudadId) return base;
-    return base.filter((r) => Number(r?.ciudad_id) === Number(ciudadId));
-  }, [repartos, ciudadId]);
 
   // Mapa rápido para resolver reparto por id en la tabla
   const repartoById = useMemo(() => {
@@ -724,19 +535,17 @@ const VentasDeudasPage = () => {
               {fuente === 'cxc' && (
                 <div className="text-[11px] text-gray-600">
                   En modo CxC se filtra por{' '}
-                  <span className="font-semibold">cliente/city/fechas</span>.
-                  Los filtros de{' '}
-                  <span className="font-semibold">
-                    tipo/estado/vendedor/reparto/localidad/barrio
-                  </span>{' '}
+                  <span className="font-semibold">cliente/fechas</span>. Los
+                  filtros de{' '}
+                  <span className="font-semibold">tipo/estado/vendedor</span>{' '}
                   no aplican.
                 </div>
               )}
 
-              {/* Primera fila: texto, reparto, tipo, estado, vendedor */}
-              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+              {/* Primera fila: texto, tipo, estado, vendedor */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 {/* Búsqueda texto */}
-                <div className="sm:col-span-2">
+                <div className="sm:col-span-1">
                   <label className="block text-xs font-medium text-gray-500 mb-1">
                     Buscar (cliente / doc / email)
                   </label>
@@ -750,54 +559,6 @@ const VentasDeudasPage = () => {
                     />
                     <FaSearch className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 text-xs" />
                   </div>
-                </div>
-
-                {/* ======================================================
-                     - 17-01-2026
-                    Filtro Reparto
-                  ====================================================== */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    <span className="inline-flex items-center gap-2">
-                      <FaTruck className="text-gray-500" />
-                      Reparto
-                    </span>
-                  </label>
-
-                  <select
-                    value={repartoId ?? ''}
-                    onChange={(e) => setRepartoId(e.target.value || null)}
-                    disabled={repartosLoading || fuente === 'cxc'}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-800
-                 focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent
-                 disabled:opacity-60 disabled:cursor-not-allowed"
-                    title={
-                      fuente === 'cxc'
-                        ? 'Filtro no disponible en modo CxC'
-                        : undefined
-                    }
-                  >
-                    <option value="">
-                      {repartosLoading
-                        ? 'Cargando…'
-                        : ciudadId
-                          ? 'Todos (de esta ciudad)'
-                          : 'Todos'}
-                    </option>
-
-                    {repartosFiltrados.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.nombre}{' '}
-                        {r?.ciudad?.nombre ? `· ${r.ciudad.nombre}` : ''}
-                      </option>
-                    ))}
-                  </select>
-
-                  {repartosError && (
-                    <p className="mt-1 text-[11px] text-rose-600/90">
-                      {repartosError}
-                    </p>
-                  )}
                 </div>
 
                 {/* Tipo */}
@@ -879,133 +640,24 @@ const VentasDeudasPage = () => {
                 </div>
               </div>
 
-              {/* Segunda fila: Ciudad / Localidad / Barrio */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* Ciudad */}
-                <div className="relative z-20">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Ciudad
-                  </label>
-                  <SearchableSelect
-                    items={ciudades}
-                    value={ciudadId}
-                    onChange={(val) => {
-                      console.log('Ciudad seleccionada:', val);
-                      setCiudadId(val || null);
-
-                      //  - 25-02-2026 - Si cambia ciudad, limpiamos reparto para evitar filtros inconsistentes.
-                      setRepartoId(null);
-                    }}
-                    placeholder="Todas"
-                    getOptionLabel={(c) => c?.nombre || ''}
-                    getOptionValue={(c) => c?.id}
-                    getOptionSearchText={(c) => c?.nombre || ''}
-                    portal
-                    portalZIndex={2800}
-                    dropdownMaxHeight="40vh"
-                    menuPlacement="bottom"
-                  />
-                </div>
-
-                {/* Localidad */}
-                <div className="relative z-10">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Localidad
-                  </label>
-                  <SearchableSelect
-                    items={localidades}
-                    value={localidadId}
-                    onChange={(val) => {
-                      console.log('Localidad seleccionada:', val);
-                      setLocalidadId(val || null);
-                    }}
-                    placeholder={
-                      fuente === 'cxc'
-                        ? 'No disponible en CxC'
-                        : ciudadId
-                          ? 'Todas'
-                          : 'Seleccioná una ciudad primero'
-                    }
-                    disabled={!ciudadId || fuente === 'cxc'}
-                    getOptionLabel={(l) => l?.nombre || ''}
-                    getOptionValue={(l) => l?.id}
-                    getOptionSearchText={(l) => l?.nombre || ''}
-                    portal
-                    portalZIndex={2800}
-                    dropdownMaxHeight="40vh"
-                    menuPlacement="bottom"
-                  />
-                </div>
-
-                {/* Barrio */}
-                <div className="relative z-10">
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Barrio
-                  </label>
-                  <SearchableSelect
-                    items={barrios}
-                    value={barrioId}
-                    onChange={(val) => {
-                      console.log('Barrio seleccionado:', val);
-                      setBarrioId(val || null);
-                    }}
-                    placeholder={
-                      fuente === 'cxc'
-                        ? 'No disponible en CxC'
-                        : localidadId
-                          ? 'Todos'
-                          : 'Seleccioná una localidad'
-                    }
-                    disabled={!localidadId || fuente === 'cxc'}
-                    getOptionLabel={(b) => b?.nombre || ''}
-                    getOptionValue={(b) => b?.id}
-                    getOptionSearchText={(b) => b?.nombre || ''}
-                    portal
-                    portalZIndex={2800}
-                    dropdownMaxHeight="40vh"
-                    menuPlacement="bottom"
-                  />
-                </div>
-              </div>
-
-              {/* Rango fechas */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Desde
-                  </label>
-                  <input
-                    type="date"
-                    value={fechaDesde}
-                    onChange={(e) => setFechaDesde(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-800
-                               focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 mb-1">
-                    Hasta
-                  </label>
-                  <input
-                    type="date"
-                    value={fechaHasta}
-                    onChange={(e) => setFechaHasta(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-800
-                               focus:outline-none focus:ring-2 focus:ring-orange-400/60 focus:border-transparent"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    type="button"
-                    onClick={handleLimpiarFiltros}
-                    className="w-full inline-flex justify-center items-center gap-2 rounded-xl border border-gray-200
-                               text-gray-700 text-sm font-semibold px-4 py-2.5 hover:bg-gray-100 transition disabled:opacity-60"
-                    disabled={loading}
-                  >
-                    <FaTimes className="text-xs" />
-                    Limpiar filtros
-                  </button>
-                </div>
+              {/* Rango de fechas + acciones */}
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                <DateRangeFilter
+                  desde={fechaDesde}
+                  hasta={fechaHasta}
+                  onChange={({ desde, hasta }) => setRangoFechas({ desde, hasta })}
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={handleLimpiarFiltros}
+                  className="inline-flex justify-center items-center gap-2 rounded-xl border border-gray-200
+                             text-gray-700 text-sm font-semibold px-4 py-2.5 hover:bg-gray-100 transition disabled:opacity-60"
+                  disabled={loading}
+                >
+                  <FaTimes className="text-xs" />
+                  Limpiar filtros
+                </button>
               </div>
             </motion.div>
 

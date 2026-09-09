@@ -38,4 +38,9 @@ export async function deleteLocal(id) {
   };
 }
 
-export default { listLocales, createLocal, updateLocal, deleteLocal };
+export async function updateLocalEstado(id, estado) {
+  const { data } = await http.patch(`/locales/${id}/estado`, { estado });
+  return data;
+}
+
+export default { listLocales, createLocal, updateLocal, deleteLocal, updateLocalEstado };
