@@ -12,6 +12,7 @@ import {
   listVentas,
   getVenta,
   anularVenta,
+  updateVenta,
   createVentasRepartoMasiva
 } from '../../api/ventas';
 import { moneyAR } from '../../utils/money';
@@ -19,6 +20,8 @@ import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
+import VentaEditModal from '../../Components/Ventas/VentaEditModal';
+import { showSuccessToast } from '../../ui/swal';
 
 // ======================================================
 //  - 17-01-2026
@@ -39,6 +42,7 @@ import {
   FaChartLine,
   FaFileExport,
   FaCashRegister,
+  FaPen,
   // ======================================================
   //  - 17-01-2026
   // Icono para reparto
@@ -137,6 +141,10 @@ const VentasHistorialPage = () => {
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [detalle, setDetalle] = useState(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
+
+  // ------------ edición de venta (disponible para admin y vendedor) ------------
+  const [editVenta, setEditVenta] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   // ======================================================
   //  - 17-01-2026
@@ -358,6 +366,36 @@ const VentasHistorialPage = () => {
     } catch (e) {
       console.error('No se pudo anular la venta:', e);
       alert('No se pudo anular la venta.');
+    }
+  };
+
+  // ------------ edición de venta ------------
+  const abrirEditar = async (venta) => {
+    try {
+      // Traemos el detalle completo (incluye medios_pago si la venta está dividida)
+      const full = await getVenta(venta.id);
+      setEditVenta(full || venta);
+    } catch (e) {
+      console.error('Error obteniendo venta para editar:', e);
+      setEditVenta(venta);
+    } finally {
+      setEditOpen(true);
+    }
+  };
+
+  const cerrarEditar = () => {
+    setEditOpen(false);
+    setEditVenta(null);
+  };
+
+  const handleEditarVenta = async (ventaId, payload) => {
+    await updateVenta(ventaId, payload);
+    showSuccessToast('Venta actualizada');
+    cerrarEditar();
+    await fetchVentas();
+    if (detalle?.id === ventaId) {
+      const full = await getVenta(ventaId);
+      setDetalle(full);
     }
   };
 
@@ -892,6 +930,17 @@ const VentasHistorialPage = () => {
                                   {v.estado !== 'anulada' && (
                                     <button
                                       type="button"
+                                      onClick={() => abrirEditar(v)}
+                                      className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border border-sky-200 text-sky-700 hover:bg-sky-50 transition"
+                                    >
+                                      <FaPen className="text-[10px]" />
+                                      Editar
+                                    </button>
+                                  )}
+
+                                  {v.estado !== 'anulada' && (
+                                    <button
+                                      type="button"
                                       onClick={() => handleAnular(v)}
                                       className="text-xs px-2.5 py-1 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 transition"
                                     >
@@ -1209,6 +1258,13 @@ const VentasHistorialPage = () => {
       <ExportarVentasModal
         open={exportarModalOpen}
         onClose={() => setExportarModalOpen(false)}
+      />
+
+      <VentaEditModal
+        open={editOpen}
+        venta={editVenta}
+        onClose={cerrarEditar}
+        onSubmit={handleEditarVenta}
       />
     </AppShell>
   );
