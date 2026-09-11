@@ -17,6 +17,12 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MediosPagoSplit from '../Common/MediosPagoSplit';
+import {
+  makeInitialSplitRows,
+  buildMediosPagoPayload,
+  splitMatchesTotal
+} from '../../utils/mediosPagoSplit';
 
 function formatMoneyARS(value = 0) {
   return Number(value || 0).toLocaleString('es-AR', {
@@ -51,6 +57,12 @@ export default function DeudaClienteModal({
   const [observaciones, setObservaciones] = useState('');
   const [medioPago, setMedioPago] = useState('');
   const [savingCobro, setSavingCobro] = useState(false);
+
+  // ======================================================
+  // Dividir en varios medios de pago (split de medio_pago)
+  // ======================================================
+  const [splitMedioPago, setSplitMedioPago] = useState(false);
+  const [mediosPagoRows, setMediosPagoRows] = useState(makeInitialSplitRows());
 
   // ======================================================
   //   - 16-07-2026
@@ -89,6 +101,8 @@ export default function DeudaClienteModal({
           setCobroSaldoPrevio('');
           setModoCobro('unico');
           setMontoUnico('');
+          setSplitMedioPago(false);
+          setMediosPagoRows(makeInitialSplitRows());
         }
       } catch (err) {
         console.error('Error cargando deuda cliente:', err);
@@ -383,7 +397,17 @@ export default function DeudaClienteModal({
 
     if (!apps.length) return;
 
-    if (!medioPago) {
+    if (splitMedioPago) {
+      if (!splitMatchesTotal(mediosPagoRows, total)) {
+        await Swal.fire({
+          title: 'Los medios de pago no coinciden con el total',
+          text: 'La suma de los medios de pago debe ser igual al monto a cobrar.',
+          icon: 'warning',
+          confirmButtonColor: '#10b981'
+        });
+        return;
+      }
+    } else if (!medioPago) {
       await Swal.fire({
         title: 'Falta el medio de pago',
         text: 'Seleccioná el medio de pago del cobro antes de continuar.',
@@ -441,7 +465,9 @@ export default function DeudaClienteModal({
         vendedor_id: null,
         fecha: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
         total_cobrado: Number(total.toFixed(2)),
-        medio_pago: medioPago,
+        ...(splitMedioPago
+          ? { medios_pago: buildMediosPagoPayload(mediosPagoRows) }
+          : { medio_pago: medioPago }),
         observaciones: observaciones?.trim() || null,
         aplicaciones: apps
       };
@@ -455,6 +481,8 @@ export default function DeudaClienteModal({
       setMedioPago('');
       setCobroSaldoPrevio('');
       setMontoUnico('');
+      setSplitMedioPago(false);
+      setMediosPagoRows(makeInitialSplitRows());
 
       const saldoRestante = Number(nuevaDeuda?.total_deuda || 0);
       const saldoFmt = formatMoneyARS(saldoRestante);
@@ -1039,24 +1067,49 @@ export default function DeudaClienteModal({
                       </div>
 
                       <div>
-                        <label className="block text-[11px] sm:text-xs text-slate-500/80 mb-1">
-                          Medio de pago <span className="text-rose-600">*</span>
-                        </label>
-                        <select
-                          value={medioPago}
-                          onChange={(e) => setMedioPago(e.target.value)}
-                          disabled={loading || savingCobro}
-                          className="w-full rounded-2xl bg-slate-50 border border-emerald-200 px-3 py-2 text-xs sm:text-sm
-                                   text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400/60
-                                   disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Seleccionar…</option>
-                          {MEDIOS_PAGO.map((m) => (
-                            <option key={m.value} value={m.value}>
-                              {m.label}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <label className="block text-[11px] sm:text-xs text-slate-500/80">
+                            Medio de pago <span className="text-rose-600">*</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setSplitMedioPago((v) => !v)}
+                            disabled={loading || savingCobro}
+                            className={`text-[11px] px-2.5 py-1 rounded-lg border transition disabled:opacity-50 ${
+                              splitMedioPago
+                                ? 'bg-emerald-500 text-slate-950 border-emerald-500'
+                                : 'border-emerald-200 text-slate-600 hover:bg-emerald-50'
+                            }`}
+                          >
+                            Dividir en varios medios de pago
+                          </button>
+                        </div>
+
+                        {splitMedioPago ? (
+                          <MediosPagoSplit
+                            rows={mediosPagoRows}
+                            onChange={setMediosPagoRows}
+                            total={totalCobrarAhoraEfectivo}
+                            formatMoney={formatMoneyARS}
+                            disabled={loading || savingCobro}
+                          />
+                        ) : (
+                          <select
+                            value={medioPago}
+                            onChange={(e) => setMedioPago(e.target.value)}
+                            disabled={loading || savingCobro}
+                            className="w-full rounded-2xl bg-slate-50 border border-emerald-200 px-3 py-2 text-xs sm:text-sm
+                                     text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400/60
+                                     disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            <option value="">Seleccionar…</option>
+                            {MEDIOS_PAGO.map((m) => (
+                              <option key={m.value} value={m.value}>
+                                {m.label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
 
                       <div>
@@ -1102,7 +1155,12 @@ export default function DeudaClienteModal({
                             savingCobro ||
                             loading ||
                             totalCobrarAhoraEfectivo <= 0 ||
-                            !medioPago
+                            (splitMedioPago
+                              ? !splitMatchesTotal(
+                                  mediosPagoRows,
+                                  totalCobrarAhoraEfectivo
+                                )
+                              : !medioPago)
                           }
                           className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-sm font-semibold
                                      hover:bg-emerald-400 transition disabled:opacity-60 disabled:cursor-not-allowed"

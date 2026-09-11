@@ -19,6 +19,12 @@ import SearchableSelect from '../Common/SearchableSelect';
 import http from '../../api/http';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MediosPagoSplit from '../Common/MediosPagoSplit';
+import {
+  makeInitialSplitRows,
+  buildMediosPagoPayload,
+  splitMatchesTotal
+} from '../../utils/mediosPagoSplit';
 import {
   normalizeScanCode,
   findProductoByScan,
@@ -62,6 +68,12 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
   });
 
   const [saving, setSaving] = useState(false);
+
+  // ======================================================
+  // Dividir en varios medios de pago (split de medio_pago)
+  // ======================================================
+  const [splitMedioPago, setSplitMedioPago] = useState(false);
+  const [mediosPagoRows, setMediosPagoRows] = useState(makeInitialSplitRows());
 
   // ======================================================
   //  - 25-02-2026
@@ -195,6 +207,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     setItems([makeEmptyItem()]);
     setScanValue('');
     setScanError('');
+    setSplitMedioPago(false);
+    setMediosPagoRows(makeInitialSplitRows());
 
     //  - 25-02-2026 - Resetea estado visual de saldo previo al reabrir modal
     setSavingSaldoPrevio(false);
@@ -298,6 +312,15 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     saldoPrevioCargado
   ]);
 
+  // ======================================================
+  // Monto que debe cubrir el medio de pago (simple o dividido): el total
+  // al contado, o el monto a cuenta cuando el tipo es "a_cuenta".
+  // ======================================================
+  const montoMedioPago = useMemo(
+    () => (form.tipo === 'a_cuenta' ? aCuentaNumber : totalNeto),
+    [form.tipo, aCuentaNumber, totalNeto]
+  );
+
   // Puede guardar: cliente + vendedor + al menos un ítem válido
   const canSave = useMemo(() => {
     const cliId = Number(form.cliente_id);
@@ -331,7 +354,11 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     const requiereMedioPago =
       form.tipo === 'contado' ||
       (form.tipo === 'a_cuenta' && aCuentaNumber > 0);
-    const hasMedioPago = !requiereMedioPago || !!form.medio_pago;
+    const hasMedioPago =
+      !requiereMedioPago ||
+      (splitMedioPago
+        ? splitMatchesTotal(mediosPagoRows, montoMedioPago)
+        : !!form.medio_pago);
 
     return (
       hasCliente && hasVendedor && hasItemsValidos && aCuentaOk && hasMedioPago
@@ -343,7 +370,10 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     form.medio_pago,
     items,
     aCuentaNumber,
-    totalNeto
+    totalNeto,
+    splitMedioPago,
+    mediosPagoRows,
+    montoMedioPago
   ]);
 
   /* descomentar para seguimiento
@@ -858,7 +888,9 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           fecha: fechaPayload,
           tipo: form.tipo,
           canal: form.canal,
-          medio_pago: form.medio_pago,
+          ...(splitMedioPago
+            ? { medios_pago: buildMediosPagoPayload(mediosPagoRows) }
+            : { medio_pago: form.medio_pago }),
           observaciones: form.observaciones?.trim() || null,
 
           // ======================================================
@@ -1262,31 +1294,56 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
 
                 {/* Medio de pago */}
                 <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">
-                    Medio de pago{' '}
-                    {form.tipo === 'fiado' ? (
-                      <span className="text-slate-500 font-normal">(no aplica en fiado)</span>
-                    ) : (
-                      <span className="text-orange-600">*</span>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <label className="block text-sm font-medium text-slate-600">
+                      Medio de pago{' '}
+                      {form.tipo === 'fiado' ? (
+                        <span className="text-slate-500 font-normal">(no aplica en fiado)</span>
+                      ) : (
+                        <span className="text-orange-600">*</span>
+                      )}
+                    </label>
+                    {form.tipo !== 'fiado' && (
+                      <button
+                        type="button"
+                        onClick={() => setSplitMedioPago((v) => !v)}
+                        className={`text-xs px-3 py-1.5 rounded-lg border transition ${
+                          splitMedioPago
+                            ? 'bg-orange-500 text-white border-orange-500'
+                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        Dividir en varios medios de pago
+                      </button>
                     )}
-                  </label>
-                  <select
-                    value={form.medio_pago}
-                    disabled={form.tipo === 'fiado'}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, medio_pago: e.target.value }))
-                    }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
-                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
-                               disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Seleccionar…</option>
-                    {MEDIOS_PAGO.map((m) => (
-                      <option key={m.value} value={m.value}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
+                  </div>
+
+                  {splitMedioPago && form.tipo !== 'fiado' ? (
+                    <MediosPagoSplit
+                      rows={mediosPagoRows}
+                      onChange={setMediosPagoRows}
+                      total={montoMedioPago}
+                      formatMoney={formatMoneyLabel}
+                    />
+                  ) : (
+                    <select
+                      value={form.medio_pago}
+                      disabled={form.tipo === 'fiado'}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, medio_pago: e.target.value }))
+                      }
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
+                                 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
+                                 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Seleccionar…</option>
+                      {MEDIOS_PAGO.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </motion.div>
 
                 {/* Observaciones */}

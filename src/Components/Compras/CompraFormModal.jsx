@@ -28,6 +28,12 @@ import ProductoFormModal from '../Productos/ProductoFormModal';
 import { showErrorSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MediosPagoSplit from '../Common/MediosPagoSplit';
+import {
+  makeInitialSplitRows,
+  buildMediosPagoPayload,
+  splitMatchesTotal
+} from '../../utils/mediosPagoSplit';
 import {
   normalizeScanCode,
   findProductoByScan,
@@ -62,6 +68,12 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
   });
   const [items, setItems] = useState([emptyItem()]);
   const [errors, setErrors] = useState({});
+
+  // ======================================================
+  // Dividir en varios medios de pago (split de medio_pago)
+  // ======================================================
+  const [splitMedioPago, setSplitMedioPago] = useState(false);
+  const [mediosPagoRows, setMediosPagoRows] = useState(makeInitialSplitRows());
 
   // Escaneo de código de barras
   const [scanValue, setScanValue] = useState('');
@@ -101,6 +113,8 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     setErrors({});
     setScanValue('');
     setScanError('');
+    setSplitMedioPago(false);
+    setMediosPagoRows(makeInitialSplitRows());
 
     (async () => {
       try {
@@ -198,8 +212,15 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     const e = {};
     if (!form.proveedor_id) e.proveedor_id = 'Seleccioná un proveedor';
     if (!form.fecha) e.fecha = 'La fecha es obligatoria';
-    if (form.tipo_pago === 'contado' && !form.medio_pago) {
-      e.medio_pago = 'El medio de pago es obligatorio en compras al contado.';
+    if (form.tipo_pago === 'contado') {
+      if (splitMedioPago) {
+        if (!splitMatchesTotal(mediosPagoRows, total)) {
+          e.medio_pago =
+            'La suma de los medios de pago debe coincidir con el total de la compra.';
+        }
+      } else if (!form.medio_pago) {
+        e.medio_pago = 'El medio de pago es obligatorio en compras al contado.';
+      }
     }
 
     const itemErrors = items.map((it) => {
@@ -225,7 +246,9 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       fecha: form.fecha,
       nro_factura: form.nro_factura?.trim() || null,
       tipo_pago: form.tipo_pago,
-      medio_pago: form.tipo_pago === 'contado' ? form.medio_pago : null,
+      ...(form.tipo_pago === 'contado' && splitMedioPago
+        ? { medios_pago: buildMediosPagoPayload(mediosPagoRows) }
+        : { medio_pago: form.tipo_pago === 'contado' ? form.medio_pago : null }),
       monto_abonado: esCuentaCorriente ? abonado : 0,
       observaciones: form.observaciones?.trim() || null,
       items: items.map((it) => ({
@@ -420,26 +443,49 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                 {/* Medio de pago (solo compras al contado: mueven caja ahora) */}
                 {form.tipo_pago === 'contado' && (
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
-                      <Wallet className="h-4 w-4 text-slate-500" />
-                      Medio de pago <span className="text-teal-600">*</span>
-                    </label>
-                    <select
-                      value={form.medio_pago}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, medio_pago: e.target.value }))
-                      }
-                      className={`w-full rounded-xl border bg-white px-3.5 py-3 text-slate-800
-                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent
-                                 ${errors.medio_pago ? 'border-rose-300' : 'border-slate-200'}`}
-                    >
-                      <option value="">Seleccionar…</option>
-                      {MEDIOS_PAGO.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                        <Wallet className="h-4 w-4 text-slate-500" />
+                        Medio de pago <span className="text-teal-600">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setSplitMedioPago((v) => !v)}
+                        className={`text-xs px-3 py-1.5 rounded-lg border transition ${
+                          splitMedioPago
+                            ? 'bg-teal-600 text-white border-teal-600'
+                            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        Dividir en varios medios de pago
+                      </button>
+                    </div>
+
+                    {splitMedioPago ? (
+                      <MediosPagoSplit
+                        rows={mediosPagoRows}
+                        onChange={setMediosPagoRows}
+                        total={total}
+                        formatMoney={moneyAR}
+                      />
+                    ) : (
+                      <select
+                        value={form.medio_pago}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, medio_pago: e.target.value }))
+                        }
+                        className={`w-full rounded-xl border bg-white px-3.5 py-3 text-slate-800
+                                   focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent
+                                   ${errors.medio_pago ? 'border-rose-300' : 'border-slate-200'}`}
+                      >
+                        <option value="">Seleccionar…</option>
+                        {MEDIOS_PAGO.map((m) => (
+                          <option key={m.value} value={m.value}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     {errors.medio_pago && (
                       <p className="mt-1 text-sm text-rose-600">{errors.medio_pago}</p>
                     )}
