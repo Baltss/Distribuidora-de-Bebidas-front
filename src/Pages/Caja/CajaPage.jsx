@@ -29,6 +29,7 @@ import {
 import GastoFormModal from '../../Components/Gastos/GastoFormModal';
 import MovimientoManualFormModal from '../../Components/Caja/MovimientoManualFormModal';
 import CerrarCajaModal from '../../Components/Caja/CerrarCajaModal';
+import EditarSaldoInicialModal from '../../Components/Caja/EditarSaldoInicialModal';
 import CajaDetalleModal from '../../Components/Caja/CajaDetalleModal';
 import {
   getCajaActual,
@@ -39,6 +40,7 @@ import {
   updateCajaMovimientoManual,
   anularCajaMovimiento,
   cerrarCaja,
+  editarSaldoInicialCaja,
   listCajasHistorial
 } from '../../api/caja.js';
 import { listLocales } from '../../api/locales.js';
@@ -100,6 +102,7 @@ export default function CajaPage() {
   const [movModalTipo, setMovModalTipo] = useState('ingreso');
   const [movModalEdit, setMovModalEdit] = useState(null);
   const [cajaACerrar, setCajaACerrar] = useState(null);
+  const [cajaAEditarSaldo, setCajaAEditarSaldo] = useState(null);
 
   const [detalleCajaId, setDetalleCajaId] = useState(null);
   const [historialCajas, setHistorialCajas] = useState([]);
@@ -332,6 +335,14 @@ export default function CajaPage() {
     await refreshAll(page);
   };
 
+  const onEditarSaldoInicial = async (payload) => {
+    if (!cajaAEditarSaldo?.id) return;
+    await editarSaldoInicialCaja(cajaAEditarSaldo.id, payload);
+    await showSuccessSwal({ title: 'Saldo inicial actualizado' });
+    setCajaAEditarSaldo(null);
+    await refreshAll(page);
+  };
+
   // Abre el cierre para la caja pendiente que avisa el banner de arriba
   // (trae su resumen completo, incluido el desglose por medio de pago).
   const abrirCierreDesdeAlerta = async () => {
@@ -431,12 +442,20 @@ export default function CajaPage() {
                   </span>
                 </div>
                 {esAdmin && cajaActual.estado !== 'cerrada' && (
-                  <button
-                    onClick={() => setCajaACerrar(cajaActual)}
-                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
-                  >
-                    <FaLock className="h-3.5 w-3.5" /> Cerrar caja
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCajaAEditarSaldo(cajaActual)}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-semibold transition"
+                    >
+                      <FaEdit className="h-3.5 w-3.5" /> Editar saldo inicial
+                    </button>
+                    <button
+                      onClick={() => setCajaACerrar(cajaActual)}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition"
+                    >
+                      <FaLock className="h-3.5 w-3.5" /> Cerrar caja
+                    </button>
+                  </div>
                 )}
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -811,6 +830,12 @@ export default function CajaPage() {
         onClose={() => setCajaACerrar(null)}
         onSubmit={onCerrarCaja}
         caja={cajaACerrar}
+      />
+      <EditarSaldoInicialModal
+        open={cajaAEditarSaldo != null}
+        onClose={() => setCajaAEditarSaldo(null)}
+        onSubmit={onEditarSaldoInicial}
+        caja={cajaAEditarSaldo}
       />
       <CajaDetalleModal
         open={detalleCajaId != null}
