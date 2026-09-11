@@ -50,7 +50,7 @@ import { showErrorSwal, showSuccessSwal, showConfirmSwal, showWarnSwal } from '.
 import moneyAR from '../../utils/money';
 import { MEDIOS_PAGO, medioPagoLabel } from '../../utils/mediosPago';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
-import { formatFechaSolo } from '../../utils/fechaAR';
+import { formatFechaSolo, hoyISO, sumarDiasISO } from '../../utils/fechaAR';
 
 const ORIGEN_OPCIONES = [
   { value: '', label: 'Todos los orígenes' },
@@ -115,8 +115,34 @@ export default function CajaPage() {
   const [tipo, setTipo] = useState(''); // '' | ingreso | egreso
   const [origenTipo, setOrigenTipo] = useState('');
   const [medioPago, setMedioPago] = useState('');
-  const [desde, setDesde] = useState('');
-  const [hasta, setHasta] = useState('');
+  const [rangoPreset, setRangoPreset] = useState('hoy');
+  const [desde, setDesde] = useState(() => hoyISO());
+  const [hasta, setHasta] = useState(() => hoyISO());
+
+  // Al cambiar el preset (salvo "personalizado", que deja el calendario
+  // en manos del usuario) recalculamos desde/hasta en hora argentina.
+  useEffect(() => {
+    if (rangoPreset === 'personalizado') return;
+    const hoy = hoyISO();
+    if (rangoPreset === 'hoy') {
+      setDesde(hoy);
+      setHasta(hoy);
+    } else if (rangoPreset === 'ayer') {
+      const ayer = sumarDiasISO(hoy, -1);
+      setDesde(ayer);
+      setHasta(ayer);
+    } else if (rangoPreset === '7d') {
+      setDesde(sumarDiasISO(hoy, -6));
+      setHasta(hoy);
+    } else if (rangoPreset === '14d') {
+      setDesde(sumarDiasISO(hoy, -13));
+      setHasta(hoy);
+    } else if (rangoPreset === '30d') {
+      setDesde(sumarDiasISO(hoy, -29));
+      setHasta(hoy);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rangoPreset]);
 
   const filtroCriteriaKey = useMemo(
     () => JSON.stringify({ tipo, origenTipo, medioPago, desde, hasta }),
@@ -626,8 +652,8 @@ export default function CajaPage() {
           )}
 
           {/* Filtros */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <select
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
@@ -665,21 +691,41 @@ export default function CajaPage() {
                   </option>
                 ))}
               </select>
+            </div>
 
-              <input
-                type="date"
-                value={desde}
-                onChange={(e) => setDesde(e.target.value)}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <select
+                value={rangoPreset}
+                onChange={(e) => setRangoPreset(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
                            focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-              />
-              <input
-                type="date"
-                value={hasta}
-                onChange={(e) => setHasta(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
-                           focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-              />
+              >
+                <option value="hoy">Hoy</option>
+                <option value="ayer">Ayer</option>
+                <option value="7d">Últimos 7 días</option>
+                <option value="14d">Últimos 14 días</option>
+                <option value="30d">Últimos 30 días</option>
+                <option value="personalizado">Personalizado</option>
+              </select>
+
+              {rangoPreset === 'personalizado' && (
+                <>
+                  <input
+                    type="date"
+                    value={desde}
+                    onChange={(e) => setDesde(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
+                               focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                  />
+                  <input
+                    type="date"
+                    value={hasta}
+                    onChange={(e) => setHasta(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
+                               focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                  />
+                </>
+              )}
             </div>
           </div>
 

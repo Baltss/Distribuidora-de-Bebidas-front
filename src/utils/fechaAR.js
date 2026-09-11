@@ -77,4 +77,20 @@ export function formatFechaSolo(valor, opciones) {
   return d.toLocaleDateString('es-AR', opciones);
 }
 
-export default { hoyISO, formatFechaSolo };
+/**
+ * Suma (o resta, con `dias` negativo) días de calendario a una fecha
+ * 'YYYY-MM-DD', devolviendo otro string 'YYYY-MM-DD'. Es aritmética de
+ * calendario pura (no instantes reales), así que usar Date.UTC acá es
+ * seguro: no se compara contra ninguna zona horaria, solo se cuentan días.
+ *
+ * @param {string} fechaISO - 'YYYY-MM-DD'
+ * @param {number} dias
+ */
+export function sumarDiasISO(fechaISO, dias) {
+  const [y, m, d] = fechaISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + dias);
+  return dt.toISOString().slice(0, 10);
+}
+
+export default { hoyISO, formatFechaSolo, sumarDiasISO };
