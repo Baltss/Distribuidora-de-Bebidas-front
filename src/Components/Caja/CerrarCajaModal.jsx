@@ -7,6 +7,7 @@ import { X, Lock, Wallet, StickyNote, AlertTriangle } from 'lucide-react';
 import { blockWheelChange } from '../../utils/numberInput';
 import moneyAR from '../../utils/money';
 import { medioPagoLabel } from '../../utils/mediosPago';
+import { formatFechaSolo } from '../../utils/fechaAR';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
@@ -141,7 +142,7 @@ export default function CerrarCajaModal({ open, onClose, onSubmit, caja }) {
               <div className="mb-5 flex items-center gap-3">
                 <Lock className="h-6 w-6 text-teal-600 shrink-0" />
                 <h3 className="text-xl font-bold tracking-tight text-slate-900">
-                  Cerrar caja {caja?.fecha_jornada ? `del ${new Date(caja.fecha_jornada).toLocaleDateString('es-AR')}` : ''}
+                  Cerrar caja {caja?.fecha_jornada ? `del ${formatFechaSolo(caja.fecha_jornada)}` : ''}
                 </h3>
               </div>
 

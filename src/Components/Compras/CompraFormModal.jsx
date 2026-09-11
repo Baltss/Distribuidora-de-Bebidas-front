@@ -33,8 +33,7 @@ import {
   findProductoByScan,
   fetchProductoByScan
 } from '../../utils/barcodeScan';
-
-const todayISO = () => new Date().toISOString().slice(0, 10);
+import { hoyISO as todayISO } from '../../utils/fechaAR';
 
 // Key estable por ítem (no el índice del array): evita que, al insertar un
 // ítem nuevo arriba de la lista, React "recicle" el DOM/estado interno de

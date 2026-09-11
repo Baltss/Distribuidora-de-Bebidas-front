@@ -7,6 +7,7 @@ import { backdropV, panelV } from '../../ui/animHelpers';
 import { getCajaDetalle } from '../../api/caja.js';
 import moneyAR from '../../utils/money';
 import { medioPagoLabel } from '../../utils/mediosPago';
+import { formatFechaSolo } from '../../utils/fechaAR';
 
 const ORIGEN_LABEL = {
   cobranza: 'Cobro a cliente',
@@ -29,7 +30,9 @@ const ESTADO_LABEL = {
   cerrada: 'Cerrada'
 };
 
-const fmtFecha = (v) => (v ? new Date(v).toLocaleDateString('es-AR') : '—');
+// fecha_jornada es DATEONLY: se formatea con formatFechaSolo para no
+// correr el día por la interpretación UTC de JS (ver utils/fechaAR.js).
+const fmtFecha = (v) => formatFechaSolo(v);
 const fmtFechaHora = (v) =>
   v ? new Date(v).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 

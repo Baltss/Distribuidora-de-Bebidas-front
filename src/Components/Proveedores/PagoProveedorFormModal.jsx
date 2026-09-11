@@ -13,12 +13,11 @@ import { baseSwal, showErrorSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import { hoyISO as todayISO } from '../../utils/fechaAR';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent';
 const labelCls = 'flex items-center gap-2 text-sm font-medium text-slate-600 mb-2';
-
-const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export default function PagoProveedorFormModal({
   open,

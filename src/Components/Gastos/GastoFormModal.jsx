@@ -10,12 +10,11 @@ import {
 import { X, Receipt, Tag, Calendar, Wallet, CreditCard, StickyNote } from 'lucide-react';
 import { blockWheelChange } from '../../utils/numberInput';
 import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import { hoyISO as todayISO } from '../../utils/fechaAR';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-400/40 focus:border-transparent';
 const labelCls = 'flex items-center gap-2 text-sm font-medium text-slate-600 mb-2';
-
-const todayISO = () => new Date().toISOString().slice(0, 10);
 
 export default function GastoFormModal({ open, onClose, onSubmit, categorias = [] }) {
   const [saving, setSaving] = useState(false);

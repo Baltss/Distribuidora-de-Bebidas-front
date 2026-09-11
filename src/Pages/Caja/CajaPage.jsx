@@ -50,6 +50,7 @@ import { showErrorSwal, showSuccessSwal, showConfirmSwal, showWarnSwal } from '.
 import moneyAR from '../../utils/money';
 import { MEDIOS_PAGO, medioPagoLabel } from '../../utils/mediosPago';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import { formatFechaSolo } from '../../utils/fechaAR';
 
 const ORIGEN_OPCIONES = [
   { value: '', label: 'Todos los orígenes' },
@@ -73,11 +74,13 @@ const ESTADO_LABEL = {
   cerrada: 'Cerrada'
 };
 
-const fmtFecha = (v) => (v ? new Date(v).toLocaleDateString('es-AR') : '—');
+// fecha_jornada (y la fecha agrupada de la serie diaria) son fechas
+// puras sin hora: se formatean con formatFechaSolo para no correr el
+// día por la interpretación UTC de JS. Ver src/utils/fechaAR.js.
+const fmtFecha = (v) => formatFechaSolo(v);
 const fmtFechaHora = (v) =>
   v ? new Date(v).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-const fmtFechaChart = (v) =>
-  v ? new Date(v).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }) : '';
+const fmtFechaChart = (v) => (v ? formatFechaSolo(v, { day: '2-digit', month: '2-digit' }) : '');
 
 export default function CajaPage() {
   const navigate = useNavigate();

@@ -21,6 +21,7 @@ import { useAuth } from '../../AuthContext';
 import { motion } from 'framer-motion';
 import { FaArrowLeft } from 'react-icons/fa';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import { formatFechaSolo } from '../../utils/fechaAR';
 import {
   FaSearch,
   FaFilter,
@@ -48,16 +49,10 @@ import {
   Legend
 } from 'recharts';
 
-// Util formatear fecha
-const fmtFechaCorta = (v) => {
-  if (!v) return '—';
-  const d = new Date(v);
-  if (Number.isNaN(d.getTime())) return String(v);
-  return d.toLocaleDateString('es-AR', {
-    month: '2-digit',
-    day: '2-digit'
-  });
-};
+// Util formatear fecha. `v` acá siempre es una clave 'YYYY-MM-DD' (ver
+// toDateKey más abajo): formatFechaSolo evita que `new Date('YYYY-MM-DD')`
+// la interprete como UTC y corra el día (ver utils/fechaAR.js).
+const fmtFechaCorta = (v) => formatFechaSolo(v, { month: '2-digit', day: '2-digit' });
 
 // Util: clave yyyy-mm-dd
 const toDateKey = (v) => {
