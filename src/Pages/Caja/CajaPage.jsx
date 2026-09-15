@@ -516,12 +516,6 @@ export default function CajaPage() {
                 <FaPlus /> Nuevo egreso
               </button>
             )}
-            <button
-              onClick={() => setGastoModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold transition"
-            >
-              <FaPlus /> Nuevo gasto
-            </button>
           </div>
 
           {historialOpen && (
