@@ -27,7 +27,7 @@ import ProveedorFormModal from '../Proveedores/ProveedorFormModal';
 import ProductoFormModal from '../Productos/ProductoFormModal';
 import { showErrorSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
-import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MedioPagoField from '../Common/MedioPagoField';
 import { normalizeScanCode, findProductoByScan } from '../../utils/barcodeScan';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -54,6 +54,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     nro_factura: '',
     tipo_pago: 'cuenta_corriente',
     medio_pago: '',
+    medios_pago: null, // split de medios de pago: [{ medio_pago, monto }, ...] o null
     monto_abonado: '',
     observaciones: ''
   });
@@ -63,6 +64,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
   // Escaneo de código de barras
   const [scanValue, setScanValue] = useState('');
   const [scanError, setScanError] = useState('');
+  const [scanLoading, setScanLoading] = useState(false);
   const scanInputRef = useRef(null);
 
   // Alta rápida desde los selectores
@@ -77,7 +79,11 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
   };
 
   const cargarProductos = async () => {
-    const resp = await listProductos({ estado: 'activo', limit: 500 });
+    // Límite alto a propósito: el escaneo de código de barras busca en
+    // este array en memoria, así que necesitamos el catálogo completo
+    // cargado (si no, un producto fuera de las primeras filas parecía
+    // "no encontrado" aunque existiera).
+    const resp = await listProductos({ estado: 'activo', limit: 20000 });
     const rows = Array.isArray(resp) ? resp : resp?.data || [];
     setProductos(rows);
     return rows;
@@ -91,6 +97,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       nro_factura: '',
       tipo_pago: 'cuenta_corriente',
       medio_pago: '',
+      medios_pago: null,
       monto_abonado: '',
       observaciones: ''
     });
@@ -145,17 +152,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
   // respaldo) y suma 1 unidad — si ya está en el carrito, incrementa esa
   // línea; si no, la agrega arriba precargando el último costo conocido.
   // ======================================================
-  const handleScan = () => {
-    const code = normalizeScanCode(scanValue);
-    setScanValue('');
-    if (!code) return;
-
-    const prod = findProductoByScan(productos, code);
-    if (!prod) {
-      setScanError(`Producto no encontrado (código: ${code})`);
-      scanInputRef.current?.focus();
-      return;
-    }
+  const agregarProductoEscaneado = (prod) => {
     setScanError('');
 
     setItems((prev) => {
@@ -187,12 +184,59 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
     scanInputRef.current?.focus();
   };
 
+  const handleScan = async () => {
+    const code = normalizeScanCode(scanValue);
+    setScanValue('');
+    if (!code) return;
+
+    const prod = findProductoByScan(productos, code);
+    if (prod) {
+      agregarProductoEscaneado(prod);
+      return;
+    }
+
+    // No está en el catálogo ya cargado: antes de darlo por no encontrado,
+    // lo buscamos directo contra el backend (cubre un producto nuevo o un
+    // catálogo que superó lo precargado).
+    setScanLoading(true);
+    try {
+      const resp = await listProductos({ q: code, limit: 5, estado: 'activo' });
+      const candidatos = Array.isArray(resp) ? resp : resp?.data || [];
+      const remoto = findProductoByScan(candidatos, code);
+      if (remoto) {
+        setProductos((prev) =>
+          prev.some((p) => String(p.id) === String(remoto.id)) ? prev : [remoto, ...prev]
+        );
+        agregarProductoEscaneado(remoto);
+        return;
+      }
+    } catch {
+      // Si falla la consulta de respaldo, seguimos al mensaje de no encontrado.
+    } finally {
+      setScanLoading(false);
+    }
+
+    setScanError(`Producto no encontrado (código: ${code})`);
+    scanInputRef.current?.focus();
+  };
+
   const validate = () => {
     const e = {};
     if (!form.proveedor_id) e.proveedor_id = 'Seleccioná un proveedor';
     if (!form.fecha) e.fecha = 'La fecha es obligatoria';
-    if (form.tipo_pago === 'contado' && !form.medio_pago) {
-      e.medio_pago = 'El medio de pago es obligatorio en compras al contado.';
+    if (form.tipo_pago === 'contado') {
+      if (Array.isArray(form.medios_pago)) {
+        const sumaSplit = form.medios_pago.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+        const splitOk =
+          form.medios_pago.length > 0 &&
+          form.medios_pago.every((t) => t.medio_pago && Number(t.monto) > 0) &&
+          Math.abs(sumaSplit - total) < 0.01;
+        if (!splitOk) {
+          e.medio_pago = 'Los medios de pago tienen que sumar exactamente el total.';
+        }
+      } else if (!form.medio_pago) {
+        e.medio_pago = 'El medio de pago es obligatorio en compras al contado.';
+      }
     }
 
     const itemErrors = items.map((it) => {
@@ -218,7 +262,9 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       fecha: form.fecha,
       nro_factura: form.nro_factura?.trim() || null,
       tipo_pago: form.tipo_pago,
-      medio_pago: form.tipo_pago === 'contado' ? form.medio_pago : null,
+      medio_pago:
+        form.tipo_pago === 'contado' && !Array.isArray(form.medios_pago) ? form.medio_pago : null,
+      medios_pago: form.tipo_pago === 'contado' && Array.isArray(form.medios_pago) ? form.medios_pago : null,
       monto_abonado: esCuentaCorriente ? abonado : 0,
       observaciones: form.observaciones?.trim() || null,
       items: items.map((it) => ({
@@ -398,7 +444,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                         setForm((f) => ({
                           ...f,
                           tipo_pago: e.target.value,
-                          ...(e.target.value === 'contado' ? {} : { medio_pago: '' })
+                          ...(e.target.value === 'contado' ? {} : { medio_pago: '', medios_pago: null })
                         }))
                       }
                       className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
@@ -413,26 +459,13 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                 {/* Medio de pago (solo compras al contado: mueven caja ahora) */}
                 {form.tipo_pago === 'contado' && (
                   <motion.div variants={fieldV}>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-600 mb-2">
-                      <Wallet className="h-4 w-4 text-slate-500" />
-                      Medio de pago <span className="text-teal-600">*</span>
-                    </label>
-                    <select
-                      value={form.medio_pago}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, medio_pago: e.target.value }))
+                    <MedioPagoField
+                      value={{ medio_pago: form.medio_pago, medios_pago: form.medios_pago }}
+                      onChange={(v) =>
+                        setForm((f) => ({ ...f, medio_pago: v.medio_pago, medios_pago: v.medios_pago }))
                       }
-                      className={`w-full rounded-xl border bg-white px-3.5 py-3 text-slate-800
-                                 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent
-                                 ${errors.medio_pago ? 'border-rose-300' : 'border-slate-200'}`}
-                    >
-                      <option value="">Seleccionar…</option>
-                      {MEDIOS_PAGO.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
+                      total={total}
+                    />
                     {errors.medio_pago && (
                       <p className="mt-1 text-sm text-rose-600">{errors.medio_pago}</p>
                     )}
@@ -493,6 +526,9 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                                  placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent"
                     />
                   </div>
+                  {scanLoading && (
+                    <p className="mt-1 text-sm text-slate-500">Buscando producto…</p>
+                  )}
                   {scanError && (
                     <p className="mt-1 text-sm text-rose-600">{scanError}</p>
                   )}

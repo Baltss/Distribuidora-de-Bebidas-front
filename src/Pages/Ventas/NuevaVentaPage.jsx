@@ -31,7 +31,7 @@ import { listProductos } from '../../api/productos';
 import { listVendedores } from '../../api/vendedores';
 import { createVenta } from '../../api/ventas';
 import { blockWheelChange } from '../../utils/numberInput';
-import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MedioPagoField from '../../Components/Common/MedioPagoField';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
@@ -79,6 +79,7 @@ export default function NuevaVentaPage() {
     vendedor_id: '',
     tipo: 'contado', // contado | fiado | a_cuenta
     medio_pago: 'efectivo',
+    medios_pago: null, // split de medios de pago: [{ medio_pago, monto }, ...] o null
     monto_a_cuenta: '',
     facturar: false
   });
@@ -94,6 +95,7 @@ export default function NuevaVentaPage() {
 
   const [scanValue, setScanValue] = useState('');
   const [scanError, setScanError] = useState('');
+  const [scanLoading, setScanLoading] = useState(false);
   const scanInputRef = useRef(null);
 
   // Acción de la botonera (Exportar) — sin modificar.
@@ -268,7 +270,16 @@ export default function NuevaVentaPage() {
     const requiereMedioPago =
       form.tipo === 'contado' ||
       (form.tipo === 'a_cuenta' && aCuentaNumber > 0);
-    const hasMedioPago = !requiereMedioPago || !!form.medio_pago;
+    const montoAPagar = form.tipo === 'a_cuenta' ? aCuentaNumber : totalNeto;
+    const hasMedioPago = !requiereMedioPago
+      ? true
+      : Array.isArray(form.medios_pago)
+        ? form.medios_pago.length > 0 &&
+          form.medios_pago.every((t) => t.medio_pago && Number(t.monto) > 0) &&
+          Math.abs(
+            form.medios_pago.reduce((acc, t) => acc + (Number(t.monto) || 0), 0) - montoAPagar
+          ) < 0.01
+        : !!form.medio_pago;
 
     return (
       hasCliente && hasVendedor && hasItemsValidos && aCuentaOk && hasMedioPago
@@ -278,6 +289,7 @@ export default function NuevaVentaPage() {
     form.vendedor_id,
     form.tipo,
     form.medio_pago,
+    form.medios_pago,
     items,
     aCuentaNumber,
     totalNeto
@@ -379,15 +391,15 @@ export default function NuevaVentaPage() {
     );
   };
 
-  const findProductoByScan = (code) => {
+  const buscarProductoEnLista = (lista, code) => {
     const variants = scanVariants(code).map((v) => v.toUpperCase());
     return (
-      productos.find(
+      (lista || []).find(
         (p) =>
           p?.barra_ean13 &&
           variants.includes(String(p.barra_ean13).toUpperCase())
       ) ||
-      productos.find(
+      (lista || []).find(
         (p) =>
           p?.codigo_sku &&
           variants.includes(String(p.codigo_sku).toUpperCase())
@@ -396,19 +408,9 @@ export default function NuevaVentaPage() {
     );
   };
 
-  const handleScan = () => {
-    const code = normalizeScanCode(scanValue);
-    setScanValue('');
-    if (!code) return;
+  const findProductoByScan = (code) => buscarProductoEnLista(productos, code);
 
-    const prod = findProductoByScan(code);
-    if (!prod) {
-      setScanError(`Producto no encontrado (código: ${code})`);
-      scanInputRef.current?.focus();
-      return;
-    }
-    setScanError('');
-
+  const agregarProductoEscaneado = (prod) => {
     setItems((prev) => {
       const idx = prev.findIndex(
         (it) => Number(it.producto_id) === Number(prod.id)
@@ -441,6 +443,44 @@ export default function NuevaVentaPage() {
     scanInputRef.current?.focus();
   };
 
+  const handleScan = async () => {
+    const code = normalizeScanCode(scanValue);
+    setScanValue('');
+    if (!code) return;
+
+    const prod = findProductoByScan(code);
+    if (prod) {
+      setScanError('');
+      agregarProductoEscaneado(prod);
+      return;
+    }
+
+    // No está en el catálogo ya cargado en el navegador: antes de darlo
+    // por no encontrado, lo buscamos directo contra el backend (cubre el
+    // caso de un producto nuevo o un catálogo que superó lo precargado).
+    setScanLoading(true);
+    try {
+      const resp = await listProductos({ q: code, limit: 5, estado: 'activo' });
+      const candidatos = Array.isArray(resp) ? resp : resp?.data || [];
+      const remoto = buscarProductoEnLista(candidatos, code);
+      if (remoto) {
+        setScanError('');
+        setProductos((prev) =>
+          prev.some((p) => Number(p.id) === Number(remoto.id)) ? prev : [remoto, ...prev]
+        );
+        agregarProductoEscaneado(remoto);
+        return;
+      }
+    } catch {
+      // Si falla la consulta de respaldo, seguimos al mensaje de no encontrado.
+    } finally {
+      setScanLoading(false);
+    }
+
+    setScanError(`Producto no encontrado (código: ${code})`);
+    scanInputRef.current?.focus();
+  };
+
   // ---------- Reset (después de confirmar una venta, o al cancelar) ----------
   const resetForm = () => {
     setForm({
@@ -449,6 +489,7 @@ export default function NuevaVentaPage() {
       vendedor_id: defaultVendedorId || '',
       tipo: 'contado',
       medio_pago: 'efectivo',
+      medios_pago: null,
       monto_a_cuenta: '',
       facturar: false
     });
@@ -485,7 +526,8 @@ export default function NuevaVentaPage() {
         fecha: fechaPayload,
         tipo: form.tipo,
         canal: 'local',
-        medio_pago: form.medio_pago,
+        medio_pago: Array.isArray(form.medios_pago) ? null : form.medio_pago,
+        medios_pago: Array.isArray(form.medios_pago) ? form.medios_pago : null,
         observaciones: null,
         reparto_id: null,
         monto_a_cuenta: moneyRound(Number(form.monto_a_cuenta || 0)),
@@ -643,33 +685,22 @@ export default function NuevaVentaPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">
-                  Medio de pago{' '}
-                  {form.tipo === 'fiado' ? (
+                {form.tipo === 'fiado' ? (
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
+                    Medio de pago{' '}
                     <span className="text-slate-500 font-normal">
                       (no aplica en fiado)
                     </span>
-                  ) : (
-                    <span className="text-orange-600">*</span>
-                  )}
-                </label>
-                <select
-                  value={form.medio_pago}
-                  disabled={form.tipo === 'fiado'}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, medio_pago: e.target.value }))
-                  }
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
-                             focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
-                             disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-                >
-                  <option value="">Seleccionar…</option>
-                  {MEDIOS_PAGO.map((m) => (
-                    <option key={m.value} value={m.value}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
+                  </label>
+                ) : (
+                  <MedioPagoField
+                    value={{ medio_pago: form.medio_pago, medios_pago: form.medios_pago }}
+                    onChange={(v) =>
+                      setForm((f) => ({ ...f, medio_pago: v.medio_pago, medios_pago: v.medios_pago }))
+                    }
+                    total={form.tipo === 'a_cuenta' ? Number(form.monto_a_cuenta || 0) : totalNeto}
+                  />
+                )}
               </div>
             </div>
 
@@ -727,6 +758,9 @@ export default function NuevaVentaPage() {
                              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent"
                 />
               </div>
+              {scanLoading && (
+                <p className="mt-1 text-[12px] text-slate-500">Buscando producto…</p>
+              )}
               {scanError && (
                 <p className="mt-1 text-[12px] text-rose-600">{scanError}</p>
               )}

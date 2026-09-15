@@ -12,8 +12,10 @@ import {
   listVentas,
   getVenta,
   anularVenta,
+  updateVenta,
   createVentasRepartoMasiva
 } from '../../api/ventas';
+import EditarVentaModal from '../../Components/Ventas/EditarVentaModal';
 import { moneyAR } from '../../utils/money';
 import { useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -131,6 +133,9 @@ const VentasHistorialPage = () => {
   const [detalleOpen, setDetalleOpen] = useState(false);
   const [detalle, setDetalle] = useState(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
+
+  // edición de cabecera (cliente/vendedor/fecha/tipo/medio de pago/observaciones)
+  const [editVenta, setEditVenta] = useState(null);
 
   // ======================================================
   //  - 17-01-2026
@@ -338,6 +343,15 @@ const VentasHistorialPage = () => {
     } catch (e) {
       console.error('No se pudo anular la venta:', e);
       alert('No se pudo anular la venta.');
+    }
+  };
+
+  const handleSubmitEditarVenta = async (payload) => {
+    await updateVenta(editVenta.id, payload);
+    await fetchVentas();
+    if (detalle?.id === editVenta.id) {
+      const full = await getVenta(editVenta.id);
+      setDetalle(full);
     }
   };
 
@@ -806,6 +820,16 @@ const VentasHistorialPage = () => {
                                     Ver
                                   </button>
 
+                                  {v.estado !== 'anulada' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditVenta(v)}
+                                      className="text-xs px-2.5 py-1 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50 transition"
+                                    >
+                                      Editar
+                                    </button>
+                                  )}
+
                                   {v.estado === 'confirmada' &&
                                     !v.facturas_autorizadas_count &&
                                     !esVendedor && (
@@ -1139,6 +1163,13 @@ const VentasHistorialPage = () => {
       <ExportarVentasModal
         open={exportarModalOpen}
         onClose={() => setExportarModalOpen(false)}
+      />
+
+      <EditarVentaModal
+        open={editVenta != null}
+        onClose={() => setEditVenta(null)}
+        onSubmit={handleSubmitEditarVenta}
+        venta={editVenta}
       />
     </AppShell>
   );

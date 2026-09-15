@@ -7,6 +7,7 @@ import { backdropV, panelV } from '../../ui/animHelpers';
 import { getCajaDetalle } from '../../api/caja.js';
 import moneyAR from '../../utils/money';
 import { medioPagoLabel } from '../../utils/mediosPago';
+import { formatFechaCalendario } from '../../utils/fechaCalendario';
 
 const ORIGEN_LABEL = {
   cobranza: 'Cobro a cliente',
@@ -29,7 +30,10 @@ const ESTADO_LABEL = {
   cerrada: 'Cerrada'
 };
 
-const fmtFecha = (v) => (v ? new Date(v).toLocaleDateString('es-AR') : '—');
+// fecha_jornada es una fecha de calendario pura ('YYYY-MM-DD', sin hora):
+// se formatea a mano para no correr el día por la interpretación UTC del
+// navegador (ver src/utils/fechaCalendario.js).
+const fmtFecha = formatFechaCalendario;
 const fmtFechaHora = (v) =>
   v ? new Date(v).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 

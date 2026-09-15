@@ -28,6 +28,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
   const [stockActual, setStockActual] = useState(null);
 
   const [ajusteOpen, setAjusteOpen] = useState(false);
+  const [ajusteSentido, setAjusteSentido] = useState('sumar'); // 'sumar' | 'restar' — determina el signo
   const [ajusteCantidad, setAjusteCantidad] = useState('');
   const [ajusteTipo, setAjusteTipo] = useState('ajuste');
   const [ajusteDescripcion, setAjusteDescripcion] = useState('');
@@ -59,6 +60,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
     if (open) {
       fetchAll();
       setAjusteOpen(false);
+      setAjusteSentido('sumar');
       setAjusteCantidad('');
       setAjusteTipo('ajuste');
       setAjusteDescripcion('');
@@ -68,13 +70,14 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
 
   const submitAjuste = async (e) => {
     e.preventDefault();
-    const cantidad = Number(ajusteCantidad);
-    if (!Number.isFinite(cantidad) || cantidad === 0) {
+    const magnitud = Number(ajusteCantidad);
+    if (!Number.isFinite(magnitud) || magnitud <= 0) {
       return showWarnSwal({
         title: 'Cantidad inválida',
-        text: 'Ingresá un número distinto de 0 (positivo suma, negativo resta).'
+        text: 'Ingresá una cantidad mayor a 0.'
       });
     }
+    const cantidad = ajusteSentido === 'restar' ? -Math.abs(magnitud) : Math.abs(magnitud);
 
     try {
       setSaving(true);
@@ -86,6 +89,7 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
       });
       await showSuccessSwal({ title: 'Ajuste registrado', text: 'El stock fue actualizado.' });
       setAjusteOpen(false);
+      setAjusteSentido('sumar');
       setAjusteCantidad('');
       setAjusteDescripcion('');
       await fetchAll();
@@ -183,42 +187,71 @@ export default function StockMovimientosModal({ open, producto, onClose, onChang
                   {ajusteOpen && !esVendedor && (
                     <form
                       onSubmit={submitAjuste}
-                      className="mb-4 grid grid-cols-1 sm:grid-cols-[110px,140px,1fr,auto] gap-2 items-start rounded-xl border border-slate-200 bg-slate-50 p-3"
+                      className="mb-4 flex flex-col gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3"
                     >
-                      <input
-                        type="number"
-                        onWheel={blockWheelChange}
-                        step="0.001"
-                        value={ajusteCantidad}
-                        onChange={(e) => setAjusteCantidad(e.target.value)}
-                        placeholder="± cantidad"
-                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
-                                   focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-                      />
-                      <select
-                        value={ajusteTipo}
-                        onChange={(e) => setAjusteTipo(e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
-                                   focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-                      >
-                        <option value="ajuste">Ajuste</option>
-                        <option value="merma">Merma</option>
-                        <option value="devolucion">Devolución</option>
-                      </select>
-                      <input
-                        value={ajusteDescripcion}
-                        onChange={(e) => setAjusteDescripcion(e.target.value)}
-                        placeholder="Motivo (opcional)"
-                        className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
-                                   placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-                      />
-                      <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-3 py-2 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-60 transition"
-                      >
-                        {saving ? 'Guardando…' : 'Aplicar'}
-                      </button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setAjusteSentido('sumar')}
+                          aria-pressed={ajusteSentido === 'sumar'}
+                          className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                            ajusteSentido === 'sumar'
+                              ? 'bg-emerald-600 border-emerald-600 text-white'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          + Sumar stock
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAjusteSentido('restar')}
+                          aria-pressed={ajusteSentido === 'restar'}
+                          className={`px-3 py-2 rounded-lg text-sm font-semibold border transition ${
+                            ajusteSentido === 'restar'
+                              ? 'bg-rose-600 border-rose-600 text-white'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          − Restar stock
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-[140px,140px,1fr,auto] gap-2 items-start">
+                        <input
+                          type="number"
+                          onWheel={blockWheelChange}
+                          step="0.001"
+                          min="0"
+                          value={ajusteCantidad}
+                          onChange={(e) => setAjusteCantidad(e.target.value)}
+                          placeholder="Cantidad"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                     focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                        />
+                        <select
+                          value={ajusteTipo}
+                          onChange={(e) => setAjusteTipo(e.target.value)}
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                     focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                        >
+                          <option value="ajuste">Ajuste</option>
+                          <option value="merma">Merma</option>
+                          <option value="devolucion">Devolución</option>
+                        </select>
+                        <input
+                          value={ajusteDescripcion}
+                          onChange={(e) => setAjusteDescripcion(e.target.value)}
+                          placeholder="Motivo (opcional)"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800
+                                     placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                        />
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="px-3 py-2 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-60 transition"
+                        >
+                          {saving ? 'Guardando…' : 'Aplicar'}
+                        </button>
+                      </div>
                     </form>
                   )}
 

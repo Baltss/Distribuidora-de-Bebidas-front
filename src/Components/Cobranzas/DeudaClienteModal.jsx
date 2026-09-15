@@ -16,7 +16,7 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
-import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MedioPagoField from '../Common/MedioPagoField';
 
 function formatMoneyARS(value = 0) {
   return Number(value || 0).toLocaleString('es-AR', {
@@ -50,6 +50,7 @@ export default function DeudaClienteModal({
   const [cobros, setCobros] = useState({}); // { [ventaId]: monto }
   const [observaciones, setObservaciones] = useState('');
   const [medioPago, setMedioPago] = useState('');
+  const [mediosPago, setMediosPago] = useState(null); // split: [{ medio_pago, monto }, ...] o null
   const [savingCobro, setSavingCobro] = useState(false);
 
   // ======================================================
@@ -86,6 +87,7 @@ export default function DeudaClienteModal({
           setCobros({});
           setObservaciones('');
           setMedioPago('');
+          setMediosPago(null);
           setCobroSaldoPrevio('');
           setModoCobro('unico');
           setMontoUnico('');
@@ -383,7 +385,7 @@ export default function DeudaClienteModal({
 
     if (!apps.length) return;
 
-    if (!medioPago) {
+    if (!Array.isArray(mediosPago) && !medioPago) {
       await Swal.fire({
         title: 'Falta el medio de pago',
         text: 'Seleccioná el medio de pago del cobro antes de continuar.',
@@ -391,6 +393,23 @@ export default function DeudaClienteModal({
         confirmButtonColor: '#10b981'
       });
       return;
+    }
+
+    if (Array.isArray(mediosPago)) {
+      const sumaSplit = mediosPago.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
+      const splitOk =
+        mediosPago.length > 0 &&
+        mediosPago.every((t) => t.medio_pago && Number(t.monto) > 0) &&
+        Math.abs(sumaSplit - total) < 0.01;
+      if (!splitOk) {
+        await Swal.fire({
+          title: 'Revisá los medios de pago',
+          text: 'Los medios de pago tienen que sumar exactamente el monto a cobrar.',
+          icon: 'warning',
+          confirmButtonColor: '#10b981'
+        });
+        return;
+      }
     }
 
     const totalFmt = formatMoneyARS(total);
@@ -441,7 +460,8 @@ export default function DeudaClienteModal({
         vendedor_id: null,
         fecha: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
         total_cobrado: Number(total.toFixed(2)),
-        medio_pago: medioPago,
+        medio_pago: Array.isArray(mediosPago) ? null : medioPago,
+        medios_pago: Array.isArray(mediosPago) ? mediosPago : null,
         observaciones: observaciones?.trim() || null,
         aplicaciones: apps
       };
@@ -453,6 +473,7 @@ export default function DeudaClienteModal({
       setCobros({});
       setObservaciones('');
       setMedioPago('');
+      setMediosPago(null);
       setCobroSaldoPrevio('');
       setMontoUnico('');
 
@@ -1039,24 +1060,14 @@ export default function DeudaClienteModal({
                       </div>
 
                       <div>
-                        <label className="block text-[11px] sm:text-xs text-slate-500/80 mb-1">
-                          Medio de pago <span className="text-rose-600">*</span>
-                        </label>
-                        <select
-                          value={medioPago}
-                          onChange={(e) => setMedioPago(e.target.value)}
-                          disabled={loading || savingCobro}
-                          className="w-full rounded-2xl bg-slate-50 border border-emerald-200 px-3 py-2 text-xs sm:text-sm
-                                   text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-400/60
-                                   disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                          <option value="">Seleccionar…</option>
-                          {MEDIOS_PAGO.map((m) => (
-                            <option key={m.value} value={m.value}>
-                              {m.label}
-                            </option>
-                          ))}
-                        </select>
+                        <MedioPagoField
+                          value={{ medio_pago: medioPago, medios_pago: mediosPago }}
+                          onChange={(v) => {
+                            setMedioPago(v.medio_pago || '');
+                            setMediosPago(v.medios_pago);
+                          }}
+                          total={totalCobrarAhoraEfectivo}
+                        />
                       </div>
 
                       <div>
@@ -1102,7 +1113,7 @@ export default function DeudaClienteModal({
                             savingCobro ||
                             loading ||
                             totalCobrarAhoraEfectivo <= 0 ||
-                            !medioPago
+                            (!Array.isArray(mediosPago) && !medioPago)
                           }
                           className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-sm font-semibold
                                      hover:bg-emerald-400 transition disabled:opacity-60 disabled:cursor-not-allowed"

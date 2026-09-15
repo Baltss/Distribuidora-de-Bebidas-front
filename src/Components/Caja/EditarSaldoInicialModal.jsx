@@ -6,6 +6,7 @@ import { backdropV, panelV, formContainerV, fieldV } from '../../ui/animHelpers'
 import { X, Pencil, Wallet, StickyNote, AlertTriangle } from 'lucide-react';
 import { blockWheelChange } from '../../utils/numberInput';
 import moneyAR from '../../utils/money';
+import { formatFechaCalendario } from '../../utils/fechaCalendario';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
@@ -92,7 +93,7 @@ export default function EditarSaldoInicialModal({ open, onClose, onSubmit, caja 
               <div className="mb-5 flex items-center gap-3">
                 <Pencil className="h-6 w-6 text-teal-600 shrink-0" />
                 <h3 className="text-xl font-bold tracking-tight text-slate-900">
-                  Corregir saldo inicial {caja?.fecha_jornada ? `del ${new Date(caja.fecha_jornada).toLocaleDateString('es-AR')}` : ''}
+                  Corregir saldo inicial {caja?.fecha_jornada ? `del ${formatFechaCalendario(caja.fecha_jornada)}` : ''}
                 </h3>
               </div>
 

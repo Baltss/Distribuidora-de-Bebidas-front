@@ -18,7 +18,7 @@ import { listVendedores } from '../../api/vendedores';
 import SearchableSelect from '../Common/SearchableSelect';
 import http from '../../api/http';
 import { blockWheelChange } from '../../utils/numberInput';
-import { MEDIOS_PAGO } from '../../utils/mediosPago';
+import MedioPagoField from '../Common/MedioPagoField';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
 
@@ -55,6 +55,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     vendedor_id: '',
     tipo: 'contado', // contado | fiado | a_cuenta
     medio_pago: '',
+    medios_pago: null, // split de medios de pago: [{ medio_pago, monto }, ...] o null
     observaciones: '',
     // ======================================================
     //  - 17-01-2026
@@ -191,6 +192,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
       vendedor_id: '',
       tipo: 'contado',
       medio_pago: '',
+      medios_pago: null,
       observaciones: '',
       //  - 17-01-2026
       monto_a_cuenta: '',
@@ -338,7 +340,16 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     const requiereMedioPago =
       form.tipo === 'contado' ||
       (form.tipo === 'a_cuenta' && aCuentaNumber > 0);
-    const hasMedioPago = !requiereMedioPago || !!form.medio_pago;
+    const montoAPagar = form.tipo === 'a_cuenta' ? aCuentaNumber : totalNeto;
+    const hasMedioPago = !requiereMedioPago
+      ? true
+      : Array.isArray(form.medios_pago)
+        ? form.medios_pago.length > 0 &&
+          form.medios_pago.every((t) => t.medio_pago && Number(t.monto) > 0) &&
+          Math.abs(
+            form.medios_pago.reduce((acc, t) => acc + (Number(t.monto) || 0), 0) - montoAPagar
+          ) < 0.01
+        : !!form.medio_pago;
 
     return (
       hasCliente && hasVendedor && hasItemsValidos && aCuentaOk && hasMedioPago
@@ -348,6 +359,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
     form.vendedor_id,
     form.tipo,
     form.medio_pago,
+    form.medios_pago,
     items,
     aCuentaNumber,
     totalNeto
@@ -874,7 +886,8 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
           fecha: fechaPayload,
           tipo: form.tipo,
           canal: form.canal,
-          medio_pago: form.medio_pago,
+          medio_pago: Array.isArray(form.medios_pago) ? null : form.medio_pago,
+          medios_pago: Array.isArray(form.medios_pago) ? form.medios_pago : null,
           observaciones: form.observaciones?.trim() || null,
 
           // ======================================================
@@ -1277,33 +1290,24 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
                 </motion.div>
 
                 {/* Medio de pago */}
-                <motion.div variants={fieldV}>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">
-                    Medio de pago{' '}
-                    {form.tipo === 'fiado' ? (
+                {form.tipo === 'fiado' ? (
+                  <motion.div variants={fieldV}>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      Medio de pago{' '}
                       <span className="text-slate-500 font-normal">(no aplica en fiado)</span>
-                    ) : (
-                      <span className="text-orange-600">*</span>
-                    )}
-                  </label>
-                  <select
-                    value={form.medio_pago}
-                    disabled={form.tipo === 'fiado'}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, medio_pago: e.target.value }))
-                    }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800
-                               focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent
-                               disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed"
-                  >
-                    <option value="">Seleccionar…</option>
-                    {MEDIOS_PAGO.map((m) => (
-                      <option key={m.value} value={m.value}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
-                </motion.div>
+                    </label>
+                  </motion.div>
+                ) : (
+                  <motion.div variants={fieldV}>
+                    <MedioPagoField
+                      value={{ medio_pago: form.medio_pago, medios_pago: form.medios_pago }}
+                      onChange={(v) =>
+                        setForm((f) => ({ ...f, medio_pago: v.medio_pago, medios_pago: v.medios_pago }))
+                      }
+                      total={form.tipo === 'a_cuenta' ? aCuentaNumber : totalNeto}
+                    />
+                  </motion.div>
+                )}
 
                 {/* Observaciones */}
                 <motion.div variants={fieldV}>
