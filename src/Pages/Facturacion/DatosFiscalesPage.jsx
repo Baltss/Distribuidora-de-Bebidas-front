@@ -26,6 +26,7 @@ import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swa
 const ESTADO_BADGE = {
   activo: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   pendiente_aprobacion: 'bg-amber-50 text-amber-700 border-amber-200',
+  verificando: 'bg-sky-50 text-sky-700 border-sky-200',
   rechazado: 'bg-rose-50 text-rose-700 border-rose-200',
   reemplazada: 'bg-slate-100 text-slate-500 border-slate-200'
 };
@@ -33,6 +34,7 @@ const ESTADO_BADGE = {
 const ESTADO_LABEL = {
   activo: 'Activa',
   pendiente_aprobacion: 'Pendiente de aprobación',
+  verificando: 'Verificando con AFIP…',
   rechazado: 'Rechazada',
   reemplazada: 'Reemplazada'
 };
@@ -203,7 +205,7 @@ export default function DatosFiscalesPage() {
                             {ESTADO_LABEL[h.estado] || h.estado}
                           </span>
                         </td>
-                        <td className="px-4 py-2 text-gray-600">{h.motivo_rechazo || '—'}</td>
+                        <td className="px-4 py-2 text-gray-600">{h.motivo_rechazo || h.motivo_error_verificacion || '—'}</td>
                         <td className="px-4 py-2 text-center">
                           {h.estado === 'pendiente_aprobacion' && !h.tiene_certificado && (
                             <button

@@ -1,12 +1,17 @@
 // src/Pages/Facturacion/AprobacionesPage.jsx
 //
 // Pantalla exclusiva del rol 'soldi_admin': revisa las solicitudes de
-// Datos Fiscales pendientes y las aprueba (el backend prueba el
-// certificado contra AFIP antes de activar nada) o las rechaza con un
-// motivo.
+// Datos Fiscales pendientes y las aprueba o las rechaza con un motivo.
+//
+// "Aprobar" no espera a AFIP: el backend responde al toque con la fila en
+// estado 'verificando' y la prueba real contra el certificado corre en
+// background (puede tardar varios minutos, sobre todo en Homologación).
+// Mientras haya alguna fila 'verificando', esta pantalla hace polling
+// hasta que el backend la resuelva sola (aprobada, o vuelta a pendiente
+// con el motivo del error) — o hasta que el admin la cancele a mano.
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ClipboardCheck } from 'lucide-react';
+import { ClipboardCheck, Loader2 } from 'lucide-react';
 
 import AppShell from '../../Components/Layout/AppShell';
 import MotivoModal from '../../Components/Facturacion/MotivoModal';
@@ -14,31 +19,63 @@ import MotivoModal from '../../Components/Facturacion/MotivoModal';
 import {
   listConfiguracionFiscalPendientes,
   aprobarConfiguracionFiscal,
+  cancelarVerificacionConfiguracionFiscal,
   rechazarConfiguracionFiscal
 } from '../../api/facturacion';
 import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
+
+const POLL_MS = 4000;
 
 export default function AprobacionesPage() {
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [aprobandoId, setAprobandoId] = useState(null);
+  const [cancelandoId, setCancelandoId] = useState(null);
   const [rechazarTarget, setRechazarTarget] = useState(null);
 
-  const fetchPendientes = async () => {
-    setLoading(true);
+  const fetchPendientes = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const data = await listConfiguracionFiscalPendientes();
-      setPendientes(Array.isArray(data) ? data : []);
+      const nueva = Array.isArray(data) ? data : [];
+
+      // Compara contra lo que había antes de este fetch para avisar apenas
+      // una verificación en curso termina sola (aprobada, o rechazada por AFIP).
+      const veniaVerificando = pendientes.filter((p) => p.estado === 'verificando');
+      for (const anterior of veniaVerificando) {
+        const actual = nueva.find((p) => p.id === anterior.id);
+        if (!actual) {
+          showSuccessSwal({ title: 'Aprobada', text: `CUIT ${anterior.cuit} quedó activa.` });
+        } else if (actual.estado === 'pendiente_aprobacion' && actual.motivo_error_verificacion) {
+          showApiErrorSwal(
+            { mensajeError: actual.motivo_error_verificacion },
+            { title: 'No se pudo aprobar' }
+          );
+        }
+      }
+
+      setPendientes(nueva);
     } catch (err) {
-      await showApiErrorSwal(err, { title: 'No se pudieron cargar las solicitudes' });
+      if (!silent) await showApiErrorSwal(err, { title: 'No se pudieron cargar las solicitudes' });
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchPendientes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Mientras haya alguna fila 'verificando', reconsulta cada POLL_MS hasta
+  // que el backend la resuelva (o el admin la cancele).
+  useEffect(() => {
+    const hayVerificando = pendientes.some((p) => p.estado === 'verificando');
+    if (!hayVerificando) return undefined;
+    const interval = setInterval(() => fetchPendientes({ silent: true }), POLL_MS);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendientes]);
 
   const handleAprobar = async (config) => {
     if (!config.tiene_certificado) {
@@ -50,7 +87,7 @@ export default function AprobacionesPage() {
     }
     const confirmed = await showConfirmSwal({
       title: '¿Aprobar esta Configuración Fiscal?',
-      text: `CUIT ${config.cuit} — se va a probar el certificado contra AFIP antes de activarla.`,
+      text: `CUIT ${config.cuit} — la verificación contra AFIP corre en segundo plano y puede tardar unos minutos.`,
       icon: 'question',
       confirmText: 'Sí, aprobar'
     });
@@ -59,12 +96,31 @@ export default function AprobacionesPage() {
     try {
       setAprobandoId(config.id);
       await aprobarConfiguracionFiscal(config.id);
-      await showSuccessSwal({ title: 'Aprobada', text: 'La Configuración Fiscal quedó activa.' });
-      fetchPendientes();
+      await fetchPendientes();
     } catch (err) {
-      await showApiErrorSwal(err, { title: 'No se pudo aprobar' });
+      await showApiErrorSwal(err, { title: 'No se pudo iniciar la aprobación' });
     } finally {
       setAprobandoId(null);
+    }
+  };
+
+  const handleCancelarVerificacion = async (config) => {
+    const confirmed = await showConfirmSwal({
+      title: '¿Cancelar la verificación?',
+      text: `CUIT ${config.cuit} — vas a poder reintentar la aprobación después.`,
+      icon: 'warning',
+      confirmText: 'Sí, cancelar'
+    });
+    if (!confirmed) return;
+
+    try {
+      setCancelandoId(config.id);
+      await cancelarVerificacionConfiguracionFiscal(config.id);
+      await fetchPendientes();
+    } catch (err) {
+      await showApiErrorSwal(err, { title: 'No se pudo cancelar' });
+    } finally {
+      setCancelandoId(null);
     }
   };
 
@@ -122,43 +178,66 @@ export default function AprobacionesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pendientes.map((p) => (
-                    <tr key={p.id} className="border-b border-gray-100">
-                      <td className="px-4 py-2 text-gray-800">{p.cuit}</td>
-                      <td className="px-4 py-2 text-gray-700">{p.razon_social || '—'}</td>
-                      <td className="px-4 py-2 capitalize text-gray-700">{p.condicion_fiscal?.replace('_', ' ')}</td>
-                      <td className="px-4 py-2 capitalize text-gray-700">{p.ambiente}</td>
-                      <td className="px-4 py-2">
-                        {p.tiene_certificado ? (
-                          <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            Cargado
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                            Falta
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-2 text-gray-700">{p.solicitado_por?.nombre || '—'}</td>
-                      <td className="px-4 py-2">
-                        <div className="flex items-center justify-center gap-3">
-                          <button
-                            onClick={() => handleAprobar(p)}
-                            disabled={aprobandoId === p.id}
-                            className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50 transition"
-                          >
-                            {aprobandoId === p.id ? 'Probando…' : 'Aprobar'}
-                          </button>
-                          <button
-                            onClick={() => setRechazarTarget(p)}
-                            className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition"
-                          >
-                            Rechazar
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {pendientes.map((p) => {
+                    const verificando = p.estado === 'verificando';
+                    return (
+                      <tr key={p.id} className="border-b border-gray-100">
+                        <td className="px-4 py-2 text-gray-800">{p.cuit}</td>
+                        <td className="px-4 py-2 text-gray-700">{p.razon_social || '—'}</td>
+                        <td className="px-4 py-2 capitalize text-gray-700">{p.condicion_fiscal?.replace('_', ' ')}</td>
+                        <td className="px-4 py-2 capitalize text-gray-700">{p.ambiente}</td>
+                        <td className="px-4 py-2">
+                          {p.tiene_certificado ? (
+                            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Cargado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                              Falta
+                            </span>
+                          )}
+                          {p.motivo_error_verificacion && (
+                            <p className="mt-1 text-[11px] text-rose-600 max-w-[220px]">
+                              Último intento falló: {p.motivo_error_verificacion}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 text-gray-700">{p.solicitado_por?.nombre || '—'}</td>
+                        <td className="px-4 py-2">
+                          {verificando ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Verificando…
+                              </span>
+                              <button
+                                onClick={() => handleCancelarVerificacion(p)}
+                                disabled={cancelandoId === p.id}
+                                className="text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-50 transition"
+                              >
+                                {cancelandoId === p.id ? 'Cancelando…' : 'Cancelar / Reintentar'}
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-3">
+                              <button
+                                onClick={() => handleAprobar(p)}
+                                disabled={aprobandoId === p.id}
+                                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50 transition"
+                              >
+                                {aprobandoId === p.id ? 'Iniciando…' : 'Aprobar'}
+                              </button>
+                              <button
+                                onClick={() => setRechazarTarget(p)}
+                                className="text-xs font-semibold text-rose-600 hover:text-rose-700 transition"
+                              >
+                                Rechazar
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
