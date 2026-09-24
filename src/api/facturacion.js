@@ -48,9 +48,17 @@ export async function cargarCertificadoConfiguracionFiscal(id, certificado) {
   return data;
 }
 
-/** Aprueba una solicitud pendiente (rol soldi_admin) — prueba el certificado contra AFIP antes de activar */
+/**
+ * Aprueba una solicitud pendiente (rol soldi_admin) — prueba el certificado
+ * contra AFIP antes de activar. Timeout más largo que el default (20s):
+ * esto hace un round-trip real a AFIP (WSAA + WSFE) que puede tardar,
+ * sobre todo en Homologación; el backend tiene su propio timeout de 25s
+ * ante AFIP, así que le damos margen para que llegue a responder.
+ */
 export async function aprobarConfiguracionFiscal(id) {
-  const { data } = await http.post(`/facturacion/configuracion-fiscal/${id}/aprobar`);
+  const { data } = await http.post(`/facturacion/configuracion-fiscal/${id}/aprobar`, undefined, {
+    timeout: 35000
+  });
   return data;
 }
 
@@ -90,9 +98,13 @@ export async function listVentasPendientesFacturar(params = {}) {
   return data;
 }
 
-/** Facturar una o varias ventas (deben ser del mismo cliente) */
+/** Facturar una o varias ventas (deben ser del mismo cliente). Mismo motivo de timeout largo que aprobarConfiguracionFiscal: hace un round-trip real a AFIP. */
 export async function facturarVentas(ventaIds) {
-  const { data } = await http.post('/facturacion/facturas', { venta_ids: ventaIds });
+  const { data } = await http.post(
+    '/facturacion/facturas',
+    { venta_ids: ventaIds },
+    { timeout: 35000 }
+  );
   return data;
 }
 
