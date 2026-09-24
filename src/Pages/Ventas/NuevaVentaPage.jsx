@@ -538,9 +538,9 @@ export default function NuevaVentaPage() {
       const facturacionMsg = !form.facturar
         ? ''
         : creada?.facturacion?.ok
-        ? ` Factura emitida (CAE ${creada.facturacion.cae}).`
+        ? ' Factura en proceso — vas a ver el CAE en Facturación en unos minutos.'
         : creada?.facturacion
-        ? ` No se pudo facturar: ${creada.facturacion.mensajeError} (podés reintentar desde Facturación).`
+        ? ` No se pudo iniciar la factura: ${creada.facturacion.mensajeError} (podés reintentar desde Facturación).`
         : '';
 
       const result = await Swal.fire({

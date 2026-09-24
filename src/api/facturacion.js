@@ -102,13 +102,21 @@ export async function listVentasPendientesFacturar(params = {}) {
   return data;
 }
 
-/** Facturar una o varias ventas (deben ser del mismo cliente). Mismo motivo de timeout largo que aprobarConfiguracionFiscal: hace un round-trip real a AFIP. */
+/**
+ * Dispara la emisión de un comprobante para una o varias ventas (deben
+ * ser del mismo cliente). No espera a AFIP: el backend responde al
+ * toque con la factura en estado 'pendiente' y la emisión real corre en
+ * background — el resultado se entera por polling sobre listFacturas
+ * (usa el timeout default, ya no hace falta uno largo).
+ */
 export async function facturarVentas(ventaIds) {
-  const { data } = await http.post(
-    '/facturacion/facturas',
-    { venta_ids: ventaIds },
-    { timeout: 35000 }
-  );
+  const { data } = await http.post('/facturacion/facturas', { venta_ids: ventaIds });
+  return data;
+}
+
+/** Cancela una emisión en curso (estado 'pendiente') y la deja lista para reintentar. */
+export async function cancelarFactura(id) {
+  const { data } = await http.post(`/facturacion/facturas/${id}/cancelar`);
   return data;
 }
 
@@ -138,6 +146,7 @@ export default {
   updatePuntoVentaEstado,
   listVentasPendientesFacturar,
   facturarVentas,
+  cancelarFactura,
   listFacturas,
   getFactura
 };
