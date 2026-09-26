@@ -43,7 +43,10 @@ const emptyItem = () => ({
   costo_unit: ''
 });
 
-export default function CompraFormModal({ open, onClose, onSubmit }) {
+// initialData (opcional): { proveedor_id, items:[{producto_id, cantidad, costo_unit}], aviso? }
+// para abrir la compra precargada (ej. desde el listado de reposición). Si no
+// viene, el formulario arranca vacío como siempre.
+export default function CompraFormModal({ open, onClose, onSubmit, initialData = null }) {
   const [saving, setSaving] = useState(false);
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
@@ -102,6 +105,18 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
       observaciones: ''
     });
     setItems([emptyItem()]);
+    if (initialData) {
+      if (initialData.proveedor_id != null) {
+        setForm((f) => ({ ...f, proveedor_id: String(initialData.proveedor_id) }));
+      }
+      const precargados = (initialData.items || []).map((it) => ({
+        ...emptyItem(),
+        producto_id: it.producto_id,
+        cantidad: it.cantidad,
+        costo_unit: it.costo_unit != null ? String(it.costo_unit) : ''
+      }));
+      if (precargados.length) setItems(precargados);
+    }
     setErrors({});
     setScanValue('');
     setScanError('');
@@ -113,6 +128,7 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
         // silencioso: los selects quedan vacíos si falla
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const total = useMemo(
@@ -360,6 +376,11 @@ export default function CompraFormModal({ open, onClose, onSubmit }) {
                   Nueva compra
                 </h3>
               </div>
+              {initialData?.aviso && (
+                <div className="shrink-0 mx-5 sm:mx-6 md:mx-8 -mt-2 mb-4 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm text-blue-800">
+                  {initialData.aviso}
+                </div>
+              )}
 
               <motion.form
                 onSubmit={submit}

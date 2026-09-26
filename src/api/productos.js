@@ -82,10 +82,18 @@ export async function exportProductosXlsx(params = {}) {
 
 /**
  * Listado de reposición: productos activos con poco stock, filtrable por
- * categoría/búsqueda/stock máximo/sólo-bajo-mínimo. Sin paginado.
+ * categoría/búsqueda/stock máximo/sólo-bajo-mínimo/proveedor habitual
+ * ('sin' = nunca comprados). Sin paginado.
+ * Ej: listProductosReposicion({ proveedor_id: 5 }) o { ids: '1,2,3' } o { items: '12:6,40:24' }
  */
 export async function listProductosReposicion(params = {}) {
   const { data } = await http.get(`/productos/reposicion${toQS(params)}`);
+  return data;
+}
+
+/** Aviso del Dashboard: { bajo_minimo, con_minimo, pedidos_pendientes } */
+export async function getReposicionResumen() {
+  const { data } = await http.get('/productos/reposicion/resumen');
   return data;
 }
 
@@ -127,6 +135,7 @@ export default {
   deleteProducto,
   exportProductosXlsx,
   listProductosReposicion,
+  getReposicionResumen,
   exportReposicionXlsx,
   exportReposicionPdf
 };

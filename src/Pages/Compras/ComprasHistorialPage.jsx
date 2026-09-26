@@ -1,6 +1,6 @@
 // src/Pages/Compras/ComprasHistorialPage.jsx
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AppShell from '../../Components/Layout/AppShell';
 import { motion } from 'framer-motion';
 import { FaPlus, FaBan, FaSearch, FaArrowLeft } from 'react-icons/fa';
@@ -16,6 +16,7 @@ import {
 } from '../../ui/swal';
 import moneyAR from '../../utils/money';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import { quitarDelBorrador } from '../../utils/pedidoReposicionBorrador';
 
 export default function ComprasHistorialPage() {
   const navigate = useNavigate();
@@ -25,6 +26,19 @@ export default function ComprasHistorialPage() {
   const [page, setPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const [detalleCompraId, setDetalleCompraId] = useState(null);
+  // Compra precargada que llega desde el listado de reposición ("Pasar a compra")
+  const location = useLocation();
+  const [precarga, setPrecarga] = useState(null);
+
+  useEffect(() => {
+    const data = location.state?.compraPrecargada;
+    if (!data) return;
+    setPrecarga(data);
+    setModalOpen(true);
+    // Limpiamos el state para que al recargar la página no se vuelva a abrir
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Filtros de búsqueda
   const [q, setQ] = useState('');
@@ -64,8 +78,19 @@ export default function ComprasHistorialPage() {
 
   const onSubmit = async (payload) => {
     try {
-      await createCompra(payload);
-      await showSuccessSwal({ title: 'Compra registrada', text: 'Stock y cuenta corriente actualizados.' });
+      // Compra de un pedido de reposición guardado → el backend lo marca "recibido"
+      const pedidoId = precarga?.origen === 'pedido' ? precarga.pedido_id : null;
+      await createCompra(pedidoId ? { ...payload, pedido_reposicion_id: pedidoId } : payload);
+      // Lo que se compró sale del pedido de reposición en armado
+      if (precarga?.origen === 'reposicion') {
+        quitarDelBorrador(payload.items.map((it) => it.producto_id));
+      }
+      await showSuccessSwal({
+        title: 'Compra registrada',
+        text: pedidoId
+          ? `Stock y cuenta corriente actualizados. El pedido de reposición #${pedidoId} quedó como recibido.`
+          : 'Stock y cuenta corriente actualizados.'
+      });
       await fetchData();
       setModalOpen(false);
     } catch (err) {
@@ -281,8 +306,12 @@ export default function ComprasHistorialPage() {
 
       <CompraFormModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setPrecarga(null);
+        }}
         onSubmit={onSubmit}
+        initialData={precarga}
       />
 
       <CompraDetalleModal
