@@ -120,6 +120,17 @@ export async function cancelarFactura(id) {
   return data;
 }
 
+/**
+ * Reintenta un comprobante con error (Factura o Nota de Crédito). Si el
+ * intento anterior quedó sin respuesta de ARCA, primero se verifica si
+ * llegó a autorizarse (nunca se factura dos veces). Devuelve
+ * { factura_id, estado: 'pendiente' } o { descartada: true, message }.
+ */
+export async function reintentarFactura(id) {
+  const { data } = await http.post(`/facturacion/facturas/${id}/reintentar`);
+  return data;
+}
+
 /** Listado de comprobantes emitidos. params: { cliente_id?, estado? } */
 export async function listFacturas(params = {}) {
   const { data } = await http.get(`/facturacion/facturas${toQS(params)}`);
@@ -147,6 +158,7 @@ export default {
   listVentasPendientesFacturar,
   facturarVentas,
   cancelarFactura,
+  reintentarFactura,
   listFacturas,
   getFactura
 };

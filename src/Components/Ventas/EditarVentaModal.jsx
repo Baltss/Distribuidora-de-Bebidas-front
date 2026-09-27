@@ -40,6 +40,12 @@ export default function EditarVentaModal({ open, onClose, onSubmit, venta }) {
 
   const requiereMedioPago = tipo === 'contado' || tipo === 'a_cuenta';
 
+  // Facturada (o facturándose): el comprobante ante ARCA ya está a nombre
+  // de este cliente, así que no se puede cambiar.
+  const clienteBloqueado =
+    ['facturada', 'facturando'].includes(venta?.estado_facturacion) ||
+    Number(venta?.facturas_autorizadas_count) > 0;
+
   useEffect(() => {
     if (!open) return;
     setError('');
@@ -84,7 +90,7 @@ export default function EditarVentaModal({ open, onClose, onSubmit, venta }) {
     try {
       setSaving(true);
       await onSubmit({
-        cliente_id: Number(clienteId),
+        ...(clienteBloqueado ? {} : { cliente_id: Number(clienteId) }),
         vendedor_id: Number(vendedorId),
         fecha,
         tipo,
@@ -155,7 +161,14 @@ export default function EditarVentaModal({ open, onClose, onSubmit, venta }) {
                     getOptionLabel={(c) => c?.nombre ?? ''}
                     getOptionValue={(c) => c?.id}
                     placeholder="Elegí un cliente…"
+                    disabled={clienteBloqueado}
                   />
+                  {clienteBloqueado && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      La venta está facturada: el cliente no se puede cambiar. Si hace falta,
+                      anulá la venta (se emite una Nota de Crédito) y cargala de nuevo.
+                    </p>
+                  )}
                 </motion.div>
 
                 <motion.div variants={fieldV}>

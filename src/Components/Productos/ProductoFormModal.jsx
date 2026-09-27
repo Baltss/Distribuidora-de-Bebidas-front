@@ -36,6 +36,39 @@ const UM_OPTS = [
   { value: 'kg', label: 'Kilogramos (kg)' }
 ];
 
+// Tratamientos de IVA que acepta ARCA. Exento y No gravado no son "0%":
+// se informan en campos distintos del comprobante.
+const OPCIONES_IVA = [
+  { value: '21', label: '21% (general)' },
+  { value: '10.5', label: '10,5%' },
+  { value: '27', label: '27%' },
+  { value: '5', label: '5%' },
+  { value: '2.5', label: '2,5%' },
+  { value: '0', label: '0%' },
+  { value: 'exento', label: 'Exento' },
+  { value: 'no_gravado', label: 'No gravado' }
+];
+
+const ivaInvalidoOriginal = (initial) =>
+  !!initial?.id &&
+  (initial.iva_condicion ?? 'gravado') === 'gravado' &&
+  !OPCIONES_IVA.some((o) => o.value === String(Number(initial.iva_porcentaje)));
+
+function ivaTratamientoInicial(initial) {
+  if (!initial) return '21';
+  if (initial.iva_condicion === 'exento' || initial.iva_condicion === 'no_gravado') {
+    return initial.iva_condicion;
+  }
+  if (initial.iva_porcentaje == null) return '21';
+  const v = String(Number(initial.iva_porcentaje));
+  return OPCIONES_IVA.some((o) => o.value === v) ? v : '';
+}
+
+const ivaPayload = (tratamiento) =>
+  tratamiento === 'exento' || tratamiento === 'no_gravado'
+    ? { iva_condicion: tratamiento, iva_porcentaje: 0 }
+    : { iva_condicion: 'gravado', iva_porcentaje: Number(tratamiento) };
+
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 ' +
   'placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-transparent';
@@ -65,7 +98,7 @@ export default function ProductoFormModal({
     pre_prod: '',
     ultimo_costo_compra: '',
     margen_pct: '',
-    iva_porcentaje: 21,
+    iva_tratamiento: '21', // ver OPCIONES_IVA
     estado: 'activo', // activo | inactivo
     notas: ''
   });
@@ -136,7 +169,7 @@ export default function ProductoFormModal({
         pre_prod: initial?.pre_prod ?? '',
         ultimo_costo_compra: initial?.ultimo_costo_compra ?? '',
         margen_pct: initial?.margen_pct ?? '',
-        iva_porcentaje: initial?.iva_porcentaje ?? 21,
+        iva_tratamiento: ivaTratamientoInicial(initial),
         estado: initial?.estado ?? 'activo',
         notas: initial?.notas ?? ''
       });
@@ -164,7 +197,7 @@ export default function ProductoFormModal({
     setForm((f) => {
       let v = value;
       if (
-        ['pack_cantidad', 'stock_minimo', 'iva_porcentaje', 'contenido', 'margen_pct'].includes(
+        ['pack_cantidad', 'stock_minimo', 'contenido', 'margen_pct'].includes(
           name
         )
       ) {
@@ -211,9 +244,9 @@ export default function ProductoFormModal({
     if (form.presentacion === 'pack' && !(Number(form.pack_cantidad) > 1)) {
       e.pack_cantidad = 'Para "pack", el pack debe ser mayor a 1';
     }
-    const iva = Number(form.iva_porcentaje);
-    if (!(iva >= 0 && iva <= 27))
-      e.iva_porcentaje = 'IVA fuera de rango (0–27)';
+    if (!OPCIONES_IVA.some((o) => o.value === form.iva_tratamiento)) {
+      e.iva_tratamiento = 'Elegí el IVA del producto';
+    }
     if (form.barra_ean13 && !/^[0-9]{8,13}$/.test(String(form.barra_ean13))) {
       e.barra_ean13 = 'EAN debe ser numérico (8 a 13 dígitos)';
     }
@@ -256,7 +289,7 @@ export default function ProductoFormModal({
         modoPrecio === 'margen' && form.margen_pct !== ''
           ? Math.round(Number(form.margen_pct) * 100) / 100
           : null,
-      iva_porcentaje: Number(form.iva_porcentaje) || 21,
+      ...ivaPayload(form.iva_tratamiento),
       estado: form.estado,
       notas: form.notas?.trim() || null
     };
@@ -679,21 +712,30 @@ export default function ProductoFormModal({
                       <Percent className="h-4 w-4 text-slate-600" />
                       IVA
                     </label>
-                    <input
-                      name="iva_porcentaje"
-                      type="number"
-                      onWheel={blockWheelChange}
-                      step="0.01"
-                      min="0"
-                      max="27"
-                      value={form.iva_porcentaje}
+                    <select
+                      name="iva_tratamiento"
+                      value={form.iva_tratamiento}
                       onChange={handle}
                       className={inputCls}
-                      placeholder="21"
-                    />
-                    {errors.iva_porcentaje && (
+                    >
+                      {form.iva_tratamiento === '' && (
+                        <option value="">Elegí el IVA…</option>
+                      )}
+                      {OPCIONES_IVA.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                    {ivaInvalidoOriginal(initial) && form.iva_tratamiento === '' && (
+                      <p className="mt-1 text-[11px] text-amber-600">
+                        Tenía {Number(initial.iva_porcentaje)}%, que ARCA no acepta. Elegí la
+                        alícuota correcta para poder facturarlo.
+                      </p>
+                    )}
+                    {errors.iva_tratamiento && (
                       <p className="mt-1 text-sm text-rose-600">
-                        {errors.iva_porcentaje}
+                        {errors.iva_tratamiento}
                       </p>
                     )}
                   </motion.div>

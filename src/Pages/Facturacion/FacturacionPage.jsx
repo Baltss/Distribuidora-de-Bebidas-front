@@ -21,15 +21,26 @@ import {
   listVentasPendientesFacturar,
   facturarVentas,
   cancelarFactura,
+  reintentarFactura,
   listFacturas
 } from '../../api/facturacion';
 import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
+import { formatFechaCalendario } from '../../utils/fechaCalendario';
 
 const money = (n) =>
   `$ ${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const TIPO_COMPROBANTE_LETRA = { 1: 'A', 3: 'A', 6: 'B', 8: 'B', 11: 'C', 13: 'C' };
 const TIPOS_NOTA_CREDITO = new Set([3, 8, 13]);
+
+// 0001-00000123
+const numeroComprobante = (f) =>
+  f?.numero
+    ? `${String(f.punto_venta?.numero ?? '').padStart(4, '0')}-${String(f.numero).padStart(8, '0')}`
+    : null;
+
+const nombreComprobante = (f) =>
+  `${TIPOS_NOTA_CREDITO.has(f.tipo_comprobante) ? 'NC' : 'Fact.'} ${TIPO_COMPROBANTE_LETRA[f.tipo_comprobante] || '?'}`;
 
 const ESTADO_FACTURA_BADGE = {
   autorizada: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -63,6 +74,7 @@ export default function FacturacionPage() {
   const [facturas, setFacturas] = useState([]);
   const [loadingFacturas, setLoadingFacturas] = useState(true);
   const [cancelandoId, setCancelandoId] = useState(null);
+  const [reintentandoId, setReintentandoId] = useState(null);
 
   const fetchPendientes = async () => {
     setLoadingPendientes(true);
@@ -89,7 +101,10 @@ export default function FacturacionPage() {
       for (const anterior of veniaPendiente) {
         const actual = nueva.find((f) => f.id === anterior.id);
         if (actual?.estado === 'autorizada') {
-          showSuccessSwal({ title: 'Comprobante emitido', text: `CAE: ${actual.cae} — N° ${actual.numero}` });
+          showSuccessSwal({
+            title: 'Comprobante emitido',
+            text: `${nombreComprobante(actual)} N° ${numeroComprobante(actual)} — CAE ${actual.cae}`
+          });
         } else if (actual?.estado === 'error') {
           showApiErrorSwal({ mensajeError: actual.error_mensaje }, { title: 'No se pudo facturar' });
         }
@@ -172,6 +187,22 @@ export default function FacturacionPage() {
       await showApiErrorSwal(err, { title: 'No se pudo iniciar la facturación' });
     } finally {
       setFacturando(false);
+    }
+  };
+
+  const handleReintentar = async (factura) => {
+    try {
+      setReintentandoId(factura.id);
+      const resp = await reintentarFactura(factura.id);
+      if (resp?.descartada) {
+        await showSuccessSwal({ title: 'Intento descartado', text: resp.message });
+      }
+      await fetchFacturas();
+      fetchPendientes();
+    } catch (err) {
+      await showApiErrorSwal(err, { title: 'No se pudo reintentar' });
+    } finally {
+      setReintentandoId(null);
     }
   };
 
@@ -323,6 +354,7 @@ export default function FacturacionPage() {
                 <table className="min-w-full text-sm">
                   <thead className="bg-gray-50/90 border-b border-gray-200">
                     <tr>
+                      <th className="px-4 py-2 text-left font-semibold text-gray-600">Fecha</th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-600">Comprobante</th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-600">Cliente</th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-600">CAE</th>
@@ -334,20 +366,31 @@ export default function FacturacionPage() {
                   <tbody>
                     {facturas.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                        <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                           Todavía no se emitió ningún comprobante.
                         </td>
                       </tr>
                     )}
                     {facturas.map((f) => {
-                      const letra = TIPO_COMPROBANTE_LETRA[f.tipo_comprobante] || '?';
-                      const esNc = TIPOS_NOTA_CREDITO.has(f.tipo_comprobante);
                       const enProceso = f.estado === 'pendiente';
+                      const asociada = f.comprobante_asociado;
                       return (
                         <tr key={f.id} className="border-b border-gray-100">
-                          <td className="px-4 py-2 text-gray-800 flex items-center gap-1.5">
-                            <Receipt className="h-4 w-4 text-slate-400" />
-                            {esNc ? 'NC' : 'Fact.'} {letra} {f.numero ? `N° ${f.numero}` : '(sin número)'}
+                          <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
+                            {f.fecha_comprobante
+                              ? formatFechaCalendario(f.fecha_comprobante)
+                              : new Date(f.created_at).toLocaleDateString('es-AR')}
+                          </td>
+                          <td className="px-4 py-2 text-gray-800">
+                            <div className="flex items-center gap-1.5 whitespace-nowrap">
+                              <Receipt className="h-4 w-4 text-slate-400" />
+                              {nombreComprobante(f)} {numeroComprobante(f) ? `N° ${numeroComprobante(f)}` : '(sin número)'}
+                            </div>
+                            {asociada && (
+                              <p className="text-[11px] text-slate-500">
+                                Anula {nombreComprobante(asociada)} N° {numeroComprobante(asociada)}
+                              </p>
+                            )}
                           </td>
                           <td className="px-4 py-2 text-gray-700">{f.cliente?.nombre || '—'}</td>
                           <td className="px-4 py-2 text-gray-600 font-mono text-xs">{f.cae || '—'}</td>
@@ -374,7 +417,16 @@ export default function FacturacionPage() {
                                 disabled={cancelandoId === f.id}
                                 className="text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-50 transition"
                               >
-                                {cancelandoId === f.id ? 'Cancelando…' : 'Cancelar / Reintentar'}
+                                {cancelandoId === f.id ? 'Cancelando…' : 'Dejar de esperar'}
+                              </button>
+                            )}
+                            {f.estado === 'error' && (
+                              <button
+                                onClick={() => handleReintentar(f)}
+                                disabled={reintentandoId === f.id}
+                                className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50 disabled:opacity-50 transition"
+                              >
+                                {reintentandoId === f.id ? 'Reintentando…' : 'Reintentar'}
                               </button>
                             )}
                           </td>

@@ -90,7 +90,17 @@ export default function ProductTableRow({
               label: 'Último costo de compra',
               value: p?.ultimo_costo_compra != null ? moneyAR(p.ultimo_costo_compra) : '—'
             },
-            { label: 'IVA (%)', value: p?.iva_porcentaje ?? '—' },
+            {
+              label: 'IVA',
+              value:
+                p?.iva_condicion === 'exento'
+                  ? 'Exento'
+                  : p?.iva_condicion === 'no_gravado'
+                    ? 'No gravado'
+                    : p?.iva_porcentaje != null
+                      ? `${Number(p.iva_porcentaje).toLocaleString('es-AR')}%`
+                      : '—'
+            },
             { label: 'Margen (%)', value: p?.margen_pct != null ? `${p.margen_pct}%` : 'Manual' }
           ]
         }

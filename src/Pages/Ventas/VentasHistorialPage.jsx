@@ -22,7 +22,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
-import { facturarVentas } from '../../api/facturacion';
+import { facturarVentas, reintentarFactura } from '../../api/facturacion';
 import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 
 // ======================================================
@@ -55,6 +55,21 @@ const badgeTipoClasses = {
 const badgeEstadoClasses = {
   confirmada: 'bg-emerald-100 text-emerald-800 border-emerald-200',
   anulada: 'bg-rose-100 text-rose-800 border-rose-200'
+};
+
+// Estado de facturación de una venta (ver estado_facturacion en GET /ventas).
+const FACTURACION_BADGE = {
+  facturada: { label: 'Facturada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  facturando: { label: 'Facturando…', cls: 'bg-sky-50 text-sky-700 border-sky-200' },
+  error: { label: 'Error al facturar', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
+  anulada_por_nc: { label: 'Anulada con NC', cls: 'bg-slate-100 text-slate-600 border-slate-200' },
+  sin_facturar: { label: 'Sin facturar', cls: 'bg-amber-50 text-amber-700 border-amber-200' }
+};
+
+const estadoFacturacion = (v) => {
+  if (v.estado_facturacion) return v.estado_facturacion;
+  if (v.facturas_autorizadas_count > 0) return 'facturada';
+  return v.estado === 'confirmada' ? 'sin_facturar' : null;
 };
 
 const fmtFecha = (v) => {
@@ -179,9 +194,13 @@ const VentasHistorialPage = () => {
   }, []);
 
   // ------------ carga de datos ------------
-  const fetchVentas = async (overrides = {}) => {
-    setLoading(true);
-    setError('');
+  // silent: refresco en segundo plano (sin spinner), para ver cuándo
+  // termina de emitirse una factura.
+  const fetchVentas = async ({ silent = false, ...overrides } = {}) => {
+    if (!silent) {
+      setLoading(true);
+      setError('');
+    }
     try {
       const params = {
         ...filtros,
@@ -200,9 +219,9 @@ const VentasHistorialPage = () => {
       }));
     } catch (e) {
       console.error('Error cargando ventas:', e);
-      setError('No se pudo cargar el historial de ventas.');
+      if (!silent) setError('No se pudo cargar el historial de ventas.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -210,6 +229,16 @@ const VentasHistorialPage = () => {
     fetchVentas({ page: 1 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Mientras alguna venta de la lista se esté facturando, se refresca sola.
+  const fetchVentasRef = useRef(fetchVentas);
+  fetchVentasRef.current = fetchVentas;
+  const hayFacturando = ventas.some((v) => v.estado_facturacion === 'facturando');
+  useEffect(() => {
+    if (!hayFacturando) return undefined;
+    const interval = setInterval(() => fetchVentasRef.current({ silent: true }), 5000);
+    return () => clearInterval(interval);
+  }, [hayFacturando]);
 
   // ======================================================
   //   - 16-07-2026
@@ -311,16 +340,39 @@ const VentasHistorialPage = () => {
 
   const [facturandoId, setFacturandoId] = useState(null);
   const handleFacturar = async (venta) => {
-    const ok = window.confirm(`¿Facturar la venta #${venta.id}?`);
-    if (!ok) return;
+    const reintento = venta.estado_facturacion === 'error' && venta.factura_id;
+    const { isConfirmed } = await Swal.fire({
+      icon: 'question',
+      title: reintento ? `¿Reintentar la factura de la venta #${venta.id}?` : `¿Facturar la venta #${venta.id}?`,
+      text: 'Se emite el comprobante electrónico ante ARCA. Puede tardar unos segundos.',
+      showCancelButton: true,
+      confirmButtonText: reintento ? 'Sí, reintentar' : 'Sí, facturar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#0d9488'
+    });
+    if (!isConfirmed) return;
     try {
       setFacturandoId(venta.id);
-      const resp = await facturarVentas([venta.id]);
-      alert(`Comprobante emitido. CAE: ${resp.cae}`);
+      const resp = reintento ? await reintentarFactura(venta.factura_id) : await facturarVentas([venta.id]);
+      if (resp?.descartada) {
+        await Swal.fire({ icon: 'info', title: 'Sin cambios', text: resp.message });
+      } else {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Factura en proceso',
+          text: 'Se está emitiendo ante ARCA. El estado se actualiza solo en esta lista.',
+          timer: 2500,
+          showConfirmButton: false
+        });
+      }
       await fetchVentas();
     } catch (e) {
       console.error('No se pudo facturar la venta:', e);
-      alert(e?.mensajeError || 'No se pudo facturar la venta.');
+      await Swal.fire({
+        icon: 'error',
+        title: 'No se pudo facturar',
+        text: e?.mensajeError || 'Ocurrió un error inesperado.'
+      });
     } finally {
       setFacturandoId(null);
     }
@@ -328,21 +380,51 @@ const VentasHistorialPage = () => {
 
   const handleAnular = async (venta) => {
     if (venta.estado === 'anulada') return;
-    const ok = window.confirm(
-      `¿Seguro que querés anular la venta #${venta.id}?`
-    );
-    if (!ok) return;
+    const facturada = venta.estado_facturacion === 'facturada' || venta.facturas_autorizadas_count > 0;
+    const { isConfirmed } = await Swal.fire({
+      icon: 'warning',
+      title: `¿Anular la venta #${venta.id}?`,
+      text: facturada
+        ? 'Esta venta está facturada: al anularla se emite automáticamente una Nota de Crédito ante ARCA por el total.'
+        : 'Se revierte el stock y los movimientos de la venta.',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, anular',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#e11d48'
+    });
+    if (!isConfirmed) return;
     try {
-      await anularVenta(venta.id);
+      const resp = await anularVenta(venta.id);
       await fetchVentas(); // refresca listado
       if (detalle?.id === venta.id) {
         // refrescar detalle si está abierto
         const full = await getVenta(venta.id);
         setDetalle(full);
       }
+      const nc = resp?.nota_credito;
+      if (nc?.ok) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Venta anulada',
+          text:
+            nc.estado === 'verificando'
+              ? 'La factura de esta venta todavía se estaba procesando con ARCA: si queda autorizada, se emite la Nota de Crédito automáticamente.'
+              : 'La Nota de Crédito se está emitiendo ante ARCA. La podés ver en Facturación → Comprobantes emitidos.'
+        });
+      } else if (nc && !nc.ok) {
+        await Swal.fire({
+          icon: 'warning',
+          title: 'Venta anulada, falta la Nota de Crédito',
+          text: `No se pudo iniciar la Nota de Crédito: ${nc.mensajeError || 'error desconocido'}. Reintentala desde Facturación → Comprobantes emitidos.`
+        });
+      }
     } catch (e) {
       console.error('No se pudo anular la venta:', e);
-      alert('No se pudo anular la venta.');
+      await Swal.fire({
+        icon: 'error',
+        title: 'No se pudo anular la venta',
+        text: e?.mensajeError || 'Ocurrió un error inesperado.'
+      });
     }
   };
 
@@ -782,17 +864,17 @@ const VentasHistorialPage = () => {
                                 >
                                   {v.estado}
                                 </span>
-                                {v.facturas_autorizadas_count > 0 ? (
-                                  <span className="ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border bg-emerald-50 text-emerald-700 border-emerald-200">
-                                    Facturada
-                                  </span>
-                                ) : (
-                                  v.estado === 'confirmada' && (
-                                    <span className="ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border bg-amber-50 text-amber-700 border-amber-200">
-                                      Sin facturar
+                                {(() => {
+                                  const badge = FACTURACION_BADGE[estadoFacturacion(v)];
+                                  if (!badge) return null;
+                                  return (
+                                    <span
+                                      className={`ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border ${badge.cls}`}
+                                    >
+                                      {badge.label}
                                     </span>
-                                  )
-                                )}
+                                  );
+                                })()}
                               </td>
 
                               <td className="px-4 py-2 text-right font-semibold text-gray-900">
@@ -831,15 +913,19 @@ const VentasHistorialPage = () => {
                                   )}
 
                                   {v.estado === 'confirmada' &&
-                                    !v.facturas_autorizadas_count &&
+                                    ['sin_facturar', 'error'].includes(estadoFacturacion(v)) &&
                                     !esVendedor && (
                                       <button
                                         type="button"
                                         disabled={facturandoId === v.id}
                                         onClick={() => handleFacturar(v)}
-                                        className="text-xs px-2.5 py-1 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-50 transition"
+                                        className="text-xs px-2.5 py-1 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-50 transition whitespace-nowrap"
                                       >
-                                        {facturandoId === v.id ? 'Facturando…' : 'Facturar'}
+                                        {facturandoId === v.id
+                                          ? 'Enviando…'
+                                          : estadoFacturacion(v) === 'error'
+                                            ? 'Reintentar factura'
+                                            : 'Facturar'}
                                       </button>
                                     )}
 

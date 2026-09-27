@@ -24,7 +24,7 @@ export async function listProductos(params = {}) {
 
 /**
  * Alta de producto
- * payload esperado: { nombre, codigo_sku, presentacion, pack_cantidad, unidad_medida, contenido, barra_ean13, iva_porcentaje, estado, notas }
+ * payload esperado: { nombre, codigo_sku, presentacion, pack_cantidad, unidad_medida, contenido, barra_ean13, iva_condicion, iva_porcentaje, estado, notas }
  */
 export async function createProducto(payload) {
   const { data } = await http.post('/productos', payload);
