@@ -1,22 +1,22 @@
 // src/Pages/Facturacion/FacturacionPage.jsx
 //
-// Sección "Facturación": ventas confirmadas que todavía no se facturaron
-// (se pueden seleccionar varias del mismo cliente y agruparlas en un
-// solo comprobante) y el listado de comprobantes ya emitidos (Facturas
-// y Notas de Crédito).
+// Sección "Facturación":
+// - Por facturar: ventas confirmadas sin comprobante (se pueden agrupar
+//   varias del mismo cliente en uno solo).
+// - Comprobantes: todo lo emitido (Facturas y Notas de Crédito) con
+//   filtros, detalle, impresión (ticket ESC/POS o PDF A4) y reintento.
 //
-// "Facturar seleccionadas" no espera a AFIP: el backend responde al
-// toque con la factura en estado 'pendiente' (emitir un comprobante hace
-// dos llamadas seguidas a AFIP que pueden tardar varios minutos, sobre
-// todo en Homologación) y la emisión real corre en background. Mientras
-// haya una factura 'pendiente', esta pantalla hace polling hasta que el
-// backend la resuelva sola (autorizada, o vuelta a error con el motivo)
-// — o hasta que se cancele a mano.
-import React, { useEffect, useMemo, useState } from 'react';
+// La emisión corre en segundo plano en el backend: mientras haya algún
+// comprobante 'pendiente' en pantalla, la lista se refresca sola.
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Receipt, Loader2 } from 'lucide-react';
+import { FileText, Receipt, Loader2, Printer, Search, AlertTriangle, RotateCcw } from 'lucide-react';
 
 import AppShell from '../../Components/Layout/AppShell';
+import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
+import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
+import useImprimirComprobante from '../../hooks/useImprimirComprobante';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 import {
   listVentasPendientesFacturar,
   facturarVentas,
@@ -26,55 +26,54 @@ import {
 } from '../../api/facturacion';
 import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
 import { formatFechaCalendario } from '../../utils/fechaCalendario';
+import {
+  nombreCorto,
+  numeroComprobante,
+  ESTADO_COMPROBANTE,
+  esImprimible
+} from '../../utils/comprobantes';
 
 const money = (n) =>
   `$ ${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const TIPO_COMPROBANTE_LETRA = { 1: 'A', 3: 'A', 6: 'B', 8: 'B', 11: 'C', 13: 'C' };
-const TIPOS_NOTA_CREDITO = new Set([3, 8, 13]);
-
-// 0001-00000123
-const numeroComprobante = (f) =>
-  f?.numero
-    ? `${String(f.punto_venta?.numero ?? '').padStart(4, '0')}-${String(f.numero).padStart(8, '0')}`
-    : null;
-
-const nombreComprobante = (f) =>
-  `${TIPOS_NOTA_CREDITO.has(f.tipo_comprobante) ? 'NC' : 'Fact.'} ${TIPO_COMPROBANTE_LETRA[f.tipo_comprobante] || '?'}`;
-
-const ESTADO_FACTURA_BADGE = {
-  autorizada: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  pendiente: 'bg-sky-50 text-sky-700 border-sky-200',
-  error: 'bg-rose-50 text-rose-700 border-rose-200',
-  anulada_por_nc: 'bg-slate-100 text-slate-500 border-slate-200'
-};
-
-const ESTADO_FACTURA_LABEL = {
-  autorizada: 'Autorizada',
-  pendiente: 'Emitiendo…',
-  error: 'Error',
-  anulada_por_nc: 'Anulada por NC'
-};
-
 const TABS = [
-  { key: 'pendientes', label: 'Pendientes de facturar' },
-  { key: 'emitidos', label: 'Comprobantes emitidos' }
+  { key: 'pendientes', label: 'Por facturar' },
+  { key: 'emitidos', label: 'Comprobantes' }
 ];
 
 const POLL_MS = 4000;
+const selectCls =
+  'rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-400/40';
 
 export default function FacturacionPage() {
   const [tab, setTab] = useState('pendientes');
+  const imprimir = useImprimirComprobante();
 
+  // ---------- Por facturar ----------
   const [pendientes, setPendientes] = useState([]);
   const [loadingPendientes, setLoadingPendientes] = useState(true);
   const [seleccion, setSeleccion] = useState(new Set());
   const [facturando, setFacturando] = useState(false);
 
+  // ---------- Comprobantes ----------
   const [facturas, setFacturas] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [resumen, setResumen] = useState({ pendientes: 0, errores: 0 });
   const [loadingFacturas, setLoadingFacturas] = useState(true);
-  const [cancelandoId, setCancelandoId] = useState(null);
-  const [reintentandoId, setReintentandoId] = useState(null);
+  const [accionId, setAccionId] = useState(null);
+  const [detalleId, setDetalleId] = useState(null);
+
+  const [rango, setRango] = useState(() => getRangoPreset(DEFAULT_PRESET));
+  const [tipo, setTipo] = useState('');
+  const [estado, setEstado] = useState('');
+  const [q, setQ] = useState('');
+  const dq = useDebouncedValue(q, 400);
+  const [page, setPage] = useState(1);
+
+  const filtros = useMemo(
+    () => ({ desde: rango.desde, hasta: rango.hasta, tipo, estado, q: dq.trim(), page, limit: 20 }),
+    [rango, tipo, estado, dq, page]
+  );
 
   const fetchPendientes = async () => {
     setLoadingPendientes(true);
@@ -89,28 +88,30 @@ export default function FacturacionPage() {
     }
   };
 
+  const facturasRef = useRef([]);
   const fetchFacturas = async ({ silent = false } = {}) => {
     if (!silent) setLoadingFacturas(true);
     try {
-      const data = await listFacturas();
-      const nueva = Array.isArray(data) ? data : [];
+      const resp = await listFacturas(filtros);
+      const nueva = resp?.data || [];
 
-      // Avisa apenas una emisión en curso termina sola (autorizada, o
-      // vuelta a error) — comparando contra lo que había antes de este fetch.
-      const veniaPendiente = facturas.filter((f) => f.estado === 'pendiente');
-      for (const anterior of veniaPendiente) {
+      // Avisa apenas una emisión en curso termina sola.
+      for (const anterior of facturasRef.current.filter((f) => f.estado === 'pendiente')) {
         const actual = nueva.find((f) => f.id === anterior.id);
         if (actual?.estado === 'autorizada') {
           showSuccessSwal({
             title: 'Comprobante emitido',
-            text: `${nombreComprobante(actual)} N° ${numeroComprobante(actual)} — CAE ${actual.cae}`
+            text: `${nombreCorto(actual)} N° ${numeroComprobante(actual)} — CAE ${actual.cae}`
           });
         } else if (actual?.estado === 'error') {
-          showApiErrorSwal({ mensajeError: actual.error_mensaje }, { title: 'No se pudo facturar' });
+          showApiErrorSwal({ mensajeError: actual.error_mensaje }, { title: 'No se pudo emitir el comprobante' });
         }
       }
 
+      facturasRef.current = nueva;
       setFacturas(nueva);
+      setMeta(resp?.meta || null);
+      setResumen(resp?.resumen || { pendientes: 0, errores: 0 });
     } catch (err) {
       if (!silent) await showApiErrorSwal(err, { title: 'No se pudieron cargar los comprobantes' });
     } finally {
@@ -120,41 +121,49 @@ export default function FacturacionPage() {
 
   useEffect(() => {
     fetchPendientes();
-    fetchFacturas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Mientras haya algún comprobante 'pendiente', reconsulta cada POLL_MS
-  // hasta que el backend lo resuelva (o se cancele a mano).
   useEffect(() => {
-    const hayPendiente = facturas.some((f) => f.estado === 'pendiente');
-    if (!hayPendiente) return undefined;
-    const interval = setInterval(() => fetchFacturas({ silent: true }), POLL_MS);
-    return () => clearInterval(interval);
+    fetchFacturas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [facturas]);
+  }, [filtros]);
 
+  // Al cambiar un filtro, volver a la página 1.
+  useEffect(() => {
+    setPage(1);
+  }, [rango, tipo, estado, dq]);
+
+  const fetchRef = useRef(fetchFacturas);
+  fetchRef.current = fetchFacturas;
+  const hayPendiente = facturas.some((f) => f.estado === 'pendiente');
+  useEffect(() => {
+    if (!hayPendiente) return undefined;
+    const interval = setInterval(() => fetchRef.current({ silent: true }), POLL_MS);
+    return () => clearInterval(interval);
+  }, [hayPendiente]);
+
+  const refrescarTodo = () => {
+    fetchFacturas({ silent: true });
+    fetchPendientes();
+  };
+
+  // ---------- Por facturar: selección ----------
   const toggleSeleccion = (venta) => {
     setSeleccion((prev) => {
       const next = new Set(prev);
-      if (next.has(venta.id)) {
-        next.delete(venta.id);
-      } else {
-        next.add(venta.id);
-      }
+      if (next.has(venta.id)) next.delete(venta.id);
+      else next.add(venta.id);
       return next;
     });
   };
 
-  const ventasSeleccionadas = useMemo(
-    () => pendientes.filter((v) => seleccion.has(v.id)),
-    [pendientes, seleccion]
-  );
-
+  const ventasSeleccionadas = useMemo(() => pendientes.filter((v) => seleccion.has(v.id)), [pendientes, seleccion]);
   const clientesDistintos = useMemo(
     () => new Set(ventasSeleccionadas.map((v) => v.cliente_id)).size,
     [ventasSeleccionadas]
   );
+  const totalSeleccion = ventasSeleccionadas.reduce((acc, v) => acc + Number(v.total_neto || 0), 0);
 
   const handleFacturar = async () => {
     if (ventasSeleccionadas.length === 0) return;
@@ -167,7 +176,7 @@ export default function FacturacionPage() {
     }
     const confirmed = await showConfirmSwal({
       title: '¿Facturar las ventas seleccionadas?',
-      text: `Se va a emitir un comprobante por ${ventasSeleccionadas.length} venta(s) — la emisión corre en segundo plano y puede tardar unos minutos.`,
+      text: `Se emite un comprobante por ${ventasSeleccionadas.length} venta(s), total ${money(totalSeleccion)}.`,
       icon: 'question',
       confirmText: 'Sí, facturar'
     });
@@ -178,11 +187,12 @@ export default function FacturacionPage() {
       await facturarVentas([...seleccion]);
       await showSuccessSwal({
         title: 'En proceso',
-        text: 'El comprobante se está emitiendo — mirá la pestaña "Comprobantes emitidos" para ver cuándo termina.'
+        text: 'El comprobante se está emitiendo ante ARCA. Lo ves en "Comprobantes" apenas termine.'
       });
       fetchPendientes();
-      fetchFacturas();
+      setEstado('');
       setTab('emitidos');
+      fetchFacturas({ silent: true });
     } catch (err) {
       await showApiErrorSwal(err, { title: 'No se pudo iniciar la facturación' });
     } finally {
@@ -190,86 +200,105 @@ export default function FacturacionPage() {
     }
   };
 
+  // ---------- Comprobantes: acciones ----------
   const handleReintentar = async (factura) => {
     try {
-      setReintentandoId(factura.id);
+      setAccionId(factura.id);
       const resp = await reintentarFactura(factura.id);
-      if (resp?.descartada) {
-        await showSuccessSwal({ title: 'Intento descartado', text: resp.message });
-      }
-      await fetchFacturas();
-      fetchPendientes();
+      if (resp?.descartada) await showSuccessSwal({ title: 'Intento descartado', text: resp.message });
+      refrescarTodo();
     } catch (err) {
       await showApiErrorSwal(err, { title: 'No se pudo reintentar' });
     } finally {
-      setReintentandoId(null);
+      setAccionId(null);
     }
   };
 
-  const handleCancelarFactura = async (factura) => {
+  const handleCancelar = async (factura) => {
     const confirmed = await showConfirmSwal({
-      title: '¿Cancelar la emisión?',
-      text: 'Vas a poder reintentar facturar la venta después.',
+      title: '¿Dejar de esperar a ARCA?',
+      text: 'El comprobante queda con error y lo podés reintentar. Si ARCA ya lo había autorizado, se recupera al reintentar (no se factura dos veces).',
       icon: 'warning',
-      confirmText: 'Sí, cancelar'
+      confirmText: 'Sí, dejar de esperar'
     });
     if (!confirmed) return;
-
     try {
-      setCancelandoId(factura.id);
+      setAccionId(factura.id);
       await cancelarFactura(factura.id);
-      await fetchFacturas();
-      fetchPendientes();
+      refrescarTodo();
     } catch (err) {
       await showApiErrorSwal(err, { title: 'No se pudo cancelar' });
     } finally {
-      setCancelandoId(null);
+      setAccionId(null);
     }
   };
+
+  const errorPrevio = (venta) => (venta.facturas || []).find((f) => f.estado === 'error');
 
   return (
     <AppShell>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.h1
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2.5"
-        >
-          <FileText className="h-7 w-7 text-teal-600" /> Facturación
-        </motion.h1>
-        <p className="mt-1 text-sm text-slate-500">
-          Facturá manualmente las ventas que todavía no tienen comprobante, y consultá lo ya emitido.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2.5"
+            >
+              <FileText className="h-7 w-7 text-teal-600" /> Facturación
+            </motion.h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Facturá las ventas que todavía no tienen comprobante y consultá, imprimí o reintentá lo emitido.
+            </p>
+          </div>
+          <button
+            onClick={imprimir.configurarImpresora}
+            className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            <Printer className="h-4 w-4" /> Impresora de tickets
+          </button>
+        </div>
 
-        {/* Tabs */}
+        {resumen.errores > 0 && (
+          <button
+            onClick={() => {
+              setTab('emitidos');
+              setEstado('error');
+              setRango({ desde: '', hasta: '' });
+            }}
+            className="mt-4 w-full text-left flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 hover:bg-rose-100"
+          >
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            Hay {resumen.errores} comprobante{resumen.errores === 1 ? '' : 's'} con error. Tocá acá para verlos y reintentarlos.
+          </button>
+        )}
+
         <div className="mt-6 flex gap-2 border-b border-slate-200">
           {TABS.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`px-4 py-2.5 text-sm font-semibold border-b-2 transition ${
-                tab === t.key
-                  ? 'border-teal-600 text-teal-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
+                tab === t.key ? 'border-teal-600 text-teal-700' : 'border-transparent text-slate-500 hover:text-slate-700'
               }`}
             >
               {t.label}
+              {t.key === 'pendientes' && pendientes.length > 0 && (
+                <span className="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                  {pendientes.length}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
         {tab === 'pendientes' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-          >
+          <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
               <p className="text-sm text-slate-500">
                 {ventasSeleccionadas.length > 0
-                  ? `${ventasSeleccionadas.length} venta(s) seleccionada(s)${
+                  ? `${ventasSeleccionadas.length} venta(s) seleccionada(s) · ${money(totalSeleccion)}${
                       clientesDistintos > 1 ? ' — ¡son de clientes distintos!' : ''
                     }`
                   : 'Seleccioná una o varias ventas del mismo cliente para agruparlas en un comprobante.'}
@@ -292,6 +321,7 @@ export default function FacturacionPage() {
                   <thead className="bg-gray-50/90 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-2" />
+                      <th className="px-4 py-2 text-left font-semibold text-gray-600">Venta</th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-600">Fecha</th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-600">Cliente</th>
                       <th className="px-4 py-2 text-left font-semibold text-gray-600">Tipo</th>
@@ -301,135 +331,40 @@ export default function FacturacionPage() {
                   <tbody>
                     {pendientes.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
+                        <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
                           No hay ventas pendientes de facturar.
                         </td>
                       </tr>
                     )}
-                    {pendientes.map((v) => (
-                      <tr
-                        key={v.id}
-                        className="border-b border-gray-100 hover:bg-teal-50/40 transition cursor-pointer"
-                        onClick={() => toggleSeleccion(v)}
-                      >
-                        <td className="px-4 py-2">
-                          <input
-                            type="checkbox"
-                            checked={seleccion.has(v.id)}
-                            onChange={() => toggleSeleccion(v)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
-                          />
-                        </td>
-                        <td className="px-4 py-2 text-gray-700">
-                          {new Date(v.fecha).toLocaleDateString('es-AR')}
-                        </td>
-                        <td className="px-4 py-2 text-gray-800">{v.cliente?.nombre || '—'}</td>
-                        <td className="px-4 py-2 capitalize text-gray-700">{v.tipo}</td>
-                        <td className="px-4 py-2 text-right font-medium text-gray-800">
-                          {money(v.total_neto)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </motion.div>
-        )}
-
-        {tab === 'emitidos' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-          >
-            {loadingFacturas ? (
-              <div className="flex items-center justify-center py-24">
-                <div className="h-10 w-10 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-50/90 border-b border-gray-200">
-                    <tr>
-                      <th className="px-4 py-2 text-left font-semibold text-gray-600">Fecha</th>
-                      <th className="px-4 py-2 text-left font-semibold text-gray-600">Comprobante</th>
-                      <th className="px-4 py-2 text-left font-semibold text-gray-600">Cliente</th>
-                      <th className="px-4 py-2 text-left font-semibold text-gray-600">CAE</th>
-                      <th className="px-4 py-2 text-right font-semibold text-gray-600">Total</th>
-                      <th className="px-4 py-2 text-left font-semibold text-gray-600">Estado</th>
-                      <th className="px-4 py-2 text-center font-semibold text-gray-600">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {facturas.length === 0 && (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
-                          Todavía no se emitió ningún comprobante.
-                        </td>
-                      </tr>
-                    )}
-                    {facturas.map((f) => {
-                      const enProceso = f.estado === 'pendiente';
-                      const asociada = f.comprobante_asociado;
+                    {pendientes.map((v) => {
+                      const previo = errorPrevio(v);
                       return (
-                        <tr key={f.id} className="border-b border-gray-100">
-                          <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
-                            {f.fecha_comprobante
-                              ? formatFechaCalendario(f.fecha_comprobante)
-                              : new Date(f.created_at).toLocaleDateString('es-AR')}
+                        <tr
+                          key={v.id}
+                          className="border-b border-gray-100 hover:bg-teal-50/40 transition cursor-pointer"
+                          onClick={() => toggleSeleccion(v)}
+                        >
+                          <td className="px-4 py-2">
+                            <input
+                              type="checkbox"
+                              checked={seleccion.has(v.id)}
+                              onChange={() => toggleSeleccion(v)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                            />
                           </td>
+                          <td className="px-4 py-2 text-gray-500">#{v.id}</td>
+                          <td className="px-4 py-2 text-gray-700">{new Date(v.fecha).toLocaleDateString('es-AR')}</td>
                           <td className="px-4 py-2 text-gray-800">
-                            <div className="flex items-center gap-1.5 whitespace-nowrap">
-                              <Receipt className="h-4 w-4 text-slate-400" />
-                              {nombreComprobante(f)} {numeroComprobante(f) ? `N° ${numeroComprobante(f)}` : '(sin número)'}
-                            </div>
-                            {asociada && (
-                              <p className="text-[11px] text-slate-500">
-                                Anula {nombreComprobante(asociada)} N° {numeroComprobante(asociada)}
+                            {v.cliente?.nombre || '—'}
+                            {previo && (
+                              <p className="text-[11px] text-rose-600">
+                                Último intento con error{previo.numero_intentado ? ' (sin confirmar con ARCA)' : ''}
                               </p>
                             )}
                           </td>
-                          <td className="px-4 py-2 text-gray-700">{f.cliente?.nombre || '—'}</td>
-                          <td className="px-4 py-2 text-gray-600 font-mono text-xs">{f.cae || '—'}</td>
-                          <td className="px-4 py-2 text-right font-medium text-gray-800">
-                            {money(f.importe_total)}
-                          </td>
-                          <td className="px-4 py-2">
-                            <span
-                              className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${
-                                ESTADO_FACTURA_BADGE[f.estado] || ''
-                              }`}
-                            >
-                              {enProceso && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                              {ESTADO_FACTURA_LABEL[f.estado] || f.estado}
-                            </span>
-                            {f.estado === 'error' && f.error_mensaje && (
-                              <p className="mt-1 text-[11px] text-rose-600 max-w-[240px]">{f.error_mensaje}</p>
-                            )}
-                          </td>
-                          <td className="px-4 py-2 text-center">
-                            {enProceso && (
-                              <button
-                                onClick={() => handleCancelarFactura(f)}
-                                disabled={cancelandoId === f.id}
-                                className="text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-50 transition"
-                              >
-                                {cancelandoId === f.id ? 'Cancelando…' : 'Dejar de esperar'}
-                              </button>
-                            )}
-                            {f.estado === 'error' && (
-                              <button
-                                onClick={() => handleReintentar(f)}
-                                disabled={reintentandoId === f.id}
-                                className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50 disabled:opacity-50 transition"
-                              >
-                                {reintentandoId === f.id ? 'Reintentando…' : 'Reintentar'}
-                              </button>
-                            )}
-                          </td>
+                          <td className="px-4 py-2 capitalize text-gray-700">{String(v.tipo).replace('_', ' ')}</td>
+                          <td className="px-4 py-2 text-right font-medium text-gray-800">{money(v.total_neto)}</td>
                         </tr>
                       );
                     })}
@@ -437,9 +372,182 @@ export default function FacturacionPage() {
                 </table>
               </div>
             )}
-          </motion.div>
+          </div>
+        )}
+
+        {tab === 'emitidos' && (
+          <div className="mt-6 space-y-4">
+            <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+              <DateRangeFilter desde={rango.desde} hasta={rango.hasta} onChange={setRango} />
+              <select value={tipo} onChange={(e) => setTipo(e.target.value)} className={selectCls}>
+                <option value="">Facturas y NC</option>
+                <option value="factura">Sólo facturas</option>
+                <option value="nota_credito">Sólo notas de crédito</option>
+              </select>
+              <select value={estado} onChange={(e) => setEstado(e.target.value)} className={selectCls}>
+                <option value="">Todos los estados</option>
+                <option value="autorizada">Autorizadas</option>
+                <option value="pendiente">Emitiendo</option>
+                <option value="error">Con error</option>
+                <option value="anulada_por_nc">Anuladas por NC</option>
+              </select>
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="N° (0001-00000123), CAE, cliente o CUIT/DNI…"
+                  className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              {loadingFacturas ? (
+                <div className="flex items-center justify-center py-24">
+                  <div className="h-10 w-10 border-4 border-slate-200 border-t-teal-500 rounded-full animate-spin" />
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-50/90 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-2 text-left font-semibold text-gray-600">Fecha</th>
+                        <th className="px-4 py-2 text-left font-semibold text-gray-600">Comprobante</th>
+                        <th className="px-4 py-2 text-left font-semibold text-gray-600">Cliente</th>
+                        <th className="px-4 py-2 text-right font-semibold text-gray-600">Total</th>
+                        <th className="px-4 py-2 text-left font-semibold text-gray-600">Estado</th>
+                        <th className="px-4 py-2 text-right font-semibold text-gray-600">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {facturas.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-6 text-center text-gray-500">
+                            No hay comprobantes con esos filtros.
+                          </td>
+                        </tr>
+                      )}
+                      {facturas.map((f) => {
+                        const est = ESTADO_COMPROBANTE[f.estado];
+                        const asociada = f.comprobante_asociado;
+                        const ocupado = accionId === f.id;
+                        return (
+                          <tr
+                            key={f.id}
+                            onClick={() => setDetalleId(f.id)}
+                            className="border-b border-gray-100 hover:bg-slate-50 cursor-pointer"
+                          >
+                            <td className="px-4 py-2 text-gray-700 whitespace-nowrap">
+                              {f.fecha_comprobante
+                                ? formatFechaCalendario(f.fecha_comprobante)
+                                : new Date(f.created_at).toLocaleDateString('es-AR')}
+                            </td>
+                            <td className="px-4 py-2 text-gray-800">
+                              <div className="flex items-center gap-1.5 whitespace-nowrap">
+                                <Receipt className="h-4 w-4 text-slate-400" />
+                                {nombreCorto(f)} {numeroComprobante(f) ? `N° ${numeroComprobante(f)}` : '(sin número)'}
+                              </div>
+                              {asociada && (
+                                <p className="text-[11px] text-slate-500">
+                                  Anula {nombreCorto(asociada)} N° {numeroComprobante(asociada)}
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 text-gray-700">{f.receptor_nombre || f.cliente?.nombre || '—'}</td>
+                            <td className="px-4 py-2 text-right font-medium text-gray-800">{money(f.importe_total)}</td>
+                            <td className="px-4 py-2">
+                              <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${est?.cls || ''}`}>
+                                {f.estado === 'pendiente' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                {est?.label || f.estado}
+                              </span>
+                              {f.estado === 'error' && f.error_mensaje && (
+                                <p className="mt-1 text-[11px] text-rose-600 max-w-[260px] line-clamp-2">{f.error_mensaje}</p>
+                              )}
+                            </td>
+                            <td className="px-4 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                              <div className="inline-flex gap-1.5">
+                                {esImprimible(f) && (
+                                  <>
+                                    <button
+                                      onClick={() => imprimir.imprimirTicket(f.id)}
+                                      disabled={imprimir.imprimiendo === f.id}
+                                      title="Imprimir ticket"
+                                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                    >
+                                      <Printer className="h-3.5 w-3.5" /> Ticket
+                                    </button>
+                                    <button
+                                      onClick={() => imprimir.abrirPdf(f.id)}
+                                      title="Ver PDF A4"
+                                      className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                    >
+                                      <FileText className="h-3.5 w-3.5" /> PDF
+                                    </button>
+                                  </>
+                                )}
+                                {f.estado === 'error' && (
+                                  <button
+                                    onClick={() => handleReintentar(f)}
+                                    disabled={ocupado}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-teal-200 px-2 py-1 text-xs font-semibold text-teal-700 hover:bg-teal-50 disabled:opacity-50"
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5" /> {ocupado ? 'Reintentando…' : 'Reintentar'}
+                                  </button>
+                                )}
+                                {f.estado === 'pendiente' && (
+                                  <button
+                                    onClick={() => handleCancelar(f)}
+                                    disabled={ocupado}
+                                    className="rounded-lg px-2 py-1 text-xs font-semibold text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                                  >
+                                    {ocupado ? 'Cancelando…' : 'Dejar de esperar'}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {meta && meta.totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  disabled={!meta.hasPrev}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                >
+                  Anterior
+                </button>
+                <span className="text-sm text-slate-500">
+                  Página {meta.page} de {meta.totalPages} · {meta.total} comprobantes
+                </span>
+                <button
+                  disabled={!meta.hasNext}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      <ComprobanteDetalleModal
+        open={detalleId != null}
+        facturaId={detalleId}
+        onClose={() => setDetalleId(null)}
+        onCambio={refrescarTodo}
+        imprimir={imprimir}
+      />
+      {imprimir.modalImpresora}
     </AppShell>
   );
 }

@@ -13,6 +13,7 @@ import AppShell from '../../Components/Layout/AppShell';
 import SolicitarConfiguracionFiscalModal from '../../Components/Facturacion/SolicitarConfiguracionFiscalModal';
 import CargarCertificadoModal from '../../Components/Facturacion/CargarCertificadoModal';
 import PuntoVentaFormModal from '../../Components/Facturacion/PuntoVentaFormModal';
+import DatosEmisorCard from '../../Components/Facturacion/DatosEmisorCard';
 
 import {
   listConfiguracionFiscal,
@@ -164,6 +165,8 @@ export default function DatosFiscalesPage() {
                 </button>
               </div>
             </motion.div>
+
+            <DatosEmisorCard />
 
             {/* Historial de solicitudes */}
             <motion.div

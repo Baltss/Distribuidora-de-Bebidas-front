@@ -23,6 +23,8 @@ import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
 import { facturarVentas, reintentarFactura } from '../../api/facturacion';
+import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
+import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 
 // ======================================================
@@ -337,6 +339,9 @@ const VentasHistorialPage = () => {
     setDetalleOpen(false);
     setDetalle(null);
   };
+
+  const imprimir = useImprimirComprobante();
+  const [comprobanteId, setComprobanteId] = useState(null);
 
   const [facturandoId, setFacturandoId] = useState(null);
   const handleFacturar = async (venta) => {
@@ -867,9 +872,19 @@ const VentasHistorialPage = () => {
                                 {(() => {
                                   const badge = FACTURACION_BADGE[estadoFacturacion(v)];
                                   if (!badge) return null;
+                                  const abreDetalle = !!v.factura_id && !esVendedor;
                                   return (
                                     <span
-                                      className={`ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border ${badge.cls}`}
+                                      role={abreDetalle ? 'button' : undefined}
+                                      title={abreDetalle ? 'Ver comprobante' : undefined}
+                                      onClick={(e) => {
+                                        if (!abreDetalle) return;
+                                        e.stopPropagation();
+                                        setComprobanteId(v.factura_id);
+                                      }}
+                                      className={`ml-1.5 inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs border ${badge.cls} ${
+                                        abreDetalle ? 'cursor-pointer hover:brightness-95 underline-offset-2 hover:underline' : ''
+                                      }`}
                                     >
                                       {badge.label}
                                     </span>
@@ -910,6 +925,28 @@ const VentasHistorialPage = () => {
                                     >
                                       Editar
                                     </button>
+                                  )}
+
+                                  {['facturada', 'anulada_por_nc'].includes(estadoFacturacion(v)) && v.factura_id && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => imprimir.imprimirTicket(v.factura_id)}
+                                        disabled={imprimir.imprimiendo === v.factura_id}
+                                        title="Imprimir el ticket de la factura"
+                                        className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 disabled:opacity-50 transition"
+                                      >
+                                        Ticket
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => imprimir.abrirPdf(v.factura_id)}
+                                        title="Ver la factura en PDF A4"
+                                        className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition"
+                                      >
+                                        PDF
+                                      </button>
+                                    </>
                                   )}
 
                                   {v.estado === 'confirmada' &&
@@ -1257,6 +1294,15 @@ const VentasHistorialPage = () => {
         onSubmit={handleSubmitEditarVenta}
         venta={editVenta}
       />
+
+      <ComprobanteDetalleModal
+        open={comprobanteId != null}
+        facturaId={comprobanteId}
+        onClose={() => setComprobanteId(null)}
+        onCambio={() => fetchVentas({ silent: true })}
+        imprimir={imprimir}
+      />
+      {imprimir.modalImpresora}
     </AppShell>
   );
 };

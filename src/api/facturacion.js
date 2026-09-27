@@ -131,7 +131,11 @@ export async function reintentarFactura(id) {
   return data;
 }
 
-/** Listado de comprobantes emitidos. params: { cliente_id?, estado? } */
+/**
+ * Listado de comprobantes. params: { desde?, hasta?, tipo? (factura|nota_credito),
+ * estado?, cliente_id?, q? (número, CAE o nombre), page?, limit? }.
+ * Con `page` devuelve { data, meta, resumen }; sin `page`, un array.
+ */
 export async function listFacturas(params = {}) {
   const { data } = await http.get(`/facturacion/facturas${toQS(params)}`);
   return data;
@@ -139,6 +143,75 @@ export async function listFacturas(params = {}) {
 
 export async function getFactura(id) {
   const { data } = await http.get(`/facturacion/facturas/${id}`);
+  return data;
+}
+
+/** Estado liviano de un comprobante (sirve para esperar el CAE). */
+export async function getFacturaEstado(id) {
+  const { data } = await http.get(`/facturacion/facturas/${id}/estado`);
+  return data;
+}
+
+// Pedidos binarios: el interceptor de errores no puede leer el JSON de
+// error dentro de un ArrayBuffer, así que el status se valida acá.
+async function getBinario(url, params = {}) {
+  const res = await http.get(url, {
+    params,
+    responseType: 'arraybuffer',
+    timeout: 60000,
+    validateStatus: () => true
+  });
+  if (res.status >= 200 && res.status < 300) return res;
+  let error = { mensajeError: 'No se pudo generar el comprobante.' };
+  try {
+    error = JSON.parse(new TextDecoder().decode(res.data));
+  } catch {
+    // respuesta no JSON: queda el mensaje genérico
+  }
+  throw error;
+}
+
+/** Bytes ESC/POS del ticket de 80 mm. */
+export async function getFacturaTicket(id, { columnas = 48, sinAcentos = false } = {}) {
+  const res = await getBinario(`/facturacion/facturas/${id}/ticket`, {
+    columnas,
+    ...(sinAcentos ? { sin_acentos: 1 } : {})
+  });
+  return new Uint8Array(res.data);
+}
+
+/**
+ * Abre el PDF A4 del comprobante en una pestaña nueva. La pestaña se abre
+ * antes de pedir el PDF para que el navegador no la bloquee como popup.
+ */
+export async function abrirFacturaPdf(id) {
+  const ventana = window.open('', '_blank');
+  try {
+    const res = await getBinario(`/facturacion/facturas/${id}/pdf`);
+    const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    if (ventana) ventana.location.href = url;
+    else window.location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch (err) {
+    if (ventana) ventana.close();
+    throw err;
+  }
+}
+
+/** ¿Se puede facturar? { habilitada, motivo, condicion_fiscal, ambiente } */
+export async function getEstadoEmision() {
+  const { data } = await http.get('/facturacion/estado-emision');
+  return data;
+}
+
+/** Datos del negocio que se imprimen en el comprobante. */
+export async function getDatosEmisor() {
+  const { data } = await http.get('/facturacion/datos-emisor');
+  return data;
+}
+
+export async function updateDatosEmisor(payload) {
+  const { data } = await http.put('/facturacion/datos-emisor', payload);
   return data;
 }
 
@@ -160,5 +233,11 @@ export default {
   cancelarFactura,
   reintentarFactura,
   listFacturas,
-  getFactura
+  getFactura,
+  getFacturaEstado,
+  getFacturaTicket,
+  abrirFacturaPdf,
+  getEstadoEmision,
+  getDatosEmisor,
+  updateDatosEmisor
 };

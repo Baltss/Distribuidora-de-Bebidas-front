@@ -33,6 +33,10 @@ import { createVenta } from '../../api/ventas';
 import { blockWheelChange } from '../../utils/numberInput';
 import MedioPagoField from '../../Components/Common/MedioPagoField';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import { getEstadoEmision } from '../../api/facturacion';
+import FacturaPostVentaModal from '../../Components/Facturacion/FacturaPostVentaModal';
+import useImprimirComprobante from '../../hooks/useImprimirComprobante';
+import { comprobantePrevisto } from '../../utils/comprobantes';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
 
@@ -100,6 +104,18 @@ export default function NuevaVentaPage() {
 
   // Acción de la botonera (Exportar) — sin modificar.
   const [exportarModalOpen, setExportarModalOpen] = useState(false);
+
+  // Facturación electrónica: si se puede facturar, qué comprobante sale, y
+  // la espera del CAE + impresión después de confirmar.
+  const [estadoEmision, setEstadoEmision] = useState(null);
+  const [postVenta, setPostVenta] = useState(null); // { ventaId, facturaId, errorInicio }
+  const imprimir = useImprimirComprobante();
+
+  useEffect(() => {
+    getEstadoEmision()
+      .then(setEstadoEmision)
+      .catch(() => setEstadoEmision({ habilitada: false, motivo: 'No se pudo consultar la facturación electrónica.' }));
+  }, []);
 
   // ---------- Carga de catálogos al montar ----------
   useEffect(() => {
@@ -518,6 +534,8 @@ export default function NuevaVentaPage() {
             : Number(it.precio_unit)
       }));
 
+    const quiereFacturar = !!estadoEmision?.habilitada && form.facturar;
+
     try {
       setSaving(true);
       const creada = await createVenta({
@@ -532,21 +550,26 @@ export default function NuevaVentaPage() {
         reparto_id: null,
         monto_a_cuenta: moneyRound(Number(form.monto_a_cuenta || 0)),
         items: itemsPayload,
-        facturar: form.facturar
+        facturar: quiereFacturar
       });
 
-      const facturacionMsg = !form.facturar
-        ? ''
-        : creada?.facturacion?.ok
-        ? ' Factura en proceso — vas a ver el CAE en Facturación en unos minutos.'
-        : creada?.facturacion
-        ? ` No se pudo iniciar la factura: ${creada.facturacion.mensajeError} (podés reintentar desde Facturación).`
-        : '';
+      if (quiereFacturar) {
+        // Espera el CAE y ofrece imprimir la factura (ver FacturaPostVentaModal).
+        resetForm();
+        setPostVenta({
+          ventaId: creada?.id,
+          facturaId: creada?.facturacion?.ok ? creada.facturacion.factura_id : null,
+          errorInicio: creada?.facturacion?.ok
+            ? null
+            : creada?.facturacion?.mensajeError || 'No se pudo iniciar la factura.'
+        });
+        return;
+      }
 
       const result = await Swal.fire({
-        icon: form.facturar && !creada?.facturacion?.ok ? 'warning' : 'success',
+        icon: 'success',
         title: 'Venta creada',
-        text: `La venta se registró correctamente.${facturacionMsg}`,
+        text: 'La venta se registró correctamente.',
         showDenyButton: !!creada?.id,
         denyButtonText: 'Imprimir comprobante',
         denyButtonColor: '#0ea5e9',
@@ -939,17 +962,39 @@ export default function NuevaVentaPage() {
           </div>
 
           {/* Facturación electrónica: elegir si esta venta se factura al confirmarla */}
-          <label className="flex items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-4 py-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.facturar}
-              onChange={(e) => setForm((f) => ({ ...f, facturar: e.target.checked }))}
-              className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
-            />
-            <span className="text-sm text-slate-700">
-              Facturar esta venta (emite el comprobante electrónico ante AFIP al confirmar)
-            </span>
-          </label>
+          {(() => {
+            const previsto = comprobantePrevisto(estadoEmision, selectedCliente);
+            const habilitada = !!estadoEmision?.habilitada;
+            return (
+              <label
+                className={`flex items-start gap-2.5 rounded-2xl border bg-white px-4 py-3 ${
+                  habilitada ? 'border-slate-200 cursor-pointer' : 'border-slate-100 opacity-70 cursor-not-allowed'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={habilitada && form.facturar}
+                  disabled={!habilitada}
+                  onChange={(e) => setForm((f) => ({ ...f, facturar: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                />
+                <span className="text-sm text-slate-700">
+                  Facturar esta venta (emite el comprobante electrónico ante ARCA al confirmar)
+                  {habilitada && previsto && (
+                    <span className="block text-xs text-slate-500">
+                      Va a salir: <strong className="text-slate-700">{previsto.texto}</strong>
+                    </span>
+                  )}
+                  {habilitada && form.facturar && previsto?.advertencia && (
+                    <span className="block text-xs text-amber-600">{previsto.advertencia}</span>
+                  )}
+                  {estadoEmision && !habilitada && (
+                    <span className="block text-xs text-slate-500">{estadoEmision.motivo}</span>
+                  )}
+                </span>
+              </label>
+            );
+          })()}
 
           {/* Total estimado + Acciones: fijo, no se pierde con muchos ítems */}
           <div className="sticky bottom-0 z-10 rounded-2xl border border-slate-200 bg-white shadow-lg px-4 sm:px-5 py-4
@@ -993,6 +1038,19 @@ export default function NuevaVentaPage() {
         open={exportarModalOpen}
         onClose={() => setExportarModalOpen(false)}
       />
+
+      <FacturaPostVentaModal
+        open={!!postVenta}
+        ventaId={postVenta?.ventaId}
+        facturaId={postVenta?.facturaId}
+        errorInicio={postVenta?.errorInicio}
+        imprimir={imprimir}
+        onClose={() => {
+          setPostVenta(null);
+          requestAnimationFrame(() => scanInputRef.current?.focus());
+        }}
+      />
+      {imprimir.modalImpresora}
     </AppShell>
   );
 }
