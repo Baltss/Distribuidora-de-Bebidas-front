@@ -3,8 +3,10 @@
 // Sección "Facturación":
 // - Por facturar: ventas confirmadas sin comprobante (se pueden agrupar
 //   varias del mismo cliente en uno solo).
-// - Comprobantes: todo lo emitido (Facturas y Notas de Crédito) con
-//   filtros, detalle, impresión (ticket ESC/POS o PDF A4) y reintento.
+// - Comprobantes: todo lo emitido (Facturas, Notas de Crédito y de Débito)
+//   con filtros, detalle, impresión (ticket ESC/POS o PDF A4) y reintento.
+// - Para el contador: resumen de IVA Ventas del mes y descargas (Libro IVA
+//   en Excel, archivo para el Libro IVA Digital de ARCA, PDFs del mes).
 //
 // La emisión corre en segundo plano en el backend: mientras haya algún
 // comprobante 'pendiente' en pantalla, la lista se refresca sola.
@@ -15,6 +17,7 @@ import { FileText, Receipt, Loader2, Printer, Search, AlertTriangle, RotateCcw }
 import AppShell from '../../Components/Layout/AppShell';
 import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
+import ReportesContadorPanel from '../../Components/Facturacion/ReportesContadorPanel';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import {
@@ -40,7 +43,8 @@ const money = (n) =>
 
 const TABS = [
   { key: 'pendientes', label: 'Por facturar' },
-  { key: 'emitidos', label: 'Comprobantes' }
+  { key: 'emitidos', label: 'Comprobantes' },
+  { key: 'contador', label: 'Para el contador' }
 ];
 
 const POLL_MS = 4000;
@@ -545,6 +549,16 @@ export default function FacturacionPage() {
               </div>
             )}
           </div>
+        )}
+
+        {tab === 'contador' && (
+          <ReportesContadorPanel
+            onVerSinAutorizar={() => {
+              setTab('emitidos');
+              setEstado('');
+              setRango({ desde: '', hasta: '' });
+            }}
+          />
         )}
       </div>
 

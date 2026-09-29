@@ -193,11 +193,11 @@ export async function getFacturaEstado(id) {
 
 // Pedidos binarios: el interceptor de errores no puede leer el JSON de
 // error dentro de un ArrayBuffer, así que el status se valida acá.
-async function getBinario(url, params = {}) {
+async function getBinario(url, params = {}, { timeout = 60000 } = {}) {
   const res = await http.get(url, {
     params,
     responseType: 'arraybuffer',
-    timeout: 60000,
+    timeout,
     validateStatus: () => true
   });
   if (res.status >= 200 && res.status < 300) return res;
@@ -235,6 +235,43 @@ export async function abrirFacturaPdf(id) {
     if (ventana) ventana.close();
     throw err;
   }
+}
+
+// ---------- Reportes para el contador ----------
+
+/**
+ * Resumen de IVA Ventas del mes (periodo 'AAAA-MM'): { por_tipo, por_alicuota,
+ * totales, sin_autorizar, hay_comprobantes_c, libro_iva_digital_aplica, emisor }.
+ */
+export async function getResumenIva(periodo) {
+  const { data } = await http.get('/facturacion/reportes/resumen', { params: { periodo } });
+  return data;
+}
+
+const REPORTES_CONTADOR = {
+  excel: 'libro-iva-excel',
+  arca: 'libro-iva-digital',
+  pdfs: 'comprobantes-pdf'
+};
+
+/**
+ * Descarga un reporte del mes: 'excel' (Libro IVA Ventas), 'arca' (ZIP con
+ * los TXT del Libro IVA Digital) o 'pdfs' (ZIP con todos los comprobantes).
+ */
+export async function descargarReporteContador(tipo, periodo) {
+  // El ZIP de PDFs de un mes con muchos comprobantes puede tardar.
+  const res = await getBinario(`/facturacion/reportes/${REPORTES_CONTADOR[tipo]}`, { periodo }, { timeout: 600000 });
+  const disposicion = res.headers?.['content-disposition'] || '';
+  const nombre = disposicion.match(/filename="([^"]+)"/)?.[1] || `reporte-${periodo}`;
+  const url = URL.createObjectURL(new Blob([res.data], { type: res.headers?.['content-type'] }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nombre;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return nombre;
 }
 
 /** ¿Se puede facturar? { habilitada, motivo, condicion_fiscal, ambiente } */
@@ -281,6 +318,8 @@ export default {
   getFacturaTicket,
   abrirFacturaPdf,
   getEstadoEmision,
+  getResumenIva,
+  descargarReporteContador,
   getDatosEmisor,
   updateDatosEmisor
 };
