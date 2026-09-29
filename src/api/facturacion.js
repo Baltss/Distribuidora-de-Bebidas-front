@@ -132,7 +132,7 @@ export async function reintentarFactura(id) {
 }
 
 /**
- * Listado de comprobantes. params: { desde?, hasta?, tipo? (factura|nota_credito),
+ * Listado de comprobantes. params: { desde?, hasta?, tipo? (factura|nota_credito|nota_debito),
  * estado?, cliente_id?, q? (número, CAE o nombre), page?, limit? }.
  * Con `page` devuelve { data, meta, resumen }; sin `page`, un array.
  */
@@ -143,6 +143,45 @@ export async function listFacturas(params = {}) {
 
 export async function getFactura(id) {
   const { data } = await http.get(`/facturacion/facturas/${id}`);
+  return data;
+}
+
+// ---------- Notas de Crédito / Débito sobre una factura ----------
+
+/**
+ * Lo necesario para armar una NC o ND: ítems con lo ya devuelto y lo que
+ * queda, cuánto queda por acreditar (disponible_nc), deuda pendiente de las
+ * ventas, saldo a favor del cliente, NC/ND emitidas y, si no se puede,
+ * `bloqueo` con el motivo.
+ */
+export async function getAjustesFactura(id) {
+  const { data } = await http.get(`/facturacion/facturas/${id}/ajustes`);
+  return data;
+}
+
+/**
+ * NC por devolución o bonificación. payload: { motivo: 'devolucion'|'bonificacion',
+ * items?: [{ item_id, cantidad }], monto?, descripcion?,
+ * destino_excedente: 'reintegro'|'saldo_a_favor', medio_pago?, observacion? }.
+ * Devuelve { factura_id, estado: 'pendiente' }.
+ */
+export async function crearNotaCredito(facturaId, payload) {
+  const { data } = await http.post(`/facturacion/facturas/${facturaId}/nota-credito`, payload);
+  return data;
+}
+
+/**
+ * ND. payload: { concepto, monto, iva_condicion, iva_porcentaje,
+ * destino: 'cobrar_ahora'|'cuenta_corriente', medio_pago? }.
+ */
+export async function crearNotaDebito(facturaId, payload) {
+  const { data } = await http.post(`/facturacion/facturas/${facturaId}/nota-debito`, payload);
+  return data;
+}
+
+/** Descarta una NC/ND cargada a mano que ARCA rechazó. */
+export async function descartarComprobante(id) {
+  const { data } = await http.post(`/facturacion/facturas/${id}/descartar`);
   return data;
 }
 
@@ -234,6 +273,10 @@ export default {
   reintentarFactura,
   listFacturas,
   getFactura,
+  getAjustesFactura,
+  crearNotaCredito,
+  crearNotaDebito,
+  descartarComprobante,
   getFacturaEstado,
   getFacturaTicket,
   abrirFacturaPdf,

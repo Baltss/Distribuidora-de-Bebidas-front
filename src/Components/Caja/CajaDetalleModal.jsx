@@ -16,7 +16,9 @@ const ORIGEN_LABEL = {
   venta_contado: 'Venta contado',
   compra_contado: 'Compra contado',
   ingreso_manual: 'Ingreso manual',
-  egreso_manual: 'Egreso manual'
+  egreso_manual: 'Egreso manual',
+  nota_credito: 'Devolución por nota de crédito',
+  nota_debito: 'Cobro de nota de débito'
 };
 
 const ESTADO_BADGE = {

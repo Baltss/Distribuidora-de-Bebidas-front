@@ -4,15 +4,34 @@
 import { getFacturaTicket } from '../api/facturacion';
 import { imprimirBytes, leerConfigImpresora, impresoraConfigurada } from './impresoraTicket';
 
-export const TIPO_LETRA = { 1: 'A', 3: 'A', 6: 'B', 8: 'B', 11: 'C', 13: 'C' };
+export const TIPO_LETRA = { 1: 'A', 2: 'A', 3: 'A', 6: 'B', 7: 'B', 8: 'B', 11: 'C', 12: 'C', 13: 'C' };
+const TIPOS_FACTURA = new Set([1, 6, 11]);
 const TIPOS_NC = new Set([3, 8, 13]);
+const TIPOS_ND = new Set([2, 7, 12]);
 
+export const esFactura = (f) => TIPOS_FACTURA.has(Number(f?.tipo_comprobante));
 export const esNotaCredito = (f) => TIPOS_NC.has(Number(f?.tipo_comprobante));
+export const esNotaDebito = (f) => TIPOS_ND.has(Number(f?.tipo_comprobante));
 
-export const nombreCorto = (f) => `${esNotaCredito(f) ? 'NC' : 'Fact.'} ${TIPO_LETRA[f?.tipo_comprobante] || '?'}`;
+export const nombreCorto = (f) =>
+  `${esNotaCredito(f) ? 'NC' : esNotaDebito(f) ? 'ND' : 'Fact.'} ${TIPO_LETRA[f?.tipo_comprobante] || '?'}`;
 
 export const nombreLargo = (f) =>
-  `${esNotaCredito(f) ? 'Nota de Crédito' : 'Factura'} ${TIPO_LETRA[f?.tipo_comprobante] || '?'}`;
+  `${esNotaCredito(f) ? 'Nota de Crédito' : esNotaDebito(f) ? 'Nota de Débito' : 'Factura'} ${
+    TIPO_LETRA[f?.tipo_comprobante] || '?'
+  }`;
+
+/** Por qué se emitió una NC / ND. */
+export const MOTIVO_COMPROBANTE = {
+  anulacion_venta: 'Anulación de la venta',
+  devolucion: 'Devolución de productos',
+  bonificacion: 'Bonificación',
+  nota_debito: 'Nota de débito'
+};
+
+/** NC por devolución / bonificación o ND, cargadas a mano (tienen efectos en stock, cta. cte. y caja). */
+export const esAjusteManual = (f) => ['devolucion', 'bonificacion', 'nota_debito'].includes(f?.motivo);
+
 
 /** 0001-00000123, o null si todavía no tiene número. */
 export const numeroComprobante = (f) =>

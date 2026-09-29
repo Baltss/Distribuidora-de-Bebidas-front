@@ -378,7 +378,8 @@ const VentasDeudasPage = () => {
     const totalDeudas = ventas.reduce((acc, v) => {
       const totalNeto = Number(v.total_neto ?? 0);
       const aCuenta = Number(v.monto_a_cuenta ?? 0);
-      const saldo = Math.max(0, totalNeto - aCuenta);
+      const notasCredito = Number(v.monto_notas_credito ?? 0);
+      const saldo = Math.max(0, totalNeto - aCuenta - notasCredito);
       return acc + saldo;
     }, 0);
 
@@ -814,7 +815,8 @@ const VentasDeudasPage = () => {
                       {ventas.map((v) => {
                         const totalNeto = Number(v.total_neto ?? 0);
                         const aCuenta = Number(v.monto_a_cuenta ?? 0);
-                        const saldo = Math.max(0, totalNeto - aCuenta);
+                        const notasCredito = Number(v.monto_notas_credito ?? 0);
+                        const saldo = Math.max(0, totalNeto - aCuenta - notasCredito);
 
                         const tipoUI =
                           v.tipo === 'fiado' && aCuenta > 0

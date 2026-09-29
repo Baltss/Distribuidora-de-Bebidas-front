@@ -61,7 +61,9 @@ const ORIGEN_OPCIONES = [
   { value: 'venta_contado', label: 'Venta contado' },
   { value: 'compra_contado', label: 'Compra contado' },
   { value: 'ingreso_manual', label: 'Ingreso manual' },
-  { value: 'egreso_manual', label: 'Egreso manual' }
+  { value: 'egreso_manual', label: 'Egreso manual' },
+  { value: 'nota_credito', label: 'Devolución por nota de crédito' },
+  { value: 'nota_debito', label: 'Cobro de nota de débito' }
 ];
 
 const ESTADO_BADGE = {

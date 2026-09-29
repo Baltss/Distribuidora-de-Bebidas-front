@@ -768,7 +768,8 @@ const VentasHistorialPage = () => {
                         {ventas.map((v) => {
                           const totalNeto = Number(v.total_neto ?? 0);
                           const aCuenta = Number(v.monto_a_cuenta ?? 0);
-                          const saldo = Math.max(0, totalNeto - aCuenta);
+                          const notasCredito = Number(v.monto_notas_credito ?? 0);
+                          const saldo = Math.max(0, totalNeto - aCuenta - notasCredito);
 
                           //  - 17-01-2026
                           // Mostrar como "a_cuenta" SOLO si es fiado con pago parcial (saldo pendiente).
@@ -1063,7 +1064,8 @@ const VentasHistorialPage = () => {
                       {(() => {
                         const totalNeto = Number(detalle.total_neto ?? 0);
                         const aCuenta = Number(detalle.monto_a_cuenta ?? 0);
-                        const saldo = Math.max(0, totalNeto - aCuenta);
+                        const notasCredito = Number(detalle.monto_notas_credito ?? 0);
+                        const saldo = Math.max(0, totalNeto - aCuenta - notasCredito);
                         const tipoUI =
                           detalle.tipo === 'fiado' && aCuenta > 0
                             ? 'a_cuenta'
@@ -1128,6 +1130,17 @@ const VentasHistorialPage = () => {
                                     {moneyAR(aCuenta)}
                                   </span>
                                 </div>
+
+                                {notasCredito > 0 && (
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-slate-500">
+                                      Notas de crédito
+                                    </span>
+                                    <span className="text-sm font-semibold text-slate-900">
+                                      {moneyAR(notasCredito)}
+                                    </span>
+                                  </div>
+                                )}
 
                                 <div className="flex justify-between items-center">
                                   <span className="text-sm text-slate-500">

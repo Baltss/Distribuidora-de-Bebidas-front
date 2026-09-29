@@ -114,6 +114,12 @@ export default function DeudaClienteModal({
 
   const saldosPrevios = data?.saldos_previos || [];
   const saldoPrevioTotal = Number(data?.saldo_previo_total || 0);
+  // Parte del saldo previo que son Notas de Débito a cuenta corriente.
+  const notasDebitoPendientes = saldosPrevios
+    .filter((sp) => sp.origen_tipo === 'nota_debito')
+    .reduce((acc, sp) => acc + Number(sp.monto || 0), 0);
+  // Saldo a favor por Notas de Crédito (se descuenta solo de la próxima deuda).
+  const saldoAFavor = Number(data?.saldo_a_favor || 0);
 
   const resumen = useMemo(() => {
     const totalDeuda = Number(data?.total_deuda || 0);
@@ -631,11 +637,19 @@ export default function DeudaClienteModal({
                       <span className="font-semibold">
                         {formatMoneyARS(resumen.saldoPrevioTotal)}
                       </span>
+                      {notasDebitoPendientes > 0 && (
+                        <> (incluye notas de débito por {formatMoneyARS(notasDebitoPendientes)})</>
+                      )}
                     </span>
 
                     <span className="text-[11px] text-slate-500/80">
                       {resumen.cantidadVentas} venta(s) pendientes
                     </span>
+                    {saldoAFavor > 0 && (
+                      <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-0.5 text-[11px] font-semibold text-sky-700">
+                        Saldo a favor: {formatMoneyARS(saldoAFavor)} (se descuenta solo de su próxima deuda)
+                      </span>
+                    )}
                   </div>
                 </motion.div>
 

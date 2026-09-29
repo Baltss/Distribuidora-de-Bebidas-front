@@ -30,7 +30,9 @@ import {
   nombreCorto,
   numeroComprobante,
   ESTADO_COMPROBANTE,
-  esImprimible
+  esImprimible,
+  esAjusteManual,
+  MOTIVO_COMPROBANTE
 } from '../../utils/comprobantes';
 
 const money = (n) =>
@@ -380,9 +382,10 @@ export default function FacturacionPage() {
             <div className="flex flex-col lg:flex-row lg:items-end gap-3">
               <DateRangeFilter desde={rango.desde} hasta={rango.hasta} onChange={setRango} />
               <select value={tipo} onChange={(e) => setTipo(e.target.value)} className={selectCls}>
-                <option value="">Facturas y NC</option>
+                <option value="">Todos los comprobantes</option>
                 <option value="factura">Sólo facturas</option>
                 <option value="nota_credito">Sólo notas de crédito</option>
+                <option value="nota_debito">Sólo notas de débito</option>
               </select>
               <select value={estado} onChange={(e) => setEstado(e.target.value)} className={selectCls}>
                 <option value="">Todos los estados</option>
@@ -450,7 +453,12 @@ export default function FacturacionPage() {
                               </div>
                               {asociada && (
                                 <p className="text-[11px] text-slate-500">
-                                  Anula {nombreCorto(asociada)} N° {numeroComprobante(asociada)}
+                                  {f.motivo === 'nota_debito'
+                                    ? 'Sobre'
+                                    : esAjusteManual(f)
+                                      ? `${MOTIVO_COMPROBANTE[f.motivo]} · sobre`
+                                      : 'Anula'}{' '}
+                                  {nombreCorto(asociada)} N° {numeroComprobante(asociada)}
                                 </p>
                               )}
                             </td>
