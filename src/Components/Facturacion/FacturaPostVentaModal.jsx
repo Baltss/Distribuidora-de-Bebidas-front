@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, Loader2, AlertTriangle, Printer, FileText, ShoppingCart } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertTriangle, Printer, FileText, ShoppingCart, MessageCircle } from 'lucide-react';
 import { backdropV, panelV } from '../../ui/animHelpers';
 import { getFacturaEstado } from '../../api/facturacion';
 import { impresoraConfigurada } from '../../utils/impresoraTicket';
@@ -158,6 +158,12 @@ export default function FacturaPostVentaModal({ open, facturaId, ventaId, errorI
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     <FileText className="h-4 w-4" /> Ver PDF A4
+                  </button>
+                  <button
+                    onClick={() => imprimir.enviarWhatsApp(facturaId)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+                  >
+                    <MessageCircle className="h-4 w-4" /> Enviar por WhatsApp
                   </button>
                 </>
               )}

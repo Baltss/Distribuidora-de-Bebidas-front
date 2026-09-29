@@ -185,6 +185,16 @@ export async function descartarComprobante(id) {
   return data;
 }
 
+/**
+ * Datos para mandar el comprobante por WhatsApp: { ruta (link público
+ * firmado al PDF, relativo a la API), comprobante, total, receptor,
+ * telefono (formato wa.me o ''), telefono_cargado, emisor }.
+ */
+export async function getCompartirFactura(id) {
+  const { data } = await http.get(`/facturacion/facturas/${id}/compartir`);
+  return data;
+}
+
 /** Estado liviano de un comprobante (sirve para esperar el CAE). */
 export async function getFacturaEstado(id) {
   const { data } = await http.get(`/facturacion/facturas/${id}/estado`);
@@ -315,6 +325,7 @@ export default {
   crearNotaDebito,
   descartarComprobante,
   getFacturaEstado,
+  getCompartirFactura,
   getFacturaTicket,
   abrirFacturaPdf,
   getEstadoEmision,

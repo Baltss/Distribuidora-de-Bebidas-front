@@ -4,8 +4,12 @@
 //   la configuración y al guardar imprime);
 // - PDF A4 en una pestaña nueva.
 // Si el ticket falla, ofrece abrir el PDF A4 como alternativa.
+// - enviarlo por WhatsApp (link al PDF).
+// `modalImpresora` incluye los modales que usan estas acciones: la pantalla
+// sólo tiene que renderizarlo.
 import React, { useCallback, useRef, useState } from 'react';
 import ImpresoraTicketModal from '../Components/Facturacion/ImpresoraTicketModal';
+import EnviarWhatsAppModal from '../Components/Facturacion/EnviarWhatsAppModal';
 import { imprimirTicketComprobante, mensajeDeError } from '../utils/comprobantes';
 import { abrirFacturaPdf } from '../api/facturacion';
 import { baseSwal, showErrorSwal, showSuccessToast } from '../ui/swal';
@@ -13,6 +17,7 @@ import { baseSwal, showErrorSwal, showSuccessToast } from '../ui/swal';
 export default function useImprimirComprobante() {
   const [configOpen, setConfigOpen] = useState(false);
   const [imprimiendo, setImprimiendo] = useState(null); // facturaId
+  const [whatsappId, setWhatsappId] = useState(null); // facturaId
   const pendiente = useRef(null);
 
   const abrirPdf = useCallback(async (facturaId) => {
@@ -58,23 +63,27 @@ export default function useImprimirComprobante() {
   );
 
   const modalImpresora = (
-    <ImpresoraTicketModal
-      open={configOpen}
-      onClose={() => {
-        setConfigOpen(false);
-        pendiente.current = null;
-      }}
-      onGuardado={() => {
-        const id = pendiente.current;
-        pendiente.current = null;
-        if (id) setTimeout(() => imprimirTicket(id), 300);
-      }}
-    />
+    <>
+      <EnviarWhatsAppModal open={whatsappId != null} facturaId={whatsappId} onClose={() => setWhatsappId(null)} />
+      <ImpresoraTicketModal
+        open={configOpen}
+        onClose={() => {
+          setConfigOpen(false);
+          pendiente.current = null;
+        }}
+        onGuardado={() => {
+          const id = pendiente.current;
+          pendiente.current = null;
+          if (id) setTimeout(() => imprimirTicket(id), 300);
+        }}
+      />
+    </>
   );
 
   return {
     imprimirTicket,
     abrirPdf,
+    enviarWhatsApp: setWhatsappId,
     imprimiendo,
     configurarImpresora: () => setConfigOpen(true),
     modalImpresora

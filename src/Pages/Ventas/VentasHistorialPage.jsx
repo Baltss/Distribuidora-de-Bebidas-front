@@ -947,6 +947,14 @@ const VentasHistorialPage = () => {
                                       >
                                         PDF
                                       </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => imprimir.enviarWhatsApp(v.factura_id)}
+                                        title="Enviar la factura al cliente por WhatsApp"
+                                        className="text-xs px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
+                                      >
+                                        WhatsApp
+                                      </button>
                                     </>
                                   )}
 

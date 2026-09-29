@@ -19,7 +19,8 @@ import {
   Undo2,
   PlusCircle,
   Trash2,
-  CheckCircle2
+  CheckCircle2,
+  MessageCircle
 } from 'lucide-react';
 import { backdropV, panelV } from '../../ui/animHelpers';
 import { getFactura, reintentarFactura, descartarComprobante } from '../../api/facturacion';
@@ -453,6 +454,12 @@ export default function ComprobanteDetalleModal({ open, facturaId, onClose, onCa
                             className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                           >
                             <FileText className="h-4 w-4" /> Ver PDF A4
+                          </button>
+                          <button
+                            onClick={() => imprimir.enviarWhatsApp(f.id)}
+                            className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50"
+                          >
+                            <MessageCircle className="h-4 w-4" /> WhatsApp
                           </button>
                           <button
                             onClick={() => imprimir.imprimirTicket(f.id)}

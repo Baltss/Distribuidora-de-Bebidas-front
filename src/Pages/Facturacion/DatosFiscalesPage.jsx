@@ -23,6 +23,7 @@ import {
 } from '../../api/facturacion';
 import { listLocales } from '../../api/locales';
 import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
+import AvisoCertificadoArca from '../../Components/Facturacion/AvisoCertificadoArca';
 
 const ESTADO_BADGE = {
   activo: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -115,6 +116,8 @@ export default function DatosFiscalesPage() {
           Configurá el CUIT y la condición fiscal del negocio para poder emitir Facturación
           Electrónica. Los cambios quedan pendientes hasta que Soldi los apruebe.
         </p>
+
+        <AvisoCertificadoArca className="mt-4" enDatosFiscales />
 
         {loading ? (
           <div className="flex items-center justify-center py-24">

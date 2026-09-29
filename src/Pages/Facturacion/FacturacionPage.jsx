@@ -18,6 +18,7 @@ import AppShell from '../../Components/Layout/AppShell';
 import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
 import ReportesContadorPanel from '../../Components/Facturacion/ReportesContadorPanel';
+import AvisoCertificadoArca from '../../Components/Facturacion/AvisoCertificadoArca';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import {
@@ -265,6 +266,8 @@ export default function FacturacionPage() {
             <Printer className="h-4 w-4" /> Impresora de tickets
           </button>
         </div>
+
+        <AvisoCertificadoArca className="mt-4" />
 
         {resumen.errores > 0 && (
           <button

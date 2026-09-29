@@ -23,6 +23,7 @@ import axios from 'axios';
 
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import { getReposicionResumen } from '../../api/productos.js';
+import AvisoCertificadoArca from '../../Components/Facturacion/AvisoCertificadoArca';
 
 // ---------- Tile genérico ----------
 const DashboardTile = ({ title, description, to, icon: Icon, delay = 0 }) => {
@@ -298,6 +299,9 @@ const AdminPage = () => {
             )}
           </motion.div>
         </div>
+
+        {/* Certificado de ARCA por vencer / vencido (sólo si corresponde) */}
+        {nivel !== 'vendedor' && <AvisoCertificadoArca className="mt-6" />}
 
         {/* Grid de módulos */}
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
