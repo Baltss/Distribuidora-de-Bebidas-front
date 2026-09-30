@@ -24,6 +24,7 @@ import {
 import { listLocales } from '../../api/locales';
 import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swal';
 import AvisoCertificadoArca from '../../Components/Facturacion/AvisoCertificadoArca';
+import useCatalogoFiscal, { etiquetaCondicionEmisor } from '../../hooks/useCatalogoFiscal';
 
 const ESTADO_BADGE = {
   activo: 'bg-emerald-50 text-emerald-700 border-emerald-200',
@@ -42,6 +43,7 @@ const ESTADO_LABEL = {
 };
 
 export default function DatosFiscalesPage() {
+  const catalogo = useCatalogoFiscal();
   const [historial, setHistorial] = useState([]);
   const [puntosVenta, setPuntosVenta] = useState([]);
   const [locales, setLocales] = useState([]);
@@ -144,8 +146,8 @@ export default function DatosFiscalesPage() {
                   </div>
                   <div>
                     <p className="text-slate-500">Condición frente al IVA</p>
-                    <p className="font-semibold text-slate-800 capitalize">
-                      {activa.condicion_fiscal?.replace('_', ' ')}
+                    <p className="font-semibold text-slate-800">
+                      {etiquetaCondicionEmisor(catalogo, activa.condicion_fiscal)}
                     </p>
                   </div>
                   <div>
@@ -204,7 +206,7 @@ export default function DatosFiscalesPage() {
                     {historial.map((h) => (
                       <tr key={h.id} className="border-b border-gray-100">
                         <td className="px-4 py-2 text-gray-800">{h.cuit}</td>
-                        <td className="px-4 py-2 capitalize text-gray-700">{h.condicion_fiscal?.replace('_', ' ')}</td>
+                        <td className="px-4 py-2 text-gray-700">{etiquetaCondicionEmisor(catalogo, h.condicion_fiscal)}</td>
                         <td className="px-4 py-2 capitalize text-gray-700">{h.ambiente}</td>
                         <td className="px-4 py-2">
                           <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full border ${ESTADO_BADGE[h.estado] || ''}`}>

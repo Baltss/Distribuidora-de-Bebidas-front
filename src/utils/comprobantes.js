@@ -82,35 +82,32 @@ export function esCuitValido(valor) {
   return dv === Number(s[10]);
 }
 
-const CONDICION_IVA_CORTA = {
-  1: 'Responsable Inscripto',
-  4: 'Exento',
-  5: 'Consumidor Final',
-  6: 'Monotributo',
-  7: 'No Categorizado',
-  13: 'Monotributo Social',
-  15: 'IVA No Alcanzado',
-  16: 'Monotributo Promovido'
-};
-
 /**
- * Qué comprobante va a salir para un cliente (misma regla que el backend):
- * { letra, texto, advertencia } o null si no se puede facturar.
+ * Qué comprobante va a salir para un cliente (misma regla que el backend,
+ * a partir del catálogo fiscal que este informa): { letra, texto, advertencia }
+ * o null si todavía no se puede saber.
  */
-export function comprobantePrevisto(estadoEmision, cliente) {
-  if (!estadoEmision?.habilitada || !cliente) return null;
+export function comprobantePrevisto(estadoEmision, cliente, catalogo, total = 0) {
+  if (!estadoEmision?.habilitada || !cliente || !catalogo) return null;
+
   const condicion = Number(cliente.condicion_iva_id ?? 5);
-  const receptor = CONDICION_IVA_CORTA[condicion] || 'Consumidor Final';
-  if (estadoEmision.condicion_fiscal === 'monotributista') {
-    return { letra: 'C', texto: `Factura C · ${receptor}`, advertencia: null };
+  const receptor = catalogo.condiciones_iva.find((c) => c.id === condicion);
+  const emisor = catalogo.condiciones_emisor.find((c) => c.id === estadoEmision.condicion_fiscal);
+  const clase = !emisor?.discrimina_iva ? 'C' : catalogo.condiciones_por_clase.A.includes(condicion) ? 'A' : 'B';
+  if (!receptor) {
+    return { letra: clase, texto: `Factura ${clase}`, advertencia: 'La condición frente al IVA del cliente no es válida. Corregila en Clientes.' };
   }
-  if (condicion === 1) {
-    const cuitOk = Number(cliente.documento_tipo) === 80 && esCuitValido(cliente.documento);
-    return {
-      letra: 'A',
-      texto: `Factura A · ${receptor}`,
-      advertencia: cuitOk ? null : 'El cliente necesita un CUIT válido cargado para emitir Factura A.'
-    };
+
+  const tipoDoc = Number(cliente.documento_tipo);
+  const cuitOk = tipoDoc === 80 && esCuitValido(cliente.documento);
+  const identificado = tipoDoc !== 99 && !!cliente.documento;
+  let advertencia = null;
+  if (!catalogo.condiciones_por_clase[clase].includes(condicion)) {
+    advertencia = `La condición "${receptor.label}" no admite Factura ${clase}. Corregila en Clientes.`;
+  } else if ((clase === 'A' || receptor.requiere_cuit) && !cuitOk) {
+    advertencia = 'El cliente necesita un CUIT válido cargado para emitir este comprobante.';
+  } else if (condicion === 5 && catalogo.tope_identificacion != null && Number(total) >= catalogo.tope_identificacion && !identificado) {
+    advertencia = 'Este importe requiere identificar al cliente (DNI o CUIT). Cargalo en Clientes.';
   }
-  return { letra: 'B', texto: `Factura B · ${receptor}`, advertencia: null };
+  return { letra: clase, texto: `Factura ${clase} · ${receptor.label}`, advertencia };
 }

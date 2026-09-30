@@ -3,7 +3,7 @@
 // ===============================
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Search, Loader2 } from 'lucide-react';
 import {
   backdropV,
   panelV,
@@ -22,6 +22,20 @@ import { listLocalidades } from '../../api/localidades';
 import { listBarrios } from '../../api/barrios';
 import http from '../../api/http';
 import { API_BASE_URL } from '../../api/apiBase';
+import { consultarPadron } from '../../api/facturacion';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
+import { esCuitValido, mensajeDeError } from '../../utils/comprobantes';
+
+const selectCls = inputCls.replace('w-full', 'w-auto shrink-0');
+
+// Tipos de documento mientras carga el catálogo del backend.
+const DOCUMENTOS_POR_DEFECTO = [
+  { id: 80, label: 'CUIT' },
+  { id: 86, label: 'CUIL' },
+  { id: 96, label: 'DNI' },
+  { id: 99, label: 'Sin identificar' }
+];
+const DOCUMENTO_GENERICO = 'CONSUMIDOR_FINAL'; // cliente "Consumidor Final" del sistema
 
 export default function ClienteFormModal({
   open,
@@ -39,6 +53,12 @@ export default function ClienteFormModal({
     telefono: '',
     email: '',
     estado: 'activo',
+
+    // Datos fiscales (para facturar)
+    documento_tipo: '96',
+    condicion_iva_id: '5',
+    razon_social: '',
+    domicilio_fiscal: '',
 
     // Geografía (cascada)
     ciudad_id: '',
@@ -64,6 +84,10 @@ export default function ClienteFormModal({
 
   const [saving, setSaving] = useState(false);
   const isEdit = !!initial?.id;
+  const catalogo = useCatalogoFiscal();
+
+  // Consulta al padrón de ARCA: { estado: 'cargando' | 'ok' | 'error', mensaje }
+  const [padron, setPadron] = useState(null);
 
   // ------- Catálogos -------
   const [ciudades, setCiudades] = useState([]);
@@ -181,6 +205,11 @@ export default function ClienteFormModal({
       email: initial?.email || '',
       estado: initial?.estado || 'activo',
 
+      documento_tipo: String(initial?.documento_tipo ?? 96),
+      condicion_iva_id: String(initial?.condicion_iva_id ?? 5),
+      razon_social: initial?.razon_social || '',
+      domicilio_fiscal: initial?.domicilio_fiscal || '',
+
       ciudad_id: initial?.ciudad_id ? String(initial.ciudad_id) : '',
       localidad_id: '',
       barrio_id: initial?.barrio_id ?? '',
@@ -248,6 +277,7 @@ export default function ClienteFormModal({
     }));
 
     setAttempted(false);
+    setPadron(null);
   }, [open, initial, barrios, localidades, barriosProp]);
 
   // Si en edición el "initial" no trae reparto, intentamos hidratar desde GET /clientes/:id
@@ -360,6 +390,22 @@ export default function ClienteFormModal({
       if (!documentoOK) out.documento = 'El documento es obligatorio.';
     }
 
+    // Datos fiscales: el número tiene que corresponder al tipo de documento, y
+    // las condiciones de IVA de un contribuyente registrado piden CUIT.
+    if (form.documento.trim() !== DOCUMENTO_GENERICO) {
+      const tipoDoc = Number(form.documento_tipo);
+      const doc = form.documento.trim();
+      if (doc && (tipoDoc === 80 || tipoDoc === 86) && !esCuitValido(doc)) {
+        out.documento = 'El CUIT/CUIL no es válido (revisá los 11 dígitos).';
+      } else if (doc && tipoDoc === 96 && !/^\d{7,8}$/.test(doc.replace(/\D/g, ''))) {
+        out.documento = 'El DNI debe tener 7 u 8 dígitos.';
+      }
+      const condicion = catalogo?.condiciones_iva.find((c) => c.id === Number(form.condicion_iva_id));
+      if (condicion?.requiere_cuit && !(tipoDoc === 80 && esCuitValido(doc))) {
+        out.condicion_iva_id = `"${condicion.label}" requiere un CUIT válido.`;
+      }
+    }
+
     //  - 14-07-2026 - Ciudad y reparto solo son obligatorios para clientes de reparto.
     //  Un cliente "local" (mostrador) no pide datos de entrega.
     if (form.tipo === 'reparto') {
@@ -380,13 +426,17 @@ export default function ClienteFormModal({
 
     //  - 24-02-2026 - Calle y número dejan de ser obligatorios por requerimiento; se permiten vacíos.
     return out;
-  }, [form.nombre, form.tipo, form.documento, form.ciudad_id, form.reparto_id]);
+  }, [form.nombre, form.tipo, form.documento, form.documento_tipo, form.condicion_iva_id, form.ciudad_id, form.reparto_id, catalogo]);
 
   const canSave = useMemo(() => {
     return Object.keys(errors).length === 0;
   }, [errors]);
 
   const showError = (key) => attempted && !!errors[key];
+  // Los errores de datos fiscales se muestran apenas se cargan (con el botón
+  // deshabilitado nunca se llegaría a "intentar" guardar).
+  const showFiscalError = (key) =>
+    !!errors[key] && (attempted || key === 'condicion_iva_id' || form.documento.trim() !== '');
 
   // ------- Handler genérico -------
   const handle = (e) => {
@@ -396,6 +446,40 @@ export default function ClienteFormModal({
       return;
     }
     setForm((f) => ({ ...f, [name]: value }));
+  };
+
+  // Al elegir "Sin identificar" se borra el número (salvo en el cliente genérico del sistema).
+  const handleDocumentoTipo = (e) => {
+    const val = e.target.value;
+    setForm((f) => ({
+      ...f,
+      documento_tipo: val,
+      documento: val === '99' && f.documento.trim() !== DOCUMENTO_GENERICO ? '' : f.documento
+    }));
+    setPadron(null);
+  };
+
+  // Completa razón social, domicilio fiscal y condición de IVA desde el padrón de ARCA.
+  const buscarEnArca = async () => {
+    setPadron({ estado: 'cargando' });
+    try {
+      const p = await consultarPadron(form.documento);
+      setForm((f) => ({
+        ...f,
+        nombre: f.nombre.trim() ? f.nombre : p.razon_social || f.nombre,
+        razon_social: p.razon_social || f.razon_social,
+        domicilio_fiscal: p.domicilio_fiscal || f.domicilio_fiscal,
+        condicion_iva_id: p.condicion_iva_id ? String(p.condicion_iva_id) : f.condicion_iva_id
+      }));
+      setPadron({
+        estado: 'ok',
+        mensaje: p.condicion_iva_id
+          ? 'Datos completados desde ARCA.'
+          : 'Datos completados desde ARCA. Elegí la condición frente al IVA: ARCA no la informa de forma concluyente.'
+      });
+    } catch (err) {
+      setPadron({ estado: 'error', mensaje: mensajeDeError(err, 'No se pudo consultar ARCA.') });
+    }
   };
 
   // ------- Submit -------
@@ -415,6 +499,11 @@ export default function ClienteFormModal({
         nombre: form.nombre.trim(),
         tipo: form.tipo,
         documento: form.documento?.trim() || null,
+        // Sin número el cliente queda "sin identificar".
+        documento_tipo: form.documento?.trim() ? Number(form.documento_tipo) : 99,
+        condicion_iva_id: Number(form.condicion_iva_id),
+        razon_social: form.razon_social?.trim() || null,
+        domicilio_fiscal: form.domicilio_fiscal?.trim() || null,
         telefono: form.telefono?.trim() || null,
         email: form.email?.trim() || null,
         estado: form.estado,
@@ -561,16 +650,52 @@ export default function ClienteFormModal({
                         <span className="text-teal-600"> *</span>
                       )}
                     </label>
-                    <input
-                      name="documento"
-                      value={form.documento}
-                      onChange={handle}
-                      className={`${inputCls} ${showError('documento') ? errorInputCls : ''}`}
-                      placeholder="DNI/CUIT"
-                    />
-                    {showError('documento') && (
+                    <div className="flex gap-2">
+                      <select
+                        name="documento_tipo"
+                        value={form.documento_tipo}
+                        onChange={handleDocumentoTipo}
+                        className={selectCls}
+                        aria-label="Tipo de documento"
+                      >
+                        {(catalogo?.documentos || DOCUMENTOS_POR_DEFECTO).map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        name="documento"
+                        value={form.documento}
+                        onChange={handle}
+                        disabled={form.documento_tipo === '99'}
+                        className={`${inputCls} disabled:opacity-60 ${showFiscalError('documento') ? errorInputCls : ''}`}
+                        placeholder={form.documento_tipo === '96' ? '12345678' : '20-12345678-6'}
+                      />
+                    </div>
+                    {showFiscalError('documento') && (
                       <p className="mt-2 text-xs text-rose-600">
                         {errors.documento}
+                      </p>
+                    )}
+                    {form.documento_tipo === '80' && esCuitValido(form.documento) && (
+                      <button
+                        type="button"
+                        onClick={buscarEnArca}
+                        disabled={padron?.estado === 'cargando'}
+                        className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 hover:text-teal-800 disabled:opacity-60"
+                      >
+                        {padron?.estado === 'cargando' ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Search className="h-3.5 w-3.5" />
+                        )}
+                        Buscar en ARCA
+                      </button>
+                    )}
+                    {padron?.mensaje && (
+                      <p className={`mt-1 text-xs ${padron.estado === 'error' ? 'text-amber-700' : 'text-emerald-700'}`}>
+                        {padron.mensaje}
                       </p>
                     )}
                   </motion.div>
@@ -623,6 +748,59 @@ export default function ClienteFormModal({
                     </label>
                   </motion.div>
                 </div>
+
+                {/* Datos fiscales: lo que sale en la factura */}
+                <motion.div
+                  variants={fieldV}
+                  className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"
+                >
+                  <p className="text-sm font-semibold text-slate-700">
+                    Datos fiscales{' '}
+                    <span className="font-normal text-slate-500">(para facturar)</span>
+                  </p>
+                  <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>Condición frente al IVA</label>
+                      <select
+                        name="condicion_iva_id"
+                        value={form.condicion_iva_id}
+                        onChange={handle}
+                        className={`${inputCls} ${showFiscalError('condicion_iva_id') ? errorInputCls : ''}`}
+                      >
+                        {(catalogo?.condiciones_iva || [{ id: 5, label: 'Consumidor Final' }]).map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
+                      </select>
+                      {showFiscalError('condicion_iva_id') && (
+                        <p className="mt-2 text-xs text-rose-600">
+                          {errors.condicion_iva_id}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className={labelCls}>Razón social</label>
+                      <input
+                        name="razon_social"
+                        value={form.razon_social}
+                        onChange={handle}
+                        className={inputCls}
+                        placeholder="Como figura en ARCA (opcional)"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className={labelCls}>Domicilio fiscal</label>
+                      <input
+                        name="domicilio_fiscal"
+                        value={form.domicilio_fiscal}
+                        onChange={handle}
+                        className={inputCls}
+                        placeholder="Como figura en ARCA (opcional)"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
 
                 {/* Geografía, reparto y dirección: solo para clientes de reparto */}
                 {form.tipo === 'reparto' && (

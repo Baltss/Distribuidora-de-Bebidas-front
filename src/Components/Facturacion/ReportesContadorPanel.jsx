@@ -255,7 +255,7 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
               disabled={!resumen.libro_iva_digital_aplica}
               nota={
                 !resumen.libro_iva_digital_aplica
-                  ? 'Los monotributistas no presentan Libro IVA Digital.'
+                  ? 'Este emisor no discrimina IVA: no presenta Libro IVA Digital de ventas.'
                   : resumen.hay_comprobantes_c
                     ? 'Los comprobantes C (de monotributo) no se incluyen.'
                     : null

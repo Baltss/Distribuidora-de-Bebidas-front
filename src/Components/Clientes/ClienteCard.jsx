@@ -20,6 +20,7 @@ import {
   FaGlobeAmericas
 } from 'react-icons/fa';
 import DetailViewModal from '../Common/DetailViewModal';
+import useCatalogoFiscal, { etiquetaCondicionIva } from '../../hooks/useCatalogoFiscal';
 
 const StatusPill = ({ active }) => (
   <span
@@ -44,7 +45,10 @@ const Field = ({ label, children }) => (
     <div className="text-[10px] uppercase tracking-widest text-slate-600">
       {label}
     </div>
-    <div className="mt-0.5 truncate text-slate-700">
+    <div
+      className="mt-0.5 truncate text-slate-700"
+      title={typeof children === 'string' ? children : undefined}
+    >
       {children ?? '—'}
     </div>
   </div>
@@ -144,6 +148,14 @@ export default function ClienteCard({
   compact = false
 }) {
   const [viewOpen, setViewOpen] = useState(false);
+  const catalogo = useCatalogoFiscal();
+
+  // { etiqueta: 'CUIT', valor: '20123456786' } / { etiqueta: 'Documento', valor: 'Sin identificar' }
+  const documentoConTipo = (c) => {
+    if (!c?.documento || Number(c.documento_tipo) === 99) return { etiqueta: 'Documento', valor: 'Sin identificar' };
+    const tipo = catalogo?.documentos.find((d) => d.id === Number(c.documento_tipo))?.label;
+    return { etiqueta: tipo || 'Documento', valor: c.documento };
+  };
 
   const initial = useMemo(
     () => (item?.nombre ? item.nombre[0]?.toUpperCase() : 'C'),
@@ -180,10 +192,19 @@ export default function ClienteCard({
           title: 'Datos de contacto',
           cols: 2,
           rows: [
-            { label: 'Documento', icon: <FaIdCard />, key: 'documento' },
             { label: 'Teléfono', icon: <FaPhoneAlt />, key: 'telefono' },
             { label: 'Email', icon: <FaEnvelope />, key: 'email' },
             { label: 'Estado', value: activo ? 'Activo' : 'Inactivo' }
+          ]
+        },
+        {
+          title: 'Datos fiscales',
+          cols: 2,
+          rows: [
+            { label: documentoConTipo(v).etiqueta, icon: <FaIdCard />, value: documentoConTipo(v).valor },
+            { label: 'Condición frente al IVA', value: etiquetaCondicionIva(catalogo, v?.condicion_iva_id) },
+            { label: 'Razón social', value: v?.razon_social },
+            { label: 'Domicilio fiscal', value: v?.domicilio_fiscal }
           ]
         },
         {
@@ -299,7 +320,10 @@ export default function ClienteCard({
                 compact ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'
               } gap-3`}
             >
-              <Field label="Documento">{item?.documento}</Field>
+              <Field label={documentoConTipo(item).etiqueta}>{documentoConTipo(item).valor}</Field>
+              <Field label="Condición frente al IVA">
+                {etiquetaCondicionIva(catalogo, item?.condicion_iva_id)}
+              </Field>
               <Field label="Teléfono">{item?.telefono}</Field>
               <Field label="Email">{item?.email}</Field>
               <Field label="Vendedor preferido">{vendedorPref}</Field>

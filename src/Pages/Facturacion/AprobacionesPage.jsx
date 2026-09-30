@@ -15,6 +15,7 @@ import { ClipboardCheck, Loader2 } from 'lucide-react';
 
 import AppShell from '../../Components/Layout/AppShell';
 import MotivoModal from '../../Components/Facturacion/MotivoModal';
+import useCatalogoFiscal, { etiquetaCondicionEmisor } from '../../hooks/useCatalogoFiscal';
 
 import {
   listConfiguracionFiscalPendientes,
@@ -27,6 +28,7 @@ import { showApiErrorSwal, showSuccessSwal, showConfirmSwal } from '../../ui/swa
 const POLL_MS = 4000;
 
 export default function AprobacionesPage() {
+  const catalogo = useCatalogoFiscal();
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [aprobandoId, setAprobandoId] = useState(null);
@@ -184,7 +186,7 @@ export default function AprobacionesPage() {
                       <tr key={p.id} className="border-b border-gray-100">
                         <td className="px-4 py-2 text-gray-800">{p.cuit}</td>
                         <td className="px-4 py-2 text-gray-700">{p.razon_social || '—'}</td>
-                        <td className="px-4 py-2 capitalize text-gray-700">{p.condicion_fiscal?.replace('_', ' ')}</td>
+                        <td className="px-4 py-2 text-gray-700">{etiquetaCondicionEmisor(catalogo, p.condicion_fiscal)}</td>
                         <td className="px-4 py-2 capitalize text-gray-700">{p.ambiente}</td>
                         <td className="px-4 py-2">
                           {p.tiene_certificado ? (

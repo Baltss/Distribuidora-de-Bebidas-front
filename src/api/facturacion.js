@@ -290,6 +290,25 @@ export async function getEstadoEmision() {
   return data;
 }
 
+/**
+ * Catálogos y reglas fiscales del backend: { documentos, condiciones_iva,
+ * condiciones_emisor, condiciones_por_clase, tope_identificacion }.
+ */
+export async function getCatalogoFiscal() {
+  const { data } = await http.get('/facturacion/catalogo-fiscal');
+  return data;
+}
+
+/**
+ * Datos de un CUIT según el padrón de ARCA: { razon_social, domicilio_fiscal,
+ * condicion_iva_id (puede ser null), provincia, ... }. Falla con el motivo en
+ * `mensajeError` (por ejemplo si el certificado no tiene habilitado el padrón).
+ */
+export async function consultarPadron(cuit) {
+  const { data } = await http.get(`/facturacion/padron/${encodeURIComponent(String(cuit).replace(/\D/g, ''))}`);
+  return data;
+}
+
 /** Datos del negocio que se imprimen en el comprobante. */
 export async function getDatosEmisor() {
   const { data } = await http.get('/facturacion/datos-emisor');
@@ -329,6 +348,8 @@ export default {
   getFacturaTicket,
   abrirFacturaPdf,
   getEstadoEmision,
+  getCatalogoFiscal,
+  consultarPadron,
   getResumenIva,
   descargarReporteContador,
   getDatosEmisor,

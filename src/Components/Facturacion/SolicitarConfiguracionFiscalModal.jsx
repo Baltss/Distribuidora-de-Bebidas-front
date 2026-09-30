@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, Copy } from 'lucide-react';
 import { backdropV, panelV, formContainerV, fieldV } from '../../ui/animHelpers';
 import { solicitarConfiguracionFiscal } from '../../api/facturacion';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 import { showErrorSwal, showSuccessSwal, showApiErrorSwal } from '../../ui/swal';
 
 const inputCls =
@@ -27,6 +28,7 @@ export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSol
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [csrResultado, setCsrResultado] = useState(null); // { id, csr }
+  const catalogo = useCatalogoFiscal();
 
   useEffect(() => {
     if (!open) return;
@@ -150,8 +152,11 @@ export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSol
                     <motion.div variants={fieldV}>
                       <label className={labelCls}>Condición frente al IVA</label>
                       <select name="condicion_fiscal" value={form.condicion_fiscal} onChange={handle} className={inputCls}>
-                        <option value="responsable_inscripto">Responsable Inscripto</option>
-                        <option value="monotributista">Monotributista</option>
+                        {(catalogo?.condiciones_emisor || [{ id: 'responsable_inscripto', label: 'Responsable Inscripto' }]).map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.label}
+                          </option>
+                        ))}
                       </select>
                     </motion.div>
                     <motion.div variants={fieldV}>

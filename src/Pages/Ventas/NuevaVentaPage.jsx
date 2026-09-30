@@ -37,6 +37,7 @@ import { getEstadoEmision } from '../../api/facturacion';
 import FacturaPostVentaModal from '../../Components/Facturacion/FacturaPostVentaModal';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import { comprobantePrevisto } from '../../utils/comprobantes';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 
 const CONSUMIDOR_FINAL_DOCUMENTO = 'CONSUMIDOR_FINAL';
 
@@ -108,6 +109,7 @@ export default function NuevaVentaPage() {
   // Facturación electrónica: si se puede facturar, qué comprobante sale, y
   // la espera del CAE + impresión después de confirmar.
   const [estadoEmision, setEstadoEmision] = useState(null);
+  const catalogoFiscal = useCatalogoFiscal();
   const [postVenta, setPostVenta] = useState(null); // { ventaId, facturaId, errorInicio }
   const imprimir = useImprimirComprobante();
 
@@ -963,7 +965,7 @@ export default function NuevaVentaPage() {
 
           {/* Facturación electrónica: elegir si esta venta se factura al confirmarla */}
           {(() => {
-            const previsto = comprobantePrevisto(estadoEmision, selectedCliente);
+            const previsto = comprobantePrevisto(estadoEmision, selectedCliente, catalogoFiscal, totalNeto);
             const habilitada = !!estadoEmision?.habilitada;
             return (
               <label
