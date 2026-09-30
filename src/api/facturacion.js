@@ -106,9 +106,11 @@ export async function listVentasPendientesFacturar(params = {}) {
  * background — el resultado se entera por polling sobre listFacturas
  * (usa el timeout default, ya no hace falta uno largo). `puntoVentaId` elige
  * el CUIT con el que se factura; sin él sale por el que corresponde al usuario.
+ * `opciones` (servicios / Factura de Crédito): { concepto, fecha_serv_desde,
+ * fecha_serv_hasta, fecha_vto_pago, fce: { sistema } }.
  */
-export async function facturarVentas(ventaIds, puntoVentaId = null) {
-  const { data } = await http.post('/facturacion/facturas', { venta_ids: ventaIds, punto_venta_id: puntoVentaId });
+export async function facturarVentas(ventaIds, puntoVentaId = null, opciones = null) {
+  const { data } = await http.post('/facturacion/facturas', { venta_ids: ventaIds, punto_venta_id: puntoVentaId, ...(opciones ? { opciones } : {}) });
   return data;
 }
 
@@ -244,6 +246,9 @@ async function abrirPdfAutenticado(ruta) {
     throw err;
   }
 }
+
+/** Abre el remito (PDF sin validez fiscal) de una venta, con o sin precios. */
+export const abrirRemitoPdf = (ventaId, conPrecios = false) => abrirPdfAutenticado(`/ventas/${ventaId}/remito-pdf?precios=${conPrecios ? 1 : 0}`);
 
 export const abrirFacturaPdf = (id) => abrirPdfAutenticado(`/facturacion/facturas/${id}/pdf`);
 
@@ -546,6 +551,7 @@ export default {
   importarPadron,
   getReporteIibb,
   abrirCertificadoRetencion,
+  abrirRemitoPdf,
   listComprobantesRecibidos,
   crearComprobanteRecibido,
   updateComprobanteRecibido,

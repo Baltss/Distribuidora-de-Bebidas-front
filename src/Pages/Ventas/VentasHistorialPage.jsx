@@ -22,7 +22,7 @@ import Swal from 'sweetalert2';
 import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
-import { facturarVentas, reintentarFactura } from '../../api/facturacion';
+import { abrirRemitoPdf, facturarVentas, reintentarFactura } from '../../api/facturacion';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import { opcionesPuntoVenta, etiquetaPuntoVenta } from '../../utils/emisores';
 import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
@@ -937,6 +937,17 @@ const VentasHistorialPage = () => {
                                       className="text-xs px-2.5 py-1 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50 transition"
                                     >
                                       Editar
+                                    </button>
+                                  )}
+
+                                  {v.estado !== 'anulada' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => abrirRemitoPdf(v.id, false).catch((e) => Swal.fire({ icon: 'error', title: 'No se pudo abrir el remito', text: e?.mensajeError || 'Ocurrió un error inesperado.' }))}
+                                      title="Remito de entrega (sin precios)"
+                                      className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100 transition"
+                                    >
+                                      Remito
                                     </button>
                                   )}
 

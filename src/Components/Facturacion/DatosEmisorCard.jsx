@@ -17,7 +17,9 @@ const VACIO = {
   inicio_actividades: '',
   telefono: '',
   email: '',
-  leyenda_pie: ''
+  leyenda_pie: '',
+  cbu: '',
+  cbu_alias: ''
 };
 
 function Campo({ label, ayuda, children }) {
@@ -107,6 +109,14 @@ export default function DatosEmisorCard({ emisorId }) {
           <Campo label="Leyenda al pie" ayuda="Opcional. Ej.: «¡Gracias por su compra!»">
             <input value={datos.leyenda_pie} onChange={set('leyenda_pie')} maxLength={255} className={inputCls} />
           </Campo>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Campo label="CBU" ayuda="Sólo si emitís Facturas de Crédito Electrónica MiPyME: 22 dígitos, donde te pagan.">
+              <input value={datos.cbu} onChange={set('cbu')} maxLength={22} inputMode="numeric" className={inputCls} />
+            </Campo>
+            <Campo label="Alias del CBU" ayuda="Opcional.">
+              <input value={datos.cbu_alias} onChange={set('cbu_alias')} maxLength={40} className={inputCls} />
+            </Campo>
+          </div>
           <div className="flex justify-end">
             <button
               type="submit"

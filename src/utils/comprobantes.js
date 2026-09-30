@@ -4,20 +4,23 @@
 import { getFacturaTicket } from '../api/facturacion';
 import { imprimirBytes, leerConfigImpresora, impresoraConfigurada } from './impresoraTicket';
 
-export const TIPO_LETRA = { 1: 'A', 2: 'A', 3: 'A', 6: 'B', 7: 'B', 8: 'B', 11: 'C', 12: 'C', 13: 'C' };
-const TIPOS_FACTURA = new Set([1, 6, 11]);
-const TIPOS_NC = new Set([3, 8, 13]);
-const TIPOS_ND = new Set([2, 7, 12]);
+// Los que emite el sistema: A, B y C, y sus equivalentes de Factura de Crédito Electrónica MiPyME (2xx).
+export const TIPO_LETRA = { 1: 'A', 2: 'A', 3: 'A', 6: 'B', 7: 'B', 8: 'B', 11: 'C', 12: 'C', 13: 'C', 201: 'A', 202: 'A', 203: 'A', 206: 'B', 207: 'B', 208: 'B', 211: 'C', 212: 'C', 213: 'C' };
+const TIPOS_FACTURA = new Set([1, 6, 11, 201, 206, 211]);
+const TIPOS_NC = new Set([3, 8, 13, 203, 208, 213]);
+const TIPOS_ND = new Set([2, 7, 12, 202, 207, 212]);
+const TIPOS_FCE = new Set([201, 202, 203, 206, 207, 208, 211, 212, 213]);
+export const esFce = (f) => TIPOS_FCE.has(Number(f?.tipo_comprobante));
 
 export const esFactura = (f) => TIPOS_FACTURA.has(Number(f?.tipo_comprobante));
 export const esNotaCredito = (f) => TIPOS_NC.has(Number(f?.tipo_comprobante));
 export const esNotaDebito = (f) => TIPOS_ND.has(Number(f?.tipo_comprobante));
 
 export const nombreCorto = (f) =>
-  `${esNotaCredito(f) ? 'NC' : esNotaDebito(f) ? 'ND' : 'Fact.'} ${TIPO_LETRA[f?.tipo_comprobante] || '?'}`;
+  `${esNotaCredito(f) ? 'NC' : esNotaDebito(f) ? 'ND' : 'Fact.'}${esFce(f) ? ' FCE' : ''} ${TIPO_LETRA[f?.tipo_comprobante] || '?'}`;
 
 export const nombreLargo = (f) =>
-  `${esNotaCredito(f) ? 'Nota de Crédito' : esNotaDebito(f) ? 'Nota de Débito' : 'Factura'} ${
+  `${esNotaCredito(f) ? 'Nota de Crédito' : esNotaDebito(f) ? 'Nota de Débito' : 'Factura'}${esFce(f) ? (esNotaCredito(f) || esNotaDebito(f) ? ' MiPyME' : ' de Crédito MiPyME') : ''} ${
     TIPO_LETRA[f?.tipo_comprobante] || '?'
   }`;
 

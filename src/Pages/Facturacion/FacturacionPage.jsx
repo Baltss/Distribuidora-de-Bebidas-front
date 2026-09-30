@@ -24,6 +24,7 @@ import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import SelectorPuntoVenta from '../../Components/Facturacion/SelectorPuntoVenta';
+import OpcionesComprobante, { OPCIONES_VACIAS, opcionesParaEnviar } from '../../Components/Facturacion/OpcionesComprobante';
 import { nombreEmisor } from '../../utils/emisores';
 import {
   listVentasPendientesFacturar,
@@ -86,6 +87,7 @@ export default function FacturacionPage() {
   const estadoEmision = useEstadoEmision();
   const variosEmisores = (estadoEmision?.emisores || []).length > 1;
   const [puntoVentaId, setPuntoVentaId] = useState('');
+  const [opciones, setOpciones] = useState(OPCIONES_VACIAS);
   const [emisorFiltro, setEmisorFiltro] = useState('');
   useEffect(() => {
     if (estadoEmision?.punto_venta_por_defecto_id) setPuntoVentaId(String(estadoEmision.punto_venta_por_defecto_id));
@@ -205,7 +207,8 @@ export default function FacturacionPage() {
 
     try {
       setFacturando(true);
-      await facturarVentas([...seleccion], puntoVentaId ? Number(puntoVentaId) : null);
+      await facturarVentas([...seleccion], puntoVentaId ? Number(puntoVentaId) : null, opcionesParaEnviar(opciones));
+      setOpciones(OPCIONES_VACIAS);
       await showSuccessSwal({
         title: 'En proceso',
         text: 'El comprobante se está emitiendo ante ARCA. Lo ves en "Comprobantes" apenas termine.'
@@ -327,6 +330,9 @@ export default function FacturacionPage() {
                   : 'Seleccioná una o varias ventas del mismo cliente para agruparlas en un comprobante.'}
               </p>
               <SelectorPuntoVenta estadoEmision={estadoEmision} value={puntoVentaId} onChange={setPuntoVentaId} />
+              <div className="basis-full">
+                <OpcionesComprobante value={opciones} onChange={setOpciones} disabled={facturando} />
+              </div>
               <button
                 onClick={handleFacturar}
                 disabled={ventasSeleccionadas.length === 0 || facturando}

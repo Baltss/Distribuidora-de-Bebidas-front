@@ -36,9 +36,11 @@ import {
   ESTADO_COMPROBANTE,
   esImprimible,
   esFactura,
+  esFce,
   esNotaCredito,
   esAjusteManual,
-  MOTIVO_COMPROBANTE
+  MOTIVO_COMPROBANTE,
+  TIPO_LETRA
 } from '../../utils/comprobantes';
 
 const CONDICION_IVA = {
@@ -195,7 +197,7 @@ export default function ComprobanteDetalleModal({ open, facturaId, onClose, onCa
   };
 
   const estado = f ? ESTADO_COMPROBANTE[f.estado] : null;
-  const discrimina = f && [1, 2, 3].includes(Number(f.tipo_comprobante));
+  const discrimina = f && TIPO_LETRA[Number(f.tipo_comprobante)] === 'A';
   const efectosPendientes = f && f.estado === 'autorizada' && esAjusteManual(f) && !f.efectos_aplicados_at && f.error_mensaje;
   const puedeAjustar = f && esFactura(f) && f.estado === 'autorizada' && !(f.ventas || []).some((v) => v.estado === 'anulada');
   const ivaDetalle = Array.isArray(f?.iva_detalle) ? f.iva_detalle : [];
@@ -305,6 +307,18 @@ export default function ComprobanteDetalleModal({ open, facturaId, onClose, onCa
                         </Dato>
                         <Dato label="Condición IVA">{CONDICION_IVA[f.condicion_iva_receptor_id]}</Dato>
                         <Dato label="Condición de venta">{CONDICION_VENTA[f.condicion_venta]}</Dato>
+                        {f.concepto > 1 && (
+                          <Dato label="Servicio prestado">
+                            {formatFechaCalendario(f.fecha_serv_desde)} → {formatFechaCalendario(f.fecha_serv_hasta)}
+                          </Dato>
+                        )}
+                        {f.fecha_vto_pago && esFactura(f) && <Dato label="Vencimiento del pago">{formatFechaCalendario(f.fecha_vto_pago)}</Dato>}
+                        {f.fce && esFactura(f) && (
+                          <Dato label="Cobro (Factura de Crédito)">
+                            {f.fce.sistema === 'SCA' ? 'Circulación abierta' : 'Depósito colectivo'}
+                            <span className="block font-mono text-xs text-slate-500">CBU {f.fce.cbu}</span>
+                          </Dato>
+                        )}
                         <Dato label="CAE">
                           {f.cae ? (
                             <span className="font-mono">
@@ -430,7 +444,9 @@ export default function ComprobanteDetalleModal({ open, facturaId, onClose, onCa
                           </button>
                           <button
                             onClick={() => setModalNota('debito')}
-                            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                            disabled={esFce(f)}
+                            title={esFce(f) ? 'La Nota de Débito de una Factura de Crédito MiPyME se emite desde ARCA' : undefined}
+                            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
                           >
                             <PlusCircle className="h-4 w-4" /> Nota de débito
                           </button>
