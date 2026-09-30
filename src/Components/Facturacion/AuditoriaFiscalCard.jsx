@@ -11,7 +11,9 @@ const ENTIDAD = {
   datos_comprobante: 'Datos del comprobante',
   configuracion_fiscal: 'Datos fiscales',
   parametro_fiscal: 'Parámetro de la norma',
-  regimen_tributo: 'Régimen de percepción'
+  regimen_tributo: 'Régimen de percepción',
+  iibb_emisor: 'Ingresos Brutos del CUIT',
+  padron_iibb: 'Padrón de alícuotas'
 };
 
 const ACCION = {
@@ -23,7 +25,8 @@ const ACCION = {
   aprobar: 'Aprobación iniciada',
   activar: 'Activada',
   rechazar: 'Rechazada',
-  cancelar_verificacion: 'Verificación cancelada'
+  cancelar_verificacion: 'Verificación cancelada',
+  importar: 'Importación'
 };
 
 const texto = (v) => (v === null || v === undefined || v === '' ? '—' : String(v));

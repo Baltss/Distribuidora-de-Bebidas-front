@@ -17,6 +17,7 @@ import {
   Info
 } from 'lucide-react';
 import { getResumenIva, descargarReporteContador } from '../../api/facturacion';
+import IibbPorJurisdiccion from './IibbPorJurisdiccion';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import { nombreEmisor, formatearCuit } from '../../utils/emisores';
 import { showApiErrorSwal, showSuccessToast } from '../../ui/swal';
@@ -306,6 +307,13 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
               minutos.
             </Descarga>
           </div>
+
+          <IibbPorJurisdiccion
+            periodo={periodo}
+            emisorId={emisorId}
+            onDescargar={() => descargar('iibb')}
+            descargando={descargando === 'iibb'}
+          />
 
           <p className="flex items-start gap-2 text-xs text-slate-500">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />

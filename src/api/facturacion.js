@@ -259,12 +259,14 @@ export async function getResumenIva(periodo, emisorId) {
 const REPORTES_CONTADOR = {
   excel: 'libro-iva-excel',
   arca: 'libro-iva-digital',
-  pdfs: 'comprobantes-pdf'
+  pdfs: 'comprobantes-pdf',
+  iibb: 'iibb-excel'
 };
 
 /**
  * Descarga un reporte del mes de un CUIT: 'excel' (Libro IVA Ventas), 'arca'
- * (ZIP con los TXT del Libro IVA Digital) o 'pdfs' (ZIP con todos los
+ * (ZIP con los TXT del Libro IVA Digital), 'iibb' (Excel de Ingresos
+ * Brutos por jurisdicción) o 'pdfs' (ZIP con todos los
  * comprobantes). `emisorId` se puede omitir si el negocio tiene un solo CUIT.
  */
 export async function descargarReporteContador(tipo, periodo, emisorId) {
@@ -372,6 +374,46 @@ export async function quitarExcepcionCliente(clienteId, regimenId) {
   return data;
 }
 
+// ---------- Ingresos Brutos por jurisdicción ----------
+
+/** Cómo tributa un CUIT Ingresos Brutos: { regimen, nro_inscripcion, jurisdiccion_sede, jurisdicciones: [{ jurisdiccion, nro_inscripcion, coeficiente }] }. */
+export async function getIibbEmisor(emisorId) {
+  const { data } = await http.get(`/facturacion/emisores/${emisorId}/iibb`);
+  return data;
+}
+
+export async function guardarIibbEmisor(emisorId, payload) {
+  const { data } = await http.put(`/facturacion/emisores/${emisorId}/iibb`, payload);
+  return data;
+}
+
+/** Padrones de alícuotas cargados: [{ jurisdiccion, tipo, cantidad, desde, hasta, importado_at, origen }]. */
+export async function listPadrones() {
+  const { data } = await http.get('/facturacion/padrones');
+  return data;
+}
+
+/** Lo que dicen los padrones cargados sobre un CUIT. */
+export async function consultarCuitEnPadrones(cuit) {
+  const { data } = await http.get('/facturacion/padrones/consulta', { params: { cuit: String(cuit).replace(/\D/g, '') } });
+  return data;
+}
+
+/**
+ * Importa el padrón de una jurisdicción (reemplaza el anterior de la misma jurisdicción y tipo).
+ * payload: { jurisdiccion, tipo, texto, origen, separador, encabezado, columnas: { cuit, alicuota, desde, hasta }, vigente_desde, vigente_hasta }
+ */
+export async function importarPadron(payload) {
+  const { data } = await http.post('/facturacion/padrones/importar', payload, { timeout: 600000 });
+  return data;
+}
+
+/** Ingresos Brutos por jurisdicción de un período (AAAA-MM). */
+export async function getReporteIibb(periodo, emisorId) {
+  const { data } = await http.get('/facturacion/reportes/iibb', { params: { periodo, emisor_id: emisorId } });
+  return data;
+}
+
 /**
  * Qué se le percibiría a un cliente al facturarle esa venta:
  * { clase, tributos, total_tributos, total_bienes, total }. Falla si todavía no se puede facturar.
@@ -445,5 +487,11 @@ export default {
   listRegimenesCliente,
   guardarExcepcionCliente,
   quitarExcepcionCliente,
-  previsualizarTributos
+  previsualizarTributos,
+  getIibbEmisor,
+  guardarIibbEmisor,
+  listPadrones,
+  consultarCuitEnPadrones,
+  importarPadron,
+  getReporteIibb
 };

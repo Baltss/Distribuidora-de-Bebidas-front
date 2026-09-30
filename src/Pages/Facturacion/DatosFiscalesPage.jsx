@@ -15,6 +15,8 @@ import CargarCertificadoModal from '../../Components/Facturacion/CargarCertifica
 import PuntoVentaFormModal from '../../Components/Facturacion/PuntoVentaFormModal';
 import DatosEmisorCard from '../../Components/Facturacion/DatosEmisorCard';
 import RegimenesTributoCard from '../../Components/Facturacion/RegimenesTributoCard';
+import IibbEmisorCard from '../../Components/Facturacion/IibbEmisorCard';
+import PadronesIibbCard from '../../Components/Facturacion/PadronesIibbCard';
 import ParametrosFiscalesCard from '../../Components/Facturacion/ParametrosFiscalesCard';
 import AuditoriaFiscalCard from '../../Components/Facturacion/AuditoriaFiscalCard';
 
@@ -308,6 +310,7 @@ export default function DatosFiscalesPage() {
             </motion.div>
 
             {emisor && <DatosEmisorCard key={emisor.id} emisorId={emisor.id} />}
+            {emisor && <IibbEmisorCard key={`iibb-${emisor.id}`} emisorId={emisor.id} />}
             {emisor && <RegimenesTributoCard key={`regimenes-${emisor.id}`} emisorId={emisor.id} />}
 
             {/* Historial de solicitudes */}
@@ -437,6 +440,7 @@ export default function DatosFiscalesPage() {
               </div>
             </motion.div>
 
+            <PadronesIibbCard />
             <ParametrosFiscalesCard />
             <AuditoriaFiscalCard />
           </>

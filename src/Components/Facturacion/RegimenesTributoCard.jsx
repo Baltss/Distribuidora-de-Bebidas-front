@@ -109,10 +109,14 @@ export default function RegimenesTributoCard({ emisorId }) {
                 <td className="px-4 py-2 font-medium text-gray-800">{r.nombre}</td>
                 <td className="px-4 py-2 text-gray-700">
                   {tipo(r.tributo_arca_id)}
-                  <span className="block text-[11px] text-slate-500">{jurisdiccion(r.jurisdiccion)}</span>
+                  <span className="block text-[11px] text-slate-500">
+                    {jurisdiccion(r.jurisdiccion)}
+                    {r.solo_destino ? ' · sólo clientes de la jurisdicción' : ''}
+                  </span>
                 </td>
                 <td className="px-4 py-2 text-right text-gray-800">
                   {pct(r.alicuota)}
+                  {r.usa_padron && <span className="block text-[11px] text-slate-500">o la del padrón</span>}
                   {r.minimo_base > 0 && <span className="block text-[11px] text-slate-500">desde $ {Number(r.minimo_base).toLocaleString('es-AR')}</span>}
                 </td>
                 <td className="px-4 py-2 text-gray-700">{base(r.base)}</td>

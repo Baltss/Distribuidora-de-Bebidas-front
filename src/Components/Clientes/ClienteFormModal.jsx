@@ -60,6 +60,7 @@ export default function ClienteFormModal({
     condicion_iva_id: '5',
     razon_social: '',
     domicilio_fiscal: '',
+    jurisdiccion_iibb: '',
 
     // Geografía (cascada)
     ciudad_id: '',
@@ -210,6 +211,7 @@ export default function ClienteFormModal({
       condicion_iva_id: String(initial?.condicion_iva_id ?? 5),
       razon_social: initial?.razon_social || '',
       domicilio_fiscal: initial?.domicilio_fiscal || '',
+      jurisdiccion_iibb: initial?.jurisdiccion_iibb ? String(initial.jurisdiccion_iibb) : '',
 
       ciudad_id: initial?.ciudad_id ? String(initial.ciudad_id) : '',
       localidad_id: '',
@@ -505,6 +507,7 @@ export default function ClienteFormModal({
         condicion_iva_id: Number(form.condicion_iva_id),
         razon_social: form.razon_social?.trim() || null,
         domicilio_fiscal: form.domicilio_fiscal?.trim() || null,
+        jurisdiccion_iibb: form.jurisdiccion_iibb ? Number(form.jurisdiccion_iibb) : null,
         telefono: form.telefono?.trim() || null,
         email: form.email?.trim() || null,
         estado: form.estado,
@@ -799,6 +802,20 @@ export default function ClienteFormModal({
                         className={inputCls}
                         placeholder="Como figura en ARCA (opcional)"
                       />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className={labelCls}>Jurisdicción de Ingresos Brutos</label>
+                      <select name="jurisdiccion_iibb" value={form.jurisdiccion_iibb} onChange={handle} className={inputCls}>
+                        <option value="">Automática (provincia de su ciudad)</option>
+                        {(catalogo?.jurisdicciones || []).map((j) => (
+                          <option key={j.id} value={j.id}>
+                            {j.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Adónde van sus compras a efectos de Ingresos Brutos: define en qué jurisdicción se declara la venta y qué percepciones le corresponden.
+                      </p>
                     </div>
                   </div>
                 </motion.div>

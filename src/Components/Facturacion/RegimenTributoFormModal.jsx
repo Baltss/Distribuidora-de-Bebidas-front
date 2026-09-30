@@ -16,6 +16,8 @@ const VACIO = {
   nombre: '',
   tributo_arca_id: '',
   jurisdiccion: '',
+  usa_padron: false,
+  solo_destino: false,
   alicuota: '',
   base: 'neto_gravado',
   minimo_base: '',
@@ -41,6 +43,8 @@ export default function RegimenTributoFormModal({ open, onClose, onSubmit, regim
             nombre: regimen.nombre,
             tributo_arca_id: String(regimen.tributo_arca_id),
             jurisdiccion: regimen.jurisdiccion ? String(regimen.jurisdiccion) : '',
+            usa_padron: Boolean(regimen.usa_padron),
+            solo_destino: Boolean(regimen.solo_destino),
             alicuota: String(regimen.alicuota),
             base: regimen.base,
             minimo_base: Number(regimen.minimo_base) ? String(regimen.minimo_base) : '',
@@ -64,6 +68,8 @@ export default function RegimenTributoFormModal({ open, onClose, onSubmit, regim
         nombre: form.nombre.trim(),
         tributo_arca_id: Number(form.tributo_arca_id),
         jurisdiccion: form.jurisdiccion ? Number(form.jurisdiccion) : null,
+        usa_padron: Boolean(form.jurisdiccion) && form.usa_padron,
+        solo_destino: Boolean(form.jurisdiccion) && form.solo_destino,
         alicuota: Number(form.alicuota),
         base: form.base,
         minimo_base: form.minimo_base === '' ? 0 : Number(form.minimo_base),
@@ -141,8 +147,40 @@ export default function RegimenTributoFormModal({ open, onClose, onSubmit, regim
                       ))}
                     </select>
                   </div>
+                  {form.jurisdiccion && (
+                    <div className="sm:col-span-2 space-y-1.5 rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-3">
+                      <label className="flex items-start gap-2 text-sm text-slate-600">
+                        <input
+                          type="checkbox"
+                          checked={form.solo_destino}
+                          onChange={(e) => setForm((f) => ({ ...f, solo_destino: e.target.checked }))}
+                          className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                        />
+                        <span>
+                          Sólo a clientes de esta jurisdicción
+                          <span className="block text-[11px] text-slate-500">
+                            Según la jurisdicción del cliente o, si no la tiene, la provincia de su ciudad (y si tampoco, la sede del CUIT).
+                          </span>
+                        </span>
+                      </label>
+                      <label className="flex items-start gap-2 text-sm text-slate-600">
+                        <input
+                          type="checkbox"
+                          checked={form.usa_padron}
+                          onChange={(e) => setForm((f) => ({ ...f, usa_padron: e.target.checked }))}
+                          className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                        />
+                        <span>
+                          La alícuota sale del padrón de la jurisdicción
+                          <span className="block text-[11px] text-slate-500">
+                            Se usa la del padrón cargado para el CUIT del cliente; la alícuota de abajo rige para los que no figuran.
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                  )}
                   <div>
-                    <label className={labelCls}>Alícuota (%)</label>
+                    <label className={labelCls}>{form.usa_padron ? 'Alícuota para quienes no figuran en el padrón (%)' : 'Alícuota (%)'}</label>
                     <input type="number" step="0.0001" min="0" max="100" value={form.alicuota} onChange={set('alicuota')} className={inputCls} required />
                   </div>
                   <div>
