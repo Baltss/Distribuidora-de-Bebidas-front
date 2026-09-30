@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { backdropV, panelV } from '../../ui/animHelpers';
 import { X, FileDown } from 'lucide-react';
-import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import Swal from 'sweetalert2';
+import { abrirPdfAutenticado } from '../../api/facturacion';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400/40 focus:border-transparent';
@@ -16,7 +17,7 @@ export default function ExportarVentasModal({ open, onClose }) {
   const [estado, setEstado] = useState(''); // '' | confirmada | anulada
   const [exporting, setExporting] = useState(false);
 
-  const exportar = () => {
+  const exportar = async () => {
     setExporting(true);
     try {
       const params = new URLSearchParams();
@@ -25,8 +26,10 @@ export default function ExportarVentasModal({ open, onClose }) {
       if (hasta) params.set('hasta', hasta);
       if (estado) params.set('estado', estado);
 
-      window.open(`${API_URL}/ventas/export-pdf?${params.toString()}`, '_blank');
+      await abrirPdfAutenticado(`/ventas/export-pdf?${params.toString()}`);
       onClose();
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'No se pudo abrir el PDF', text: e?.mensajeError || 'Ocurrió un error inesperado.' });
     } finally {
       setExporting(false);
     }

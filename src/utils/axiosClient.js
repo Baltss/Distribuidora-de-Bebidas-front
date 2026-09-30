@@ -1,10 +1,13 @@
 // api/axiosClient.js
 import axios from 'axios';
 import { API_BASE_URL } from '../api/apiBase';
+import { instalarManejoDeSesion } from './sesion';
 
 const api = axios.create({
   baseURL: API_BASE_URL
 });
+
+instalarManejoDeSesion(api);
 
 // Interceptor para adjuntar token en cada request
 api.interceptors.request.use((config) => {

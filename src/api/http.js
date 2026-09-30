@@ -4,12 +4,16 @@
 import axios from 'axios';
 import { getUserId } from '../utils/authUtils';
 import { API_BASE_URL } from './apiBase';
+import { instalarManejoDeSesion } from '../utils/sesion';
 
 const http = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 20000
 });
+
+// Antes que el normalizador de errores de abajo (que descarta la respuesta original).
+instalarManejoDeSesion(http);
 
 /** Inyecta el token JWT (Authorization: Bearer) y usuario_log_id en TODAS las requests */
 http.interceptors.request.use((config) => {

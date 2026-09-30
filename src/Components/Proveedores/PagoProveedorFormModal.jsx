@@ -9,10 +9,10 @@ import {
 } from '../../ui/animHelpers';
 import { X, Wallet, Calendar, StickyNote } from 'lucide-react';
 import { createPagoProveedor } from '../../api/pagosProveedores.js';
-import { abrirCertificadoRetencion } from '../../api/facturacion';
+import Swal from 'sweetalert2';
+import { abrirCertificadoRetencion, abrirPdfAutenticado } from '../../api/facturacion';
 import { baseSwal, showErrorSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
-import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import MedioPagoField from '../Common/MedioPagoField';
 import RetencionesEditor from '../Facturacion/RetencionesEditor';
 import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
@@ -121,7 +121,8 @@ export default function PagoProveedorFormModal({
         for (const c of certificados) await abrirCertificadoRetencion(c.id).catch(() => {});
       }
       if (result.isDenied && pagoId) {
-        window.open(`${API_URL}/pagos-proveedores/${pagoId}/recibo-pdf`, '_blank');
+        abrirPdfAutenticado(`/pagos-proveedores/${pagoId}/recibo-pdf`)
+        .catch((e) => Swal.fire({ icon: 'error', title: 'No se pudo abrir el PDF', text: e?.mensajeError || 'Ocurrió un error inesperado.' }));
       }
       onPagoRegistrado?.();
       onClose();

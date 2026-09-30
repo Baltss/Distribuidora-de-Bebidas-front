@@ -23,6 +23,7 @@ import { listBarrios } from '../../api/barrios';
 import http from '../../api/http';
 import { API_BASE_URL } from '../../api/apiBase';
 import { consultarPadron } from '../../api/facturacion';
+import { cerrarSesionVencida } from '../../utils/sesion';
 import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 import PercepcionesCliente from './PercepcionesCliente';
 import { esCuitValido, mensajeDeError } from '../../utils/comprobantes';
@@ -156,8 +157,10 @@ export default function ClienteFormModal({
 
         const fetchRepartos = async () => {
           const resp = await fetch(`${API_BASE}/repartos`, {
-            signal: ctrl.signal
+            signal: ctrl.signal,
+            headers: { Authorization: `Bearer ${sessionStorage.getItem('authToken') || ''}` }
           });
+          if (resp.status === 401) cerrarSesionVencida();
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
           const json = await resp.json();
           // soporta respuesta array o {data: []}

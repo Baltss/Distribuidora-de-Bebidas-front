@@ -13,9 +13,9 @@ import {
 } from '../../ui/animHelpers';
 
 import Swal from 'sweetalert2';
+import { abrirPdfAutenticado } from '../../api/facturacion';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import { blockWheelChange } from '../../utils/numberInput';
-import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import MedioPagoField from '../Common/MedioPagoField';
 import RetencionesEditor from '../Facturacion/RetencionesEditor';
 import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
@@ -538,7 +538,8 @@ export default function DeudaClienteModal({
       });
 
       if (resultOk.isDenied && resp?.id) {
-        window.open(`${API_URL}/cobranzas-clientes/${resp.id}/recibo-pdf`, '_blank');
+        abrirPdfAutenticado(`/cobranzas-clientes/${resp.id}/recibo-pdf`)
+        .catch((e) => Swal.fire({ icon: 'error', title: 'No se pudo abrir el PDF', text: e?.mensajeError || 'Ocurrió un error inesperado.' }));
       }
     } catch (err) {
       console.error('Error registrando cobranza:', err);

@@ -38,6 +38,8 @@ import AppShell from '../../Components/Layout/AppShell';
 import { useAuth } from '../../AuthContext';
 
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
+import Swal from 'sweetalert2';
+import { abrirPdfAutenticado } from '../../api/facturacion';
 import { blockWheelChange } from '../../utils/numberInput';
 
 const moneyAR = (n) =>
@@ -326,9 +328,8 @@ export default function ReporteRepartoCobranza() {
       params.set('cliente_ids', selectedIds.join(','));
     }
 
-    window.open(
-      `${API_URL}/reportes/reparto-cobranza/pdf?${params.toString()}`,
-      '_blank'
+    abrirPdfAutenticado(`/reportes/reparto-cobranza/pdf?${params.toString()}`).catch((e) =>
+      Swal.fire({ icon: 'error', title: 'No se pudo abrir el PDF', text: e?.mensajeError || 'Ocurrió un error inesperado.' })
     );
   };
   // ------------------------------------
@@ -344,9 +345,8 @@ export default function ReporteRepartoCobranza() {
       solo_con_deuda: soloConDeuda ? '1' : ''
     });
 
-    window.open(
-      `${API_URL}/reportes/reparto-cobranza-simple/pdf?${params.toString()}`,
-      '_blank'
+    abrirPdfAutenticado(`/reportes/reparto-cobranza-simple/pdf?${params.toString()}`).catch((e) =>
+      Swal.fire({ icon: 'error', title: 'No se pudo abrir el PDF', text: e?.mensajeError || 'Ocurrió un error inesperado.' })
     );
   };
   // ------------------------

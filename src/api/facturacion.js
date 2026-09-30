@@ -3,6 +3,7 @@
 // Venta, Aprobaciones y Comprobantes).
 
 import http from './http';
+import { cerrarSesionVencida } from '../utils/sesion';
 
 const toQS = (params = {}) => {
   const entries = Object.entries(params).filter(
@@ -211,6 +212,7 @@ async function getBinario(url, params = {}, { timeout = 60000 } = {}) {
     validateStatus: () => true
   });
   if (res.status >= 200 && res.status < 300) return res;
+  if (res.status === 401) cerrarSesionVencida();
   let error = { mensajeError: 'No se pudo generar el comprobante.' };
   try {
     error = JSON.parse(new TextDecoder().decode(res.data));
@@ -233,7 +235,7 @@ export async function getFacturaTicket(id, { columnas = 48, sinAcentos = false }
  * Abre el PDF A4 del comprobante en una pestaña nueva. La pestaña se abre
  * antes de pedir el PDF para que el navegador no la bloquee como popup.
  */
-async function abrirPdfAutenticado(ruta) {
+export async function abrirPdfAutenticado(ruta) {
   const ventana = window.open('', '_blank');
   try {
     const res = await getBinario(ruta);

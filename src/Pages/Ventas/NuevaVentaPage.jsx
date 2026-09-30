@@ -32,11 +32,10 @@ import { listVendedores } from '../../api/vendedores';
 import { createVenta } from '../../api/ventas';
 import { blockWheelChange } from '../../utils/numberInput';
 import MedioPagoField from '../../Components/Common/MedioPagoField';
-import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import SelectorPuntoVenta from '../../Components/Facturacion/SelectorPuntoVenta';
 import { opcionesPuntoVenta } from '../../utils/emisores';
-import { previsualizarTributos } from '../../api/facturacion';
+import { abrirPdfAutenticado, previsualizarTributos } from '../../api/facturacion';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
 import FacturaPostVentaModal from '../../Components/Facturacion/FacturaPostVentaModal';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
@@ -612,7 +611,8 @@ export default function NuevaVentaPage() {
         confirmButtonColor: '#10b981'
       });
       if (result.isDenied && creada?.id) {
-        window.open(`${API_URL}/ventas/${creada.id}/recibo-pdf`, '_blank');
+        abrirPdfAutenticado(`/ventas/${creada.id}/recibo-pdf`)
+        .catch((e) => Swal.fire({ icon: 'error', title: 'No se pudo abrir el PDF', text: e?.mensajeError || 'Ocurrió un error inesperado.' }));
       }
 
       resetForm();
