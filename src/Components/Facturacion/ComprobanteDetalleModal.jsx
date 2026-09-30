@@ -405,6 +405,12 @@ export default function ComprobanteDetalleModal({ open, facturaId, onClose, onCa
                           {!discrimina && Number(f.importe_iva) > 0 && (
                             <div className="flex justify-between text-xs"><span className="text-slate-500">IVA contenido</span><span>{moneyAR(f.importe_iva)}</span></div>
                           )}
+                          {(f.tributos || []).map((t) => (
+                            <div key={t.id} className="flex justify-between">
+                              <span className="text-slate-500">{t.descripcion} ({pct(t.alicuota)})</span>
+                              <span>{moneyAR(t.importe)}</span>
+                            </div>
+                          ))}
                           <div className="flex justify-between border-t border-slate-100 pt-1 text-base font-bold">
                             <span>Total</span>
                             <span>{moneyAR(f.importe_total)}</span>

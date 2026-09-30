@@ -24,6 +24,7 @@ import http from '../../api/http';
 import { API_BASE_URL } from '../../api/apiBase';
 import { consultarPadron } from '../../api/facturacion';
 import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
+import PercepcionesCliente from './PercepcionesCliente';
 import { esCuitValido, mensajeDeError } from '../../utils/comprobantes';
 
 const selectCls = inputCls.replace('w-full', 'w-auto shrink-0');
@@ -801,6 +802,13 @@ export default function ClienteFormModal({
                     </div>
                   </div>
                 </motion.div>
+
+                {/* Percepciones: sólo al editar (el cliente ya existe) */}
+                {isEdit && (
+                  <motion.div variants={fieldV}>
+                    <PercepcionesCliente clienteId={initial.id} />
+                  </motion.div>
+                )}
 
                 {/* Geografía, reparto y dirección: solo para clientes de reparto */}
                 {form.tipo === 'reparto' && (

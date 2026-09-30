@@ -36,6 +36,8 @@ import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import SelectorPuntoVenta from '../../Components/Facturacion/SelectorPuntoVenta';
 import { opcionesPuntoVenta } from '../../utils/emisores';
+import { previsualizarTributos } from '../../api/facturacion';
+import useDebouncedValue from '../../hooks/useDebouncedValue';
 import FacturaPostVentaModal from '../../Components/Facturacion/FacturaPostVentaModal';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import { comprobantePrevisto } from '../../utils/comprobantes';
@@ -124,6 +126,30 @@ export default function NuevaVentaPage() {
     const opciones = opcionesPuntoVenta(estadoEmision);
     return opciones.find((o) => String(o.id) === puntoVentaId) || opciones[0] || null;
   }, [estadoEmision, puntoVentaId]);
+
+  // Percepciones que se le van a cobrar al cliente al facturar (si el CUIT es agente de percepción).
+  const [tributosPrevistos, setTributosPrevistos] = useState(null);
+  const pedidoTributos = useMemo(() => {
+    const productos = items
+      .filter((it) => Number(it.producto_id) > 0 && Number(it.cantidad) > 0)
+      .map((it) => ({ producto_id: Number(it.producto_id), cantidad: Number(it.cantidad), precio_unit: Number(it.precio_unit) || 0 }));
+    if (!form.facturar || !puntoVentaElegido || !form.cliente_id || !productos.length) return '';
+    return JSON.stringify({ cliente_id: Number(form.cliente_id), punto_venta_id: puntoVentaElegido.id, items: productos });
+  }, [items, form.facturar, form.cliente_id, puntoVentaElegido]);
+  const pedidoTributosDiferido = useDebouncedValue(pedidoTributos, 500);
+  useEffect(() => {
+    if (!pedidoTributosDiferido) {
+      setTributosPrevistos(null);
+      return undefined;
+    }
+    let vigente = true;
+    previsualizarTributos(JSON.parse(pedidoTributosDiferido))
+      .then((r) => vigente && setTributosPrevistos(r))
+      .catch(() => vigente && setTributosPrevistos(null)); // es informativo: si falla, no se muestra
+    return () => {
+      vigente = false;
+    };
+  }, [pedidoTributosDiferido]);
 
   // ---------- Carga de catálogos al montar ----------
   useEffect(() => {
@@ -997,6 +1023,14 @@ export default function NuevaVentaPage() {
                     )}
                     {habilitada && form.facturar && previsto?.advertencia && (
                       <span className="block text-xs text-amber-600">{previsto.advertencia}</span>
+                    )}
+                    {habilitada && form.facturar && tributosPrevistos?.total_tributos > 0 && (
+                      <span className="block text-xs text-slate-600">
+                        Con percepciones (
+                        {tributosPrevistos.tributos.map((t) => `${t.descripcion} $ ${formatMoneyLabel(t.importe)}`).join(' · ')}) la
+                        factura suma <strong>$ {formatMoneyLabel(tributosPrevistos.total)}</strong>. Las percepciones quedan en la
+                        cuenta corriente del cliente.
+                      </span>
                     )}
                     {estadoEmision && !habilitada && (
                       <span className="block text-xs text-slate-500">{estadoEmision.motivo}</span>

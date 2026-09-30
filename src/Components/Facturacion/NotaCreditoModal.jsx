@@ -96,7 +96,8 @@ export default function NotaCreditoModal({ open, facturaId, onClose, onCreada })
     const c = aNumero(cantidades[it.id] || 0);
     return !Number.isFinite(c) || c < 0 || c - it.disponible > 0.0005;
   });
-  const disponible = datos?.disponible_nc ?? 0;
+  // Lo que se puede acreditar sin contar las percepciones (se devuelven aparte, en proporción).
+  const disponible = datos?.disponible_bienes ?? datos?.disponible_nc ?? 0;
   const excede = total - disponible > 0.005;
   const aDeuda = round2(Math.min(total, datos?.deuda_ventas ?? 0));
   const sobrante = round2(total - aDeuda);
@@ -326,6 +327,13 @@ export default function NotaCreditoModal({ open, facturaId, onClose, onCreada })
                             : `Queda por acreditar de esta factura: ${moneyAR(disponible)}`}
                           {datos.total_nc > 0 && !excede && ` (ya se acreditaron ${moneyAR(datos.total_nc)})`}
                         </p>
+
+                        {datos.tributos?.total > 0 && (
+                          <p className="text-xs text-slate-500">
+                            La factura incluye percepciones ({moneyAR(datos.tributos.total)}): la nota de crédito las devuelve en la
+                            misma proporción, así que su total final va a ser un poco mayor.
+                          </p>
+                        )}
 
                         {total > 0 && !excede && (
                           <div className="space-y-2 border-t border-slate-200 pt-3 text-sm">

@@ -337,6 +337,50 @@ export async function updateDatosEmisor(emisorId, payload) {
   return data;
 }
 
+// ---------- Tributos: regímenes de percepción por CUIT y excepciones por cliente ----------
+
+/** Regímenes de tributo (percepciones) de un CUIT. */
+export async function listRegimenesEmisor(emisorId) {
+  const { data } = await http.get(`/facturacion/emisores/${emisorId}/regimenes`);
+  return data;
+}
+
+export async function crearRegimen(emisorId, payload) {
+  const { data } = await http.post(`/facturacion/emisores/${emisorId}/regimenes`, payload);
+  return data;
+}
+
+export async function updateRegimen(id, payload) {
+  const { data } = await http.put(`/facturacion/regimenes/${id}`, payload);
+  return data;
+}
+
+/** Regímenes activos de todos los CUIT, cada uno con la excepción del cliente (o null). */
+export async function listRegimenesCliente(clienteId) {
+  const { data } = await http.get(`/facturacion/clientes/${clienteId}/regimenes`);
+  return data;
+}
+
+/** Excepción de un cliente en un régimen: { alicuota?, exento?, vigente_hasta?, constancia? }. */
+export async function guardarExcepcionCliente(clienteId, regimenId, payload) {
+  const { data } = await http.put(`/facturacion/clientes/${clienteId}/regimenes/${regimenId}`, payload);
+  return data;
+}
+
+export async function quitarExcepcionCliente(clienteId, regimenId) {
+  const { data } = await http.delete(`/facturacion/clientes/${clienteId}/regimenes/${regimenId}`);
+  return data;
+}
+
+/**
+ * Qué se le percibiría a un cliente al facturarle esa venta:
+ * { clase, tributos, total_tributos, total_bienes, total }. Falla si todavía no se puede facturar.
+ */
+export async function previsualizarTributos(payload) {
+  const { data } = await http.post('/facturacion/tributos/previsualizar', payload);
+  return data;
+}
+
 // ---------- Parámetros de la norma y auditoría ----------
 
 /** { parametros: [{ clave, valor, vigente_desde, vigente_hasta, norma, vigente, ... }], conocidos } */
@@ -394,5 +438,12 @@ export default {
   updateDatosEmisor,
   listParametrosFiscales,
   crearParametroFiscal,
-  listAuditoriaFiscal
+  listAuditoriaFiscal,
+  listRegimenesEmisor,
+  crearRegimen,
+  updateRegimen,
+  listRegimenesCliente,
+  guardarExcepcionCliente,
+  quitarExcepcionCliente,
+  previsualizarTributos
 };

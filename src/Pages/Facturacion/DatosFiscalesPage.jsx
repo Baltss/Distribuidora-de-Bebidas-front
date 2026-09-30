@@ -14,6 +14,7 @@ import SolicitarConfiguracionFiscalModal from '../../Components/Facturacion/Soli
 import CargarCertificadoModal from '../../Components/Facturacion/CargarCertificadoModal';
 import PuntoVentaFormModal from '../../Components/Facturacion/PuntoVentaFormModal';
 import DatosEmisorCard from '../../Components/Facturacion/DatosEmisorCard';
+import RegimenesTributoCard from '../../Components/Facturacion/RegimenesTributoCard';
 import ParametrosFiscalesCard from '../../Components/Facturacion/ParametrosFiscalesCard';
 import AuditoriaFiscalCard from '../../Components/Facturacion/AuditoriaFiscalCard';
 
@@ -307,6 +308,7 @@ export default function DatosFiscalesPage() {
             </motion.div>
 
             {emisor && <DatosEmisorCard key={emisor.id} emisorId={emisor.id} />}
+            {emisor && <RegimenesTributoCard key={`regimenes-${emisor.id}`} emisorId={emisor.id} />}
 
             {/* Historial de solicitudes */}
             <motion.div

@@ -186,7 +186,15 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
       {resumen && hayComprobantes && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Kpi label="Total facturado" valor={money(t.total)} detalle="Notas de crédito restando" />
+            <Kpi
+              label="Total facturado"
+              valor={money(t.total)}
+              detalle={
+                Object.values(t.tributos || {}).some(Boolean)
+                  ? `Incluye ${money(Object.values(t.tributos).reduce((a, b) => a + b, 0))} de percepciones · notas de crédito restando`
+                  : 'Notas de crédito restando'
+              }
+            />
             <Kpi label="IVA débito fiscal" valor={money(t.iva)} detalle="Lo que va a la declaración de IVA" />
             <Kpi label="Neto gravado" valor={money(t.neto_gravado)} detalle={t.exento || t.no_gravado ? `Exento ${money(t.exento)} · No gravado ${money(t.no_gravado)}` : null} />
             <Kpi label="Comprobantes" valor={t.cantidad} />

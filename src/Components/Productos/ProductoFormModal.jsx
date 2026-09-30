@@ -99,6 +99,7 @@ export default function ProductoFormModal({
     ultimo_costo_compra: '',
     margen_pct: '',
     iva_tratamiento: '21', // ver OPCIONES_IVA
+    impuesto_interno_pct: '',
     estado: 'activo', // activo | inactivo
     notas: ''
   });
@@ -170,6 +171,7 @@ export default function ProductoFormModal({
         ultimo_costo_compra: initial?.ultimo_costo_compra ?? '',
         margen_pct: initial?.margen_pct ?? '',
         iva_tratamiento: ivaTratamientoInicial(initial),
+        impuesto_interno_pct: Number(initial?.impuesto_interno_pct) ? String(Number(initial.impuesto_interno_pct)) : '',
         estado: initial?.estado ?? 'activo',
         notas: initial?.notas ?? ''
       });
@@ -290,6 +292,7 @@ export default function ProductoFormModal({
           ? Math.round(Number(form.margen_pct) * 100) / 100
           : null,
       ...ivaPayload(form.iva_tratamiento),
+      impuesto_interno_pct: form.impuesto_interno_pct === '' ? 0 : Number(form.impuesto_interno_pct),
       estado: form.estado,
       notas: form.notas?.trim() || null
     };
@@ -740,6 +743,29 @@ export default function ProductoFormModal({
                     )}
                   </motion.div>
                 </div>
+
+                {/* Impuesto interno (sólo informativo, para el comprobante) */}
+                <motion.div variants={fieldV}>
+                  <label className={labelCls}>
+                    <Percent className="h-4 w-4 text-slate-600" />
+                    Impuesto interno incluido en el precio (%, opcional)
+                  </label>
+                  <input
+                    name="impuesto_interno_pct"
+                    type="number"
+                    onWheel={blockWheelChange}
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={form.impuesto_interno_pct}
+                    onChange={handle}
+                    className={inputCls}
+                    placeholder="Ej. 14 para cerveza (según tu contador)"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Sólo para el «Otros Impuestos Nacionales Indirectos» que se informa en las facturas B. No cambia el precio.
+                  </p>
+                </motion.div>
 
                 {/* Último costo de compra */}
                 <motion.div variants={fieldV}>

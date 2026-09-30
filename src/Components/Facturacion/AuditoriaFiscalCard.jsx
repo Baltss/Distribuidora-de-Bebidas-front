@@ -10,7 +10,8 @@ const ENTIDAD = {
   punto_venta: 'Punto de venta',
   datos_comprobante: 'Datos del comprobante',
   configuracion_fiscal: 'Datos fiscales',
-  parametro_fiscal: 'Parámetro de la norma'
+  parametro_fiscal: 'Parámetro de la norma',
+  regimen_tributo: 'Régimen de percepción'
 };
 
 const ACCION = {
