@@ -231,10 +231,10 @@ export async function getFacturaTicket(id, { columnas = 48, sinAcentos = false }
  * Abre el PDF A4 del comprobante en una pestaña nueva. La pestaña se abre
  * antes de pedir el PDF para que el navegador no la bloquee como popup.
  */
-export async function abrirFacturaPdf(id) {
+async function abrirPdfAutenticado(ruta) {
   const ventana = window.open('', '_blank');
   try {
-    const res = await getBinario(`/facturacion/facturas/${id}/pdf`);
+    const res = await getBinario(ruta);
     const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
     if (ventana) ventana.location.href = url;
     else window.location.href = url;
@@ -244,6 +244,11 @@ export async function abrirFacturaPdf(id) {
     throw err;
   }
 }
+
+export const abrirFacturaPdf = (id) => abrirPdfAutenticado(`/facturacion/facturas/${id}/pdf`);
+
+/** Abre el certificado (PDF) de una retención practicada a un proveedor. */
+export const abrirCertificadoRetencion = (id) => abrirPdfAutenticado(`/facturacion/retenciones-practicadas/${id}/certificado-pdf`);
 
 // ---------- Reportes para el contador ----------
 
@@ -257,21 +262,26 @@ export async function getResumenIva(periodo, emisorId) {
 }
 
 const REPORTES_CONTADOR = {
-  excel: 'libro-iva-excel',
-  arca: 'libro-iva-digital',
-  pdfs: 'comprobantes-pdf',
-  iibb: 'iibb-excel'
+  excel: 'reportes/libro-iva-excel',
+  arca: 'reportes/libro-iva-digital',
+  pdfs: 'reportes/comprobantes-pdf',
+  iibb: 'reportes/iibb-excel',
+  compras_excel: 'reportes/compras-excel',
+  compras_arca: 'reportes/compras-digital',
+  retenciones_sufridas: 'retenciones/sufridas/excel',
+  retenciones_practicadas: 'retenciones/practicadas/excel'
 };
 
 /**
  * Descarga un reporte del mes de un CUIT: 'excel' (Libro IVA Ventas), 'arca'
  * (ZIP con los TXT del Libro IVA Digital), 'iibb' (Excel de Ingresos
- * Brutos por jurisdicción) o 'pdfs' (ZIP con todos los
+ * Brutos por jurisdicción), 'compras_excel' / 'compras_arca' (Libro IVA Compras),
+ * 'retenciones_sufridas' / 'retenciones_practicadas' (Excel) o 'pdfs' (ZIP con todos los
  * comprobantes). `emisorId` se puede omitir si el negocio tiene un solo CUIT.
  */
 export async function descargarReporteContador(tipo, periodo, emisorId) {
   // El ZIP de PDFs de un mes con muchos comprobantes puede tardar.
-  const res = await getBinario(`/facturacion/reportes/${REPORTES_CONTADOR[tipo]}`, { periodo, emisor_id: emisorId }, { timeout: 600000 });
+  const res = await getBinario(`/facturacion/${REPORTES_CONTADOR[tipo]}`, { periodo, emisor_id: emisorId }, { timeout: 600000 });
   const disposicion = res.headers?.['content-disposition'] || '';
   const nombre = disposicion.match(/filename="([^"]+)"/)?.[1] || `reporte-${periodo}`;
   const url = URL.createObjectURL(new Blob([res.data], { type: res.headers?.['content-type'] }));
@@ -371,6 +381,47 @@ export async function guardarExcepcionCliente(clienteId, regimenId, payload) {
 
 export async function quitarExcepcionCliente(clienteId, regimenId) {
   const { data } = await http.delete(`/facturacion/clientes/${clienteId}/regimenes/${regimenId}`);
+  return data;
+}
+
+// ---------- Compras: comprobantes recibidos, Libro IVA Compras y retenciones ----------
+
+/** Comprobantes de proveedores de un CUIT: { comprobantes, total, truncado }. Filtros: emisor_id, periodo (AAAA-MM), q, estado. */
+export async function listComprobantesRecibidos(params = {}) {
+  const { data } = await http.get('/facturacion/comprobantes-recibidos', { params });
+  return data;
+}
+
+export async function crearComprobanteRecibido(payload) {
+  const { data } = await http.post('/facturacion/comprobantes-recibidos', payload);
+  return data;
+}
+
+export async function updateComprobanteRecibido(id, payload) {
+  const { data } = await http.put(`/facturacion/comprobantes-recibidos/${id}`, payload);
+  return data;
+}
+
+export async function anularComprobanteRecibido(id) {
+  const { data } = await http.delete(`/facturacion/comprobantes-recibidos/${id}`);
+  return data;
+}
+
+/** Importa el CSV de Mis Comprobantes → Recibidos de ARCA: { importados, duplicados, rechazados, ejemplos_rechazados }. */
+export async function importarMisComprobantes(payload) {
+  const { data } = await http.post('/facturacion/comprobantes-recibidos/importar', payload, { timeout: 600000 });
+  return data;
+}
+
+/** Resumen de IVA Compras del mes: { por_tipo, por_alicuota, totales, percepciones_iibb_por_jurisdiccion, libro_iva_digital_aplica }. */
+export async function getResumenCompras(periodo, emisorId) {
+  const { data } = await http.get('/facturacion/reportes/compras-resumen', { params: { periodo, emisor_id: emisorId } });
+  return data;
+}
+
+/** Retenciones del mes ('sufridas' | 'practicadas'): { por_impuesto, retenciones, total }. */
+export async function getResumenRetenciones(tipo, periodo, emisorId) {
+  const { data } = await http.get(`/facturacion/retenciones/${tipo}`, { params: { periodo, emisor_id: emisorId } });
   return data;
 }
 
@@ -493,5 +544,13 @@ export default {
   listPadrones,
   consultarCuitEnPadrones,
   importarPadron,
-  getReporteIibb
+  getReporteIibb,
+  abrirCertificadoRetencion,
+  listComprobantesRecibidos,
+  crearComprobanteRecibido,
+  updateComprobanteRecibido,
+  anularComprobanteRecibido,
+  importarMisComprobantes,
+  getResumenCompras,
+  getResumenRetenciones
 };

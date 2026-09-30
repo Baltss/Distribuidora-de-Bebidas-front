@@ -6,8 +6,6 @@
 // más de un CUIT, los reportes son de un CUIT a la vez.
 import React, { useEffect, useState } from 'react';
 import {
-  ChevronLeft,
-  ChevronRight,
   Loader2,
   FileSpreadsheet,
   FileArchive,
@@ -18,6 +16,9 @@ import {
 } from 'lucide-react';
 import { getResumenIva, descargarReporteContador } from '../../api/facturacion';
 import IibbPorJurisdiccion from './IibbPorJurisdiccion';
+import SelectorMes from './SelectorMes';
+import ComprasRetencionesContador from './ComprasRetencionesContador';
+import { mesAR, nombreMes } from '../../utils/periodo';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import { nombreEmisor, formatearCuit } from '../../utils/emisores';
 import { showApiErrorSwal, showSuccessToast } from '../../ui/swal';
@@ -25,25 +26,6 @@ import { showApiErrorSwal, showSuccessToast } from '../../ui/swal';
 const money = (n) =>
   `$ ${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const pct = (n) => `${Number(n).toLocaleString('es-AR')}%`;
-
-// Mes calendario en hora argentina (UTC-3), corrido `delta` meses.
-function mesAR(delta = 0) {
-  const ar = new Date(Date.now() - 3 * 60 * 60 * 1000);
-  const d = new Date(Date.UTC(ar.getUTCFullYear(), ar.getUTCMonth() + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-function moverMes(periodo, delta) {
-  const [a, m] = periodo.split('-').map(Number);
-  const d = new Date(Date.UTC(a, m - 1 + delta, 1));
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-}
-
-const nombreMes = (periodo) => {
-  const [a, m] = periodo.split('-').map(Number);
-  const texto = new Date(Date.UTC(a, m - 1, 1)).toLocaleDateString('es-AR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
-};
 
 function Kpi({ label, valor, detalle }) {
   return (
@@ -121,31 +103,7 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
   return (
     <div className="mt-6 space-y-5">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center rounded-xl border border-slate-200 bg-white shadow-sm">
-          <button
-            onClick={() => setPeriodo((p) => moverMes(p, -1))}
-            className="px-3 py-2 text-slate-500 hover:text-slate-800"
-            aria-label="Mes anterior"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <input
-            type="month"
-            value={periodo}
-            max={mesAR(0)}
-            onChange={(e) => e.target.value && setPeriodo(e.target.value)}
-            className="border-x border-slate-200 px-3 py-2 text-sm text-slate-700 focus:outline-none"
-            aria-label="Período"
-          />
-          <button
-            onClick={() => setPeriodo((p) => moverMes(p, 1))}
-            disabled={esMesActual}
-            className="px-3 py-2 text-slate-500 hover:text-slate-800 disabled:opacity-30"
-            aria-label="Mes siguiente"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
+        <SelectorMes periodo={periodo} onChange={setPeriodo} />
         {emisores.length > 1 && (
           <select
             value={emisorId ?? ''}
@@ -322,6 +280,8 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
           </p>
         </>
       )}
+
+      {emisorId != null && <ComprasRetencionesContador periodo={periodo} emisorId={emisorId} />}
     </div>
   );
 }

@@ -80,6 +80,8 @@ export default function RegimenTributoFormModal({ open, onClose, onSubmit, regim
         notas: form.notas.trim() || null
       });
       onClose();
+    } catch {
+      // el motivo ya se mostró: el modal queda abierto para corregirlo
     } finally {
       setSaving(false);
     }

@@ -9,10 +9,15 @@ import {
 } from '../../ui/animHelpers';
 import { X, Wallet, Calendar, StickyNote } from 'lucide-react';
 import { createPagoProveedor } from '../../api/pagosProveedores.js';
+import { abrirCertificadoRetencion } from '../../api/facturacion';
 import { baseSwal, showErrorSwal, showWarnSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import MedioPagoField from '../Common/MedioPagoField';
+import RetencionesEditor from '../Facturacion/RetencionesEditor';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import { errorRetenciones, retencionesParaEnviar, totalRetenciones } from '../../utils/retenciones';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-transparent';
@@ -36,6 +41,9 @@ export default function PagoProveedorFormModal({
     observaciones: ''
   });
   const [errors, setErrors] = useState({});
+  const [retenciones, setRetenciones] = useState([]); // retenciones que se le practican al proveedor
+  const catalogoFiscal = useCatalogoFiscal();
+  const cantidadCuits = useEstadoEmision()?.emisores?.length || 1;
 
   useEffect(() => {
     if (open) {
@@ -47,6 +55,7 @@ export default function PagoProveedorFormModal({
         observaciones: ''
       });
       setErrors({});
+      setRetenciones([]);
     }
   }, [open, totalDeuda]);
 
@@ -74,6 +83,8 @@ export default function PagoProveedorFormModal({
     } else if (!form.medio_pago) {
       e.medio_pago = 'El medio de pago es obligatorio';
     }
+    const errorRet = errorRetenciones(retenciones, catalogoFiscal, cantidadCuits);
+    if (errorRet) e.retenciones = errorRet;
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -90,9 +101,11 @@ export default function PagoProveedorFormModal({
         total_pagado: Number(form.monto),
         medio_pago: Array.isArray(form.medios_pago) ? null : form.medio_pago?.trim() || null,
         medios_pago: Array.isArray(form.medios_pago) ? form.medios_pago : null,
+        retenciones: retencionesParaEnviar(retenciones),
         observaciones: form.observaciones?.trim() || null
       });
       const pagoId = resp?.pago?.id;
+      const certificados = resp?.retenciones || [];
       const result = await baseSwal.fire({
         icon: 'success',
         title: 'Pago registrado',
@@ -100,8 +113,13 @@ export default function PagoProveedorFormModal({
         showDenyButton: !!pagoId,
         denyButtonText: 'Imprimir recibo',
         denyButtonColor: '#0ea5e9',
+        showCancelButton: certificados.length > 0,
+        cancelButtonText: certificados.length === 1 ? 'Ver certificado de retención' : 'Ver certificados de retención',
         confirmButtonText: 'Ok'
       });
+      if (result.dismiss === 'cancel') {
+        for (const c of certificados) await abrirCertificadoRetencion(c.id).catch(() => {});
+      }
       if (result.isDenied && pagoId) {
         window.open(`${API_URL}/pagos-proveedores/${pagoId}/recibo-pdf`, '_blank');
       }
@@ -224,6 +242,17 @@ export default function PagoProveedorFormModal({
                   />
                   {errors.medio_pago && (
                     <p className="mt-1 text-sm text-rose-600">{errors.medio_pago}</p>
+                  )}
+                </motion.div>
+
+                <motion.div variants={fieldV}>
+                  <RetencionesEditor value={retenciones} onChange={setRetenciones} tipo="practicadas" disabled={saving} />
+                  {errors.retenciones && <p className="mt-1 text-sm text-rose-600">{errors.retenciones}</p>}
+                  {totalRetenciones(retenciones) > 0 && (
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Se cancelan $ {(Number(form.monto || 0) + totalRetenciones(retenciones)).toLocaleString('es-AR', { minimumFractionDigits: 2 })} de deuda:
+                      lo que sale de la caja más las retenciones.
+                    </p>
                   )}
                 </motion.div>
 

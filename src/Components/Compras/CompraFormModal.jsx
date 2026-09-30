@@ -29,6 +29,10 @@ import { showErrorSwal } from '../../ui/swal';
 import { blockWheelChange } from '../../utils/numberInput';
 import MedioPagoField from '../Common/MedioPagoField';
 import { normalizeScanCode, findProductoByScan } from '../../utils/barcodeScan';
+import DatosFiscalesCompra from '../Facturacion/DatosFiscalesCompra';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import { calcularFiscal, errorFiscal, fiscalVacio, payloadFiscal } from '../../utils/comprobantesRecibidos';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -62,6 +66,13 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
     observaciones: ''
   });
   const [items, setItems] = useState([emptyItem()]);
+
+  // Datos fiscales de la factura del proveedor (Libro IVA Compras): opcionales.
+  // Si se cargan, el total de la compra es el de la factura.
+  const catalogoFiscal = useCatalogoFiscal();
+  const cantidadEmisores = useEstadoEmision()?.emisores?.length || 1;
+  const [fiscalActivo, setFiscalActivo] = useState(false);
+  const [fiscal, setFiscal] = useState(() => fiscalVacio(todayISO()));
   const [errors, setErrors] = useState({});
 
   // Escaneo de código de barras
@@ -105,6 +116,8 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       observaciones: ''
     });
     setItems([emptyItem()]);
+    setFiscalActivo(false);
+    setFiscal(fiscalVacio(todayISO()));
     if (initialData) {
       if (initialData.proveedor_id != null) {
         setForm((f) => ({ ...f, proveedor_id: String(initialData.proveedor_id) }));
@@ -131,7 +144,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const total = useMemo(
+  const totalItems = useMemo(
     () =>
       items.reduce(
         (acc, it) => acc + (Number(it.cantidad) || 0) * (Number(it.costo_unit) || 0),
@@ -139,6 +152,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       ),
     [items]
   );
+  const total = fiscalActivo ? calcularFiscal(fiscal, catalogoFiscal).total : totalItems;
 
   const esCuentaCorriente = form.tipo_pago === 'cuenta_corriente';
   const abonado = Number(form.monto_abonado) || 0;
@@ -255,6 +269,11 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       }
     }
 
+    if (fiscalActivo) {
+      const ef = errorFiscal(fiscal, catalogoFiscal, { conProveedor: false, cantidadEmisores });
+      if (ef) e.fiscal = ef;
+    }
+
     const itemErrors = items.map((it) => {
       const ie = {};
       if (!it.producto_id) ie.producto_id = 'Requerido';
@@ -283,6 +302,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       medios_pago: form.tipo_pago === 'contado' && Array.isArray(form.medios_pago) ? form.medios_pago : null,
       monto_abonado: esCuentaCorriente ? abonado : 0,
       observaciones: form.observaciones?.trim() || null,
+      ...(fiscalActivo ? { fiscal: payloadFiscal(fiscal, catalogoFiscal, { conProveedor: false }) } : {}),
       items: items.map((it) => ({
         producto_id: Number(it.producto_id),
         cantidad: Number(it.cantidad),
@@ -650,6 +670,32 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
                       );
                     })}
                   </div>
+                </motion.div>
+
+                <motion.div variants={fieldV} className="rounded-2xl border border-slate-200 p-4">
+                  <label className="flex items-start gap-2 text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={fiscalActivo}
+                      onChange={(e) => {
+                        setFiscalActivo(e.target.checked);
+                        if (e.target.checked) setFiscal((f) => ({ ...f, fecha_comprobante: f.fecha_comprobante || form.fecha }));
+                      }}
+                      className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                    />
+                    <span>
+                      Cargar los datos fiscales de la factura (IVA, percepciones)
+                      <span className="block text-xs font-normal text-slate-500">
+                        Para el Libro IVA Compras. El total de la compra pasa a ser el de la factura.
+                      </span>
+                    </span>
+                  </label>
+                  {fiscalActivo && (
+                    <div className="mt-4">
+                      <DatosFiscalesCompra value={fiscal} onChange={setFiscal} />
+                      {errors.fiscal && <p className="mt-2 text-sm text-rose-600">{errors.fiscal}</p>}
+                    </div>
+                  )}
                 </motion.div>
 
                 <motion.div variants={fieldV}>

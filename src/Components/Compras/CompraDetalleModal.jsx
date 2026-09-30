@@ -7,8 +7,10 @@ import { backdropV, panelV } from '../../ui/animHelpers';
 import { getCompra } from '../../api/compras.js';
 import moneyAR from '../../utils/money';
 import { medioPagoLabel } from '../../utils/mediosPago';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 
 export default function CompraDetalleModal({ open, onClose, compraId }) {
+  const catalogo = useCatalogoFiscal();
   const [compra, setCompra] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -191,6 +193,26 @@ export default function CompraDetalleModal({ open, onClose, compraId }) {
                       <span className="text-lg font-extrabold">{moneyAR(compra.total)}</span>
                     </div>
                   </div>
+
+                  {compra.comprobante_fiscal && (
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm text-slate-700">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Datos fiscales de la factura</p>
+                      <p>
+                        {catalogo?.comprobantes?.find((c) => c.id === compra.comprobante_fiscal.tipo_comprobante)?.nombre || `Comprobante ${compra.comprobante_fiscal.tipo_comprobante}`}{' '}
+                        {String(compra.comprobante_fiscal.punto_venta).padStart(5, '0')}-{String(compra.comprobante_fiscal.numero).padStart(8, '0')} · se computa en{' '}
+                        {compra.comprobante_fiscal.periodo_imputacion}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Neto {moneyAR(compra.comprobante_fiscal.importe_neto)} · IVA {moneyAR(compra.comprobante_fiscal.importe_iva)} · Percepciones{' '}
+                        {moneyAR(
+                          compra.comprobante_fiscal.percepcion_iva +
+                            compra.comprobante_fiscal.percepcion_iibb +
+                            compra.comprobante_fiscal.percepcion_nacional +
+                            compra.comprobante_fiscal.percepcion_municipal
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

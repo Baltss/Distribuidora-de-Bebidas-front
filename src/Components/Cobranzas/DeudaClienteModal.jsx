@@ -17,6 +17,10 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import { blockWheelChange } from '../../utils/numberInput';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
 import MedioPagoField from '../Common/MedioPagoField';
+import RetencionesEditor from '../Facturacion/RetencionesEditor';
+import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import { errorRetenciones, retencionesParaEnviar, totalRetenciones } from '../../utils/retenciones';
 
 function formatMoneyARS(value = 0) {
   return Number(value || 0).toLocaleString('es-AR', {
@@ -52,6 +56,9 @@ export default function DeudaClienteModal({
   const [medioPago, setMedioPago] = useState('');
   const [mediosPago, setMediosPago] = useState(null); // split: [{ medio_pago, monto }, ...] o null
   const [savingCobro, setSavingCobro] = useState(false);
+  const [retenciones, setRetenciones] = useState([]); // retenciones que le practicó el cliente
+  const catalogoFiscal = useCatalogoFiscal();
+  const cantidadCuits = useEstadoEmision()?.emisores?.length || 1;
 
   // ======================================================
   //   - 16-07-2026
@@ -88,6 +95,7 @@ export default function DeudaClienteModal({
           setObservaciones('');
           setMedioPago('');
           setMediosPago(null);
+          setRetenciones([]);
           setCobroSaldoPrevio('');
           setModoCobro('unico');
           setMontoUnico('');
@@ -261,6 +269,11 @@ export default function DeudaClienteModal({
   const totalCobrarAhoraEfectivo =
     modoCobro === 'unico' ? montoUnicoNumber : totalCobrarAhora;
 
+  // Las retenciones cancelan deuda pero no entran a la caja: lo que se cobra en mano es el resto.
+  const totalRet = totalRetenciones(retenciones);
+  const retencionSupera = totalRet - Number(totalCobrarAhoraEfectivo || 0) > 0.009;
+  const efectivoACobrar = Math.max(0, Math.round((Number(totalCobrarAhoraEfectivo || 0) - totalRet) * 100) / 100);
+
   const saldoPostCobro = useMemo(() => {
     const aplicadoADeuda =
       Number(totalCobrarVentasEfectivo || 0) +
@@ -391,7 +404,23 @@ export default function DeudaClienteModal({
 
     if (!apps.length) return;
 
-    if (!Array.isArray(mediosPago) && !medioPago) {
+    const efectivo = Math.round((total - totalRet) * 100) / 100;
+    if (efectivo < 0) {
+      await Swal.fire({
+        title: 'Revisá las retenciones',
+        text: 'Las retenciones no pueden ser mayores al monto a cobrar.',
+        icon: 'warning',
+        confirmButtonColor: '#10b981'
+      });
+      return;
+    }
+    const errorRet = errorRetenciones(retenciones, catalogoFiscal, cantidadCuits);
+    if (errorRet) {
+      await Swal.fire({ title: 'Revisá las retenciones', text: errorRet, icon: 'warning', confirmButtonColor: '#10b981' });
+      return;
+    }
+
+    if (efectivo > 0.009 && !Array.isArray(mediosPago) && !medioPago) {
       await Swal.fire({
         title: 'Falta el medio de pago',
         text: 'Seleccioná el medio de pago del cobro antes de continuar.',
@@ -401,12 +430,12 @@ export default function DeudaClienteModal({
       return;
     }
 
-    if (Array.isArray(mediosPago)) {
+    if (efectivo > 0.009 && Array.isArray(mediosPago)) {
       const sumaSplit = mediosPago.reduce((acc, t) => acc + (Number(t.monto) || 0), 0);
       const splitOk =
         mediosPago.length > 0 &&
         mediosPago.every((t) => t.medio_pago && Number(t.monto) > 0) &&
-        Math.abs(sumaSplit - total) < 0.01;
+        Math.abs(sumaSplit - efectivo) < 0.01;
       if (!splitOk) {
         await Swal.fire({
           title: 'Revisá los medios de pago',
@@ -429,6 +458,7 @@ export default function DeudaClienteModal({
       <div style="text-align:left; font-size: 13px;">
         <p>Vas a registrar una cobranza para <b>${clienteNombre}</b>.</p>
         <p>Monto a cobrar: <b>${totalFmt}</b></p>
+        ${totalRet > 0 ? `<p>Retenciones del cliente: <b>${formatMoneyARS(totalRet)}</b> · En caja: <b>${formatMoneyARS(efectivo)}</b></p>` : ''}
         <p>Aplicado a ventas: <b>${totalVentasFmt}</b></p>
         <p>Aplicado a saldo previo: <b>${totalSaldoPrevioFmt}</b></p>
         ${
@@ -465,9 +495,10 @@ export default function DeudaClienteModal({
         cliente_id: clienteId,
         vendedor_id: null,
         fecha: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
-        total_cobrado: Number(total.toFixed(2)),
-        medio_pago: Array.isArray(mediosPago) ? null : medioPago,
-        medios_pago: Array.isArray(mediosPago) ? mediosPago : null,
+        total_cobrado: Number(efectivo.toFixed(2)),
+        medio_pago: efectivo > 0.009 && !Array.isArray(mediosPago) ? medioPago : null,
+        medios_pago: efectivo > 0.009 && Array.isArray(mediosPago) ? mediosPago : null,
+        retenciones: retencionesParaEnviar(retenciones),
         observaciones: observaciones?.trim() || null,
         aplicaciones: apps
       };
@@ -482,6 +513,7 @@ export default function DeudaClienteModal({
       setMediosPago(null);
       setCobroSaldoPrevio('');
       setMontoUnico('');
+      setRetenciones([]);
 
       const saldoRestante = Number(nuevaDeuda?.total_deuda || 0);
       const saldoFmt = formatMoneyARS(saldoRestante);
@@ -1080,9 +1112,18 @@ export default function DeudaClienteModal({
                             setMedioPago(v.medio_pago || '');
                             setMediosPago(v.medios_pago);
                           }}
-                          total={totalCobrarAhoraEfectivo}
+                          total={efectivoACobrar}
+                          required={efectivoACobrar > 0.009}
                         />
                       </div>
+
+                      <RetencionesEditor value={retenciones} onChange={setRetenciones} disabled={loading || savingCobro} />
+                      {totalRet > 0 && (
+                        <p className={`text-[11px] ${retencionSupera ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}>
+                          Retenciones: {formatMoneyARS(totalRet)} · En caja: {formatMoneyARS(efectivoACobrar)}
+                          {retencionSupera && ' · Las retenciones superan el monto a cobrar'}
+                        </p>
+                      )}
 
                       <div>
                         <label className="block text-[11px] sm:text-xs text-slate-500/80 mb-1">
@@ -1127,7 +1168,8 @@ export default function DeudaClienteModal({
                             savingCobro ||
                             loading ||
                             totalCobrarAhoraEfectivo <= 0 ||
-                            (!Array.isArray(mediosPago) && !medioPago)
+                            retencionSupera ||
+                            (efectivoACobrar > 0.009 && !Array.isArray(mediosPago) && !medioPago)
                           }
                           className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 text-sm font-semibold
                                      hover:bg-emerald-400 transition disabled:opacity-60 disabled:cursor-not-allowed"

@@ -18,6 +18,7 @@ import AppShell from '../../Components/Layout/AppShell';
 import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
 import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
 import ReportesContadorPanel from '../../Components/Facturacion/ReportesContadorPanel';
+import ComprobantesRecibidosPanel from '../../Components/Facturacion/ComprobantesRecibidosPanel';
 import AvisoCertificadoArca from '../../Components/Facturacion/AvisoCertificadoArca';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
@@ -48,6 +49,7 @@ const money = (n) =>
 const TABS = [
   { key: 'pendientes', label: 'Por facturar' },
   { key: 'emitidos', label: 'Comprobantes' },
+  { key: 'compras', label: 'Compras' },
   { key: 'contador', label: 'Para el contador' }
 ];
 
@@ -579,6 +581,8 @@ export default function FacturacionPage() {
             )}
           </div>
         )}
+
+        {tab === 'compras' && <ComprobantesRecibidosPanel />}
 
         {tab === 'contador' && (
           <ReportesContadorPanel
