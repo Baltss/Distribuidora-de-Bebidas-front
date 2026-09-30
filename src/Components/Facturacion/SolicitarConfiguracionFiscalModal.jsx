@@ -1,6 +1,7 @@
 // src/Components/Facturacion/SolicitarConfiguracionFiscalModal.jsx
 //
-// Formulario para pedir un alta/cambio de Datos Fiscales. Al enviar, el
+// Formulario para pedir un alta/cambio de Datos Fiscales (de un CUIT nuevo o
+// de uno existente, si se le pasa `emisor`). Al enviar, el
 // backend genera automáticamente el par de claves + CSR (el socio nunca
 // maneja la clave privada) y la solicitud queda pendiente de aprobación
 // de Soldi. Este modal muestra el CSR resultante para que se descargue
@@ -12,6 +13,7 @@ import { backdropV, panelV, formContainerV, fieldV } from '../../ui/animHelpers'
 import { solicitarConfiguracionFiscal } from '../../api/facturacion';
 import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 import { showErrorSwal, showSuccessSwal, showApiErrorSwal } from '../../ui/swal';
+import { esCuitValido } from '../../utils/comprobantes';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 focus:border-transparent';
@@ -24,7 +26,7 @@ const defaultForm = {
   ambiente: 'homologacion'
 };
 
-export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSolicitado }) {
+export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSolicitado, emisor = null }) {
   const [form, setForm] = useState(defaultForm);
   const [saving, setSaving] = useState(false);
   const [csrResultado, setCsrResultado] = useState(null); // { id, csr }
@@ -32,9 +34,19 @@ export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSol
 
   useEffect(() => {
     if (!open) return;
-    setForm(defaultForm);
+    setForm(
+      emisor
+        ? {
+            ...defaultForm,
+            cuit: emisor.cuit,
+            razon_social: emisor.razon_social || '',
+            condicion_fiscal: emisor.condicion_fiscal || defaultForm.condicion_fiscal,
+            ambiente: emisor.ambiente || defaultForm.ambiente
+          }
+        : defaultForm
+    );
     setCsrResultado(null);
-  }, [open]);
+  }, [open, emisor]);
 
   const handle = (e) => {
     const { name, value } = e.target;
@@ -44,13 +56,15 @@ export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSol
   const submit = async (e) => {
     e.preventDefault();
     const cuitLimpio = form.cuit.replace(/\D/g, '');
-    if (cuitLimpio.length !== 11) {
-      await showErrorSwal({ title: 'CUIT inválido', text: 'El CUIT debe tener 11 dígitos (sin guiones).' });
+    if (!emisor && !esCuitValido(cuitLimpio)) {
+      await showErrorSwal({ title: 'CUIT inválido', text: 'Revisá los 11 dígitos del CUIT (sin guiones).' });
       return;
     }
     try {
       setSaving(true);
-      const resp = await solicitarConfiguracionFiscal({ ...form, cuit: cuitLimpio });
+      const resp = await solicitarConfiguracionFiscal(
+        emisor ? { ...form, emisor_id: emisor.id, cuit: undefined } : { ...form, cuit: cuitLimpio }
+      );
       setCsrResultado({ id: resp.id, csr: resp.csr });
       onSolicitado?.();
     } catch (err) {
@@ -111,7 +125,7 @@ export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSol
 
             <div className="relative z-10 p-5 sm:p-6 md:p-8">
               <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-2">
-                {csrResultado ? 'Solicitud enviada' : 'Solicitar cambio de Datos Fiscales'}
+                {csrResultado ? 'Solicitud enviada' : emisor ? 'Solicitar cambio de Datos Fiscales' : 'Agregar un CUIT'}
               </h3>
 
               {!csrResultado && (
@@ -135,7 +149,8 @@ export default function SolicitarConfiguracionFiscalModal({ open, onClose, onSol
                         value={form.cuit}
                         onChange={handle}
                         placeholder="20123456786"
-                        className={inputCls}
+                        className={`${inputCls} disabled:bg-slate-50 disabled:text-slate-500`}
+                        disabled={!!emisor}
                         required
                       />
                     </motion.div>

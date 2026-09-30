@@ -33,7 +33,9 @@ import { createVenta } from '../../api/ventas';
 import { blockWheelChange } from '../../utils/numberInput';
 import MedioPagoField from '../../Components/Common/MedioPagoField';
 import { API_BASE_URL as API_URL } from '../../api/apiBase';
-import { getEstadoEmision } from '../../api/facturacion';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import SelectorPuntoVenta from '../../Components/Facturacion/SelectorPuntoVenta';
+import { opcionesPuntoVenta } from '../../utils/emisores';
 import FacturaPostVentaModal from '../../Components/Facturacion/FacturaPostVentaModal';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import { comprobantePrevisto } from '../../utils/comprobantes';
@@ -108,16 +110,20 @@ export default function NuevaVentaPage() {
 
   // Facturación electrónica: si se puede facturar, qué comprobante sale, y
   // la espera del CAE + impresión después de confirmar.
-  const [estadoEmision, setEstadoEmision] = useState(null);
+  const estadoEmision = useEstadoEmision();
+  const [puntoVentaId, setPuntoVentaId] = useState('');
   const catalogoFiscal = useCatalogoFiscal();
   const [postVenta, setPostVenta] = useState(null); // { ventaId, facturaId, errorInicio }
   const imprimir = useImprimirComprobante();
 
+  // Punto de venta (CUIT) con que se factura: por defecto el que corresponde a este usuario.
   useEffect(() => {
-    getEstadoEmision()
-      .then(setEstadoEmision)
-      .catch(() => setEstadoEmision({ habilitada: false, motivo: 'No se pudo consultar la facturación electrónica.' }));
-  }, []);
+    if (estadoEmision?.punto_venta_por_defecto_id) setPuntoVentaId(String(estadoEmision.punto_venta_por_defecto_id));
+  }, [estadoEmision]);
+  const puntoVentaElegido = useMemo(() => {
+    const opciones = opcionesPuntoVenta(estadoEmision);
+    return opciones.find((o) => String(o.id) === puntoVentaId) || opciones[0] || null;
+  }, [estadoEmision, puntoVentaId]);
 
   // ---------- Carga de catálogos al montar ----------
   useEffect(() => {
@@ -552,7 +558,8 @@ export default function NuevaVentaPage() {
         reparto_id: null,
         monto_a_cuenta: moneyRound(Number(form.monto_a_cuenta || 0)),
         items: itemsPayload,
-        facturar: quiereFacturar
+        facturar: quiereFacturar,
+        punto_venta_id: quiereFacturar ? puntoVentaElegido?.id ?? null : null
       });
 
       if (quiereFacturar) {
@@ -661,27 +668,27 @@ export default function NuevaVentaPage() {
             {/* Cliente + Tipo de venta + Medio de pago */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">
-                  Cliente <span className="text-orange-600">*</span>
-                </label>
-                <SearchableSelect
-                  items={clientesLocal}
-                  value={form.cliente_id}
-                  onChange={handleClienteLocalChange}
-                  placeholder={
-                    loadingClientesLocal ? 'Cargando clientes…' : 'Cliente…'
-                  }
-                  getOptionLabel={(c) =>
-                    c ? `${c.nombre} (${c.documento || 's/ doc'})` : ''
-                  }
-                  getOptionValue={(c) => c.id}
-                  portal
-                  portalZIndex={1200}
-                />
-                <p className="mt-1 text-[11px] text-slate-600">
-                  Por defecto queda "Consumidor Final" — elegí un cliente real
-                  solo si la venta va a quedar fiada o a cuenta.
-                </p>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
+                    Cliente <span className="text-orange-600">*</span>
+                  </label>
+                  <SearchableSelect
+                    items={clientesLocal}
+                    value={form.cliente_id}
+                    onChange={handleClienteLocalChange}
+                    placeholder={
+                      loadingClientesLocal ? 'Cargando clientes…' : 'Cliente…'
+                    }
+                    getOptionLabel={(c) =>
+                      c ? `${c.nombre} (${c.documento || 's/ doc'})` : ''
+                    }
+                    getOptionValue={(c) => c.id}
+                    portal
+                    portalZIndex={1200}
+                  />
+                  <p className="mt-1 text-[11px] text-slate-600">
+                    Por defecto queda "Consumidor Final" — elegí un cliente real
+                    solo si la venta va a quedar fiada o a cuenta.
+                  </p>
               </div>
 
               <div>
@@ -965,36 +972,46 @@ export default function NuevaVentaPage() {
 
           {/* Facturación electrónica: elegir si esta venta se factura al confirmarla */}
           {(() => {
-            const previsto = comprobantePrevisto(estadoEmision, selectedCliente, catalogoFiscal, totalNeto);
+            const previsto = comprobantePrevisto(puntoVentaElegido?.emisor, selectedCliente, catalogoFiscal, totalNeto);
             const habilitada = !!estadoEmision?.habilitada;
             return (
-              <label
-                className={`flex items-start gap-2.5 rounded-2xl border bg-white px-4 py-3 ${
-                  habilitada ? 'border-slate-200 cursor-pointer' : 'border-slate-100 opacity-70 cursor-not-allowed'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={habilitada && form.facturar}
-                  disabled={!habilitada}
-                  onChange={(e) => setForm((f) => ({ ...f, facturar: e.target.checked }))}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
-                />
-                <span className="text-sm text-slate-700">
-                  Facturar esta venta (emite el comprobante electrónico ante ARCA al confirmar)
-                  {habilitada && previsto && (
-                    <span className="block text-xs text-slate-500">
-                      Va a salir: <strong className="text-slate-700">{previsto.texto}</strong>
-                    </span>
-                  )}
-                  {habilitada && form.facturar && previsto?.advertencia && (
-                    <span className="block text-xs text-amber-600">{previsto.advertencia}</span>
-                  )}
-                  {estadoEmision && !habilitada && (
-                    <span className="block text-xs text-slate-500">{estadoEmision.motivo}</span>
-                  )}
-                </span>
-              </label>
+              <div>
+                <label
+                  className={`flex items-start gap-2.5 rounded-2xl border bg-white px-4 py-3 ${
+                    habilitada ? 'border-slate-200 cursor-pointer' : 'border-slate-100 opacity-70 cursor-not-allowed'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={habilitada && form.facturar}
+                    disabled={!habilitada}
+                    onChange={(e) => setForm((f) => ({ ...f, facturar: e.target.checked }))}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-400"
+                  />
+                  <span className="text-sm text-slate-700">
+                    Facturar esta venta (emite el comprobante electrónico ante ARCA al confirmar)
+                    {habilitada && previsto && (
+                      <span className="block text-xs text-slate-500">
+                        Va a salir: <strong className="text-slate-700">{previsto.texto}</strong>
+                      </span>
+                    )}
+                    {habilitada && form.facturar && previsto?.advertencia && (
+                      <span className="block text-xs text-amber-600">{previsto.advertencia}</span>
+                    )}
+                    {estadoEmision && !habilitada && (
+                      <span className="block text-xs text-slate-500">{estadoEmision.motivo}</span>
+                    )}
+                  </span>
+                </label>
+                {habilitada && form.facturar && (
+                  <SelectorPuntoVenta
+                    estadoEmision={estadoEmision}
+                    value={puntoVentaId}
+                    onChange={setPuntoVentaId}
+                    className="mt-2 px-1"
+                  />
+                )}
+              </div>
             );
           })()}
 

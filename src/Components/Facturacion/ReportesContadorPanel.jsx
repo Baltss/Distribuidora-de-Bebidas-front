@@ -2,7 +2,8 @@
 // Pestaña "Para el contador" de Facturación: resumen de IVA Ventas del mes
 // (por tipo de comprobante y por alícuota) y las descargas que pide el
 // contador: Libro IVA en Excel, el archivo para importar en el Libro IVA
-// Digital de ARCA y todos los comprobantes en PDF.
+// Digital de ARCA y todos los comprobantes en PDF. Si el negocio factura con
+// más de un CUIT, los reportes son de un CUIT a la vez.
 import React, { useEffect, useState } from 'react';
 import {
   ChevronLeft,
@@ -16,6 +17,8 @@ import {
   Info
 } from 'lucide-react';
 import { getResumenIva, descargarReporteContador } from '../../api/facturacion';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import { nombreEmisor, formatearCuit } from '../../utils/emisores';
 import { showApiErrorSwal, showSuccessToast } from '../../ui/swal';
 
 const money = (n) =>
@@ -79,22 +82,29 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
   const [cargando, setCargando] = useState(false);
   const [descargando, setDescargando] = useState(null);
 
+  // CUIT del reporte: el elegido o, por defecto, el primero.
+  const estado = useEstadoEmision();
+  const emisores = estado?.emisores || [];
+  const [emisorElegido, setEmisorElegido] = useState(null);
+  const emisorId = emisorElegido ?? emisores[0]?.id ?? null;
+
   useEffect(() => {
+    if (emisorId == null) return undefined;
     let vigente = true;
     setCargando(true);
-    getResumenIva(periodo)
+    getResumenIva(periodo, emisorId)
       .then((r) => vigente && setResumen(r))
       .catch((err) => vigente && showApiErrorSwal(err, { title: 'No se pudo cargar el resumen' }))
       .finally(() => vigente && setCargando(false));
     return () => {
       vigente = false;
     };
-  }, [periodo]);
+  }, [periodo, emisorId]);
 
   const descargar = async (tipo) => {
     try {
       setDescargando(tipo);
-      const nombre = await descargarReporteContador(tipo, periodo);
+      const nombre = await descargarReporteContador(tipo, periodo, emisorId);
       showSuccessToast('Descargado', nombre);
     } catch (err) {
       await showApiErrorSwal(err, { title: 'No se pudo generar el archivo' });
@@ -135,6 +145,20 @@ export default function ReportesContadorPanel({ onVerSinAutorizar }) {
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
+        {emisores.length > 1 && (
+          <select
+            value={emisorId ?? ''}
+            onChange={(e) => setEmisorElegido(Number(e.target.value))}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none"
+            aria-label="CUIT"
+          >
+            {emisores.map((e) => (
+              <option key={e.id} value={e.id}>
+                {nombreEmisor(e)} · CUIT {formatearCuit(e.cuit)}
+              </option>
+            ))}
+          </select>
+        )}
         <p className="text-sm text-slate-500">
           IVA Ventas de <span className="font-semibold text-slate-700">{nombreMes(periodo)}</span>
           {esMesActual && ' (mes en curso: todavía puede cambiar)'}

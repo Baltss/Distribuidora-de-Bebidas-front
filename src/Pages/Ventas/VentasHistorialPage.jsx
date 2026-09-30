@@ -23,6 +23,8 @@ import { useAuth } from '../../AuthContext';
 import VentaRepartoFormModal from '../../Components/Ventas/VentaRepartoFormModal';
 import ExportarVentasModal from '../../Components/Ventas/ExportarVentasModal';
 import { facturarVentas, reintentarFactura } from '../../api/facturacion';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import { opcionesPuntoVenta, etiquetaPuntoVenta } from '../../utils/emisores';
 import ComprobanteDetalleModal from '../../Components/Facturacion/ComprobanteDetalleModal';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import DateRangeFilter, { getRangoPreset, DEFAULT_PRESET } from '../../Components/Common/DateRangeFilter';
@@ -344,12 +346,22 @@ const VentasHistorialPage = () => {
   const [comprobanteId, setComprobanteId] = useState(null);
 
   const [facturandoId, setFacturandoId] = useState(null);
+  const estadoEmision = useEstadoEmision();
   const handleFacturar = async (venta) => {
     const reintento = venta.estado_facturacion === 'error' && venta.factura_id;
-    const { isConfirmed } = await Swal.fire({
+    // Con más de un CUIT se elige con cuál facturar (un reintento sigue con el de la factura original).
+    const opciones = reintento ? [] : opcionesPuntoVenta(estadoEmision);
+    const { isConfirmed, value: puntoVentaId } = await Swal.fire({
       icon: 'question',
       title: reintento ? `¿Reintentar la factura de la venta #${venta.id}?` : `¿Facturar la venta #${venta.id}?`,
       text: 'Se emite el comprobante electrónico ante ARCA. Puede tardar unos segundos.',
+      ...(opciones.length > 1
+        ? {
+            input: 'select',
+            inputOptions: Object.fromEntries(opciones.map((o) => [o.id, etiquetaPuntoVenta(o)])),
+            inputValue: estadoEmision.punto_venta_por_defecto_id
+          }
+        : {}),
       showCancelButton: true,
       confirmButtonText: reintento ? 'Sí, reintentar' : 'Sí, facturar',
       cancelButtonText: 'Cancelar',
@@ -358,7 +370,7 @@ const VentasHistorialPage = () => {
     if (!isConfirmed) return;
     try {
       setFacturandoId(venta.id);
-      const resp = reintento ? await reintentarFactura(venta.factura_id) : await facturarVentas([venta.id]);
+      const resp = reintento ? await reintentarFactura(venta.factura_id) : await facturarVentas([venta.id], puntoVentaId ? Number(puntoVentaId) : null);
       if (resp?.descartada) {
         await Swal.fire({ icon: 'info', title: 'Sin cambios', text: resp.message });
       } else {

@@ -1,7 +1,7 @@
 // src/Components/Facturacion/DatosEmisorCard.jsx
-// Datos del negocio que se imprimen en el comprobante (además de CUIT,
-// razón social y condición fiscal). No requieren aprobación: no tocan el
-// certificado ni el CUIT.
+// Datos del negocio que se imprimen en el comprobante de un CUIT (además de
+// CUIT, razón social y condición fiscal). No requieren aprobación: no tocan
+// el certificado ni el CUIT.
 import React, { useEffect, useState } from 'react';
 import { FileText, Save } from 'lucide-react';
 import { getDatosEmisor, updateDatosEmisor } from '../../api/facturacion';
@@ -30,13 +30,14 @@ function Campo({ label, ayuda, children }) {
   );
 }
 
-export default function DatosEmisorCard() {
+export default function DatosEmisorCard({ emisorId }) {
   const [datos, setDatos] = useState(VACIO);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
-    getDatosEmisor()
+    setCargando(true);
+    getDatosEmisor(emisorId)
       .then((d) => {
         const limpio = { ...VACIO };
         for (const k of Object.keys(VACIO)) limpio[k] = d?.[k] ?? '';
@@ -44,7 +45,7 @@ export default function DatosEmisorCard() {
       })
       .catch((err) => showApiErrorSwal(err, { title: 'No se pudieron cargar los datos del comprobante' }))
       .finally(() => setCargando(false));
-  }, []);
+  }, [emisorId]);
 
   const set = (k) => (e) => setDatos((d) => ({ ...d, [k]: e.target.value }));
 
@@ -52,7 +53,7 @@ export default function DatosEmisorCard() {
     e.preventDefault();
     try {
       setGuardando(true);
-      await updateDatosEmisor(datos);
+      await updateDatosEmisor(emisorId, datos);
       showSuccessToast('Datos del comprobante guardados');
     } catch (err) {
       await showApiErrorSwal(err, { title: 'No se pudieron guardar' });

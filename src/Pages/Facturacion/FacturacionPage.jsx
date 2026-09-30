@@ -21,6 +21,9 @@ import ReportesContadorPanel from '../../Components/Facturacion/ReportesContador
 import AvisoCertificadoArca from '../../Components/Facturacion/AvisoCertificadoArca';
 import useImprimirComprobante from '../../hooks/useImprimirComprobante';
 import useDebouncedValue from '../../hooks/useDebouncedValue';
+import useEstadoEmision from '../../hooks/useEstadoEmision';
+import SelectorPuntoVenta from '../../Components/Facturacion/SelectorPuntoVenta';
+import { nombreEmisor } from '../../utils/emisores';
 import {
   listVentasPendientesFacturar,
   facturarVentas,
@@ -77,9 +80,18 @@ export default function FacturacionPage() {
   const dq = useDebouncedValue(q, 400);
   const [page, setPage] = useState(1);
 
+  // CUIT: con cuál se factura lo pendiente y qué CUIT se muestra en Comprobantes.
+  const estadoEmision = useEstadoEmision();
+  const variosEmisores = (estadoEmision?.emisores || []).length > 1;
+  const [puntoVentaId, setPuntoVentaId] = useState('');
+  const [emisorFiltro, setEmisorFiltro] = useState('');
+  useEffect(() => {
+    if (estadoEmision?.punto_venta_por_defecto_id) setPuntoVentaId(String(estadoEmision.punto_venta_por_defecto_id));
+  }, [estadoEmision]);
+
   const filtros = useMemo(
-    () => ({ desde: rango.desde, hasta: rango.hasta, tipo, estado, q: dq.trim(), page, limit: 20 }),
-    [rango, tipo, estado, dq, page]
+    () => ({ desde: rango.desde, hasta: rango.hasta, tipo, estado, emisor_id: emisorFiltro, q: dq.trim(), page, limit: 20 }),
+    [rango, tipo, estado, emisorFiltro, dq, page]
   );
 
   const fetchPendientes = async () => {
@@ -139,7 +151,7 @@ export default function FacturacionPage() {
   // Al cambiar un filtro, volver a la página 1.
   useEffect(() => {
     setPage(1);
-  }, [rango, tipo, estado, dq]);
+  }, [rango, tipo, estado, emisorFiltro, dq]);
 
   const fetchRef = useRef(fetchFacturas);
   fetchRef.current = fetchFacturas;
@@ -191,7 +203,7 @@ export default function FacturacionPage() {
 
     try {
       setFacturando(true);
-      await facturarVentas([...seleccion]);
+      await facturarVentas([...seleccion], puntoVentaId ? Number(puntoVentaId) : null);
       await showSuccessSwal({
         title: 'En proceso',
         text: 'El comprobante se está emitiendo ante ARCA. Lo ves en "Comprobantes" apenas termine.'
@@ -312,6 +324,7 @@ export default function FacturacionPage() {
                     }`
                   : 'Seleccioná una o varias ventas del mismo cliente para agruparlas en un comprobante.'}
               </p>
+              <SelectorPuntoVenta estadoEmision={estadoEmision} value={puntoVentaId} onChange={setPuntoVentaId} />
               <button
                 onClick={handleFacturar}
                 disabled={ventasSeleccionadas.length === 0 || facturando}
@@ -394,6 +407,16 @@ export default function FacturacionPage() {
                 <option value="nota_credito">Sólo notas de crédito</option>
                 <option value="nota_debito">Sólo notas de débito</option>
               </select>
+              {variosEmisores && (
+                <select value={emisorFiltro} onChange={(e) => setEmisorFiltro(e.target.value)} className={selectCls} aria-label="CUIT">
+                  <option value="">Todos los CUIT</option>
+                  {estadoEmision.emisores.map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {nombreEmisor(e)}
+                    </option>
+                  ))}
+                </select>
+              )}
               <select value={estado} onChange={(e) => setEstado(e.target.value)} className={selectCls}>
                 <option value="">Todos los estados</option>
                 <option value="autorizada">Autorizadas</option>
@@ -458,6 +481,9 @@ export default function FacturacionPage() {
                                 <Receipt className="h-4 w-4 text-slate-400" />
                                 {nombreCorto(f)} {numeroComprobante(f) ? `N° ${numeroComprobante(f)}` : '(sin número)'}
                               </div>
+                              {variosEmisores && f.punto_venta?.emisor && (
+                                <p className="text-[11px] text-slate-500">{nombreEmisor(f.punto_venta.emisor)}</p>
+                              )}
                               {asociada && (
                                 <p className="text-[11px] text-slate-500">
                                   {f.motivo === 'nota_debito'

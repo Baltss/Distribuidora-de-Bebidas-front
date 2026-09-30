@@ -22,19 +22,16 @@ export async function listConfiguracionFiscal() {
   return data;
 }
 
-/** La configuración activa vigente, o null si todavía no hay ninguna aprobada */
-export async function getConfiguracionFiscalActiva() {
-  const { data } = await http.get('/facturacion/configuracion-fiscal/activa');
-  return data;
-}
-
 /** Pendientes de aprobación (rol soldi_admin) */
 export async function listConfiguracionFiscalPendientes() {
   const { data } = await http.get('/facturacion/configuracion-fiscal/pendientes');
   return data;
 }
 
-/** Solicita un cambio de datos fiscales: genera CSR automáticamente. { cuit, razon_social, condicion_fiscal, ambiente? } */
+/**
+ * Solicita un cambio de datos fiscales (o el alta de un CUIT nuevo): genera el
+ * CSR automáticamente. { emisor_id | cuit, razon_social, condicion_fiscal, ambiente? }
+ */
 export async function solicitarConfiguracionFiscal(payload) {
   const { data } = await http.post('/facturacion/configuracion-fiscal/solicitar', payload);
   return data;
@@ -107,10 +104,11 @@ export async function listVentasPendientesFacturar(params = {}) {
  * ser del mismo cliente). No espera a AFIP: el backend responde al
  * toque con la factura en estado 'pendiente' y la emisión real corre en
  * background — el resultado se entera por polling sobre listFacturas
- * (usa el timeout default, ya no hace falta uno largo).
+ * (usa el timeout default, ya no hace falta uno largo). `puntoVentaId` elige
+ * el CUIT con el que se factura; sin él sale por el que corresponde al usuario.
  */
-export async function facturarVentas(ventaIds) {
-  const { data } = await http.post('/facturacion/facturas', { venta_ids: ventaIds });
+export async function facturarVentas(ventaIds, puntoVentaId = null) {
+  const { data } = await http.post('/facturacion/facturas', { venta_ids: ventaIds, punto_venta_id: puntoVentaId });
   return data;
 }
 
@@ -253,8 +251,8 @@ export async function abrirFacturaPdf(id) {
  * Resumen de IVA Ventas del mes (periodo 'AAAA-MM'): { por_tipo, por_alicuota,
  * totales, sin_autorizar, hay_comprobantes_c, libro_iva_digital_aplica, emisor }.
  */
-export async function getResumenIva(periodo) {
-  const { data } = await http.get('/facturacion/reportes/resumen', { params: { periodo } });
+export async function getResumenIva(periodo, emisorId) {
+  const { data } = await http.get('/facturacion/reportes/resumen', { params: { periodo, emisor_id: emisorId } });
   return data;
 }
 
@@ -265,12 +263,13 @@ const REPORTES_CONTADOR = {
 };
 
 /**
- * Descarga un reporte del mes: 'excel' (Libro IVA Ventas), 'arca' (ZIP con
- * los TXT del Libro IVA Digital) o 'pdfs' (ZIP con todos los comprobantes).
+ * Descarga un reporte del mes de un CUIT: 'excel' (Libro IVA Ventas), 'arca'
+ * (ZIP con los TXT del Libro IVA Digital) o 'pdfs' (ZIP con todos los
+ * comprobantes). `emisorId` se puede omitir si el negocio tiene un solo CUIT.
  */
-export async function descargarReporteContador(tipo, periodo) {
+export async function descargarReporteContador(tipo, periodo, emisorId) {
   // El ZIP de PDFs de un mes con muchos comprobantes puede tardar.
-  const res = await getBinario(`/facturacion/reportes/${REPORTES_CONTADOR[tipo]}`, { periodo }, { timeout: 600000 });
+  const res = await getBinario(`/facturacion/reportes/${REPORTES_CONTADOR[tipo]}`, { periodo, emisor_id: emisorId }, { timeout: 600000 });
   const disposicion = res.headers?.['content-disposition'] || '';
   const nombre = disposicion.match(/filename="([^"]+)"/)?.[1] || `reporte-${periodo}`;
   const url = URL.createObjectURL(new Blob([res.data], { type: res.headers?.['content-type'] }));
@@ -284,7 +283,11 @@ export async function descargarReporteContador(tipo, periodo) {
   return nombre;
 }
 
-/** ¿Se puede facturar? { habilitada, motivo, condicion_fiscal, ambiente } */
+/**
+ * ¿Se puede facturar? { habilitada, motivo, punto_venta_por_defecto_id,
+ * emisores: [{ id, cuit, alias, razon_social, condicion_fiscal, ambiente,
+ * certificado, habilitado, motivo, puntos_venta }] }
+ */
 export async function getEstadoEmision() {
   const { data } = await http.get('/facturacion/estado-emision');
   return data;
@@ -309,20 +312,53 @@ export async function consultarPadron(cuit) {
   return data;
 }
 
-/** Datos del negocio que se imprimen en el comprobante. */
-export async function getDatosEmisor() {
-  const { data } = await http.get('/facturacion/datos-emisor');
+// ---------- Emisores (cada CUIT con el que se factura) ----------
+
+/** Cada CUIT con su estado para facturar (mismo formato que `emisores` de getEstadoEmision). */
+export async function listEmisores() {
+  const { data } = await http.get('/facturacion/emisores');
   return data;
 }
 
-export async function updateDatosEmisor(payload) {
-  const { data } = await http.put('/facturacion/datos-emisor', payload);
+/** Nombre interno y estado ('activo' | 'inactivo') de un CUIT. */
+export async function updateEmisor(id, payload) {
+  const { data } = await http.put(`/facturacion/emisores/${id}`, payload);
+  return data;
+}
+
+/** Datos del negocio que se imprimen en el comprobante de un CUIT. */
+export async function getDatosEmisor(emisorId) {
+  const { data } = await http.get(`/facturacion/emisores/${emisorId}/datos-comprobante`);
+  return data;
+}
+
+export async function updateDatosEmisor(emisorId, payload) {
+  const { data } = await http.put(`/facturacion/emisores/${emisorId}/datos-comprobante`, payload);
+  return data;
+}
+
+// ---------- Parámetros de la norma y auditoría ----------
+
+/** { parametros: [{ clave, valor, vigente_desde, vigente_hasta, norma, vigente, ... }], conocidos } */
+export async function listParametrosFiscales() {
+  const { data } = await http.get('/facturacion/parametros-fiscales');
+  return data;
+}
+
+/** Carga una vigencia nueva de un parámetro (rol soldi_admin). { clave, valor, vigente_desde, norma? } */
+export async function crearParametroFiscal(payload) {
+  const { data } = await http.post('/facturacion/parametros-fiscales', payload);
+  return data;
+}
+
+/** Registro de cambios fiscales: { data, meta }. params: { entidad?, page?, limit? } */
+export async function listAuditoriaFiscal(params = {}) {
+  const { data } = await http.get(`/facturacion/auditoria${toQS(params)}`);
   return data;
 }
 
 export default {
   listConfiguracionFiscal,
-  getConfiguracionFiscalActiva,
   listConfiguracionFiscalPendientes,
   solicitarConfiguracionFiscal,
   cargarCertificadoConfiguracionFiscal,
@@ -352,6 +388,11 @@ export default {
   consultarPadron,
   getResumenIva,
   descargarReporteContador,
+  listEmisores,
+  updateEmisor,
   getDatosEmisor,
-  updateDatosEmisor
+  updateDatosEmisor,
+  listParametrosFiscales,
+  crearParametroFiscal,
+  listAuditoriaFiscal
 };

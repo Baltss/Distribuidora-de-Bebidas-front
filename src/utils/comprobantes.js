@@ -83,17 +83,17 @@ export function esCuitValido(valor) {
 }
 
 /**
- * Qué comprobante va a salir para un cliente (misma regla que el backend,
- * a partir del catálogo fiscal que este informa): { letra, texto, advertencia }
- * o null si todavía no se puede saber.
+ * Qué comprobante va a salir para un cliente facturando con un emisor (misma
+ * regla que el backend, a partir del catálogo fiscal que este informa):
+ * { letra, texto, advertencia } o null si todavía no se puede saber.
  */
-export function comprobantePrevisto(estadoEmision, cliente, catalogo, total = 0) {
-  if (!estadoEmision?.habilitada || !cliente || !catalogo) return null;
+export function comprobantePrevisto(emisor, cliente, catalogo, total = 0) {
+  if (!emisor || !cliente || !catalogo) return null;
 
   const condicion = Number(cliente.condicion_iva_id ?? 5);
   const receptor = catalogo.condiciones_iva.find((c) => c.id === condicion);
-  const emisor = catalogo.condiciones_emisor.find((c) => c.id === estadoEmision.condicion_fiscal);
-  const clase = !emisor?.discrimina_iva ? 'C' : catalogo.condiciones_por_clase.A.includes(condicion) ? 'A' : 'B';
+  const condicionEmisor = catalogo.condiciones_emisor.find((c) => c.id === emisor.condicion_fiscal);
+  const clase = !condicionEmisor?.discrimina_iva ? 'C' : catalogo.condiciones_por_clase.A.includes(condicion) ? 'A' : 'B';
   if (!receptor) {
     return { letra: clase, texto: `Factura ${clase}`, advertencia: 'La condición frente al IVA del cliente no es válida. Corregila en Clientes.' };
   }
