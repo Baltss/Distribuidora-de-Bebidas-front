@@ -7,6 +7,7 @@ import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
 import { nombreEmisor } from '../../utils/emisores';
 import { retencionVacia } from '../../utils/retenciones';
+import { useAuth } from '../../AuthContext';
 
 const campoCls =
   'w-full rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-400/40 disabled:opacity-60';
@@ -14,8 +15,12 @@ const campoCls =
 export default function RetencionesEditor({ value, onChange, tipo = 'sufridas', disabled = false }) {
   const catalogo = useCatalogoFiscal();
   const estado = useEstadoEmision();
+  const { userLevel } = useAuth();
   const emisores = estado?.emisores || [];
   const sufridas = tipo === 'sufridas';
+
+  // Las retenciones las carga socio, administrativo o contador: el vendedor no las ve.
+  if (String(userLevel || '').toLowerCase() === 'vendedor') return null;
 
   const cambiar = (i, k, v) => onChange(value.map((f, n) => (n === i ? { ...f, [k]: v } : f)));
   const agregar = () => onChange([...value, { ...retencionVacia(), emisor_id: emisores.length === 1 ? String(emisores[0].id) : '' }]);

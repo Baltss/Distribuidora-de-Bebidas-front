@@ -32,6 +32,7 @@ import { normalizeScanCode, findProductoByScan } from '../../utils/barcodeScan';
 import DatosFiscalesCompra from '../Facturacion/DatosFiscalesCompra';
 import useCatalogoFiscal from '../../hooks/useCatalogoFiscal';
 import useEstadoEmision from '../../hooks/useEstadoEmision';
+import { useAuth } from '../../AuthContext';
 import { calcularFiscal, errorFiscal, fiscalVacio, payloadFiscal } from '../../utils/comprobantesRecibidos';
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -72,6 +73,9 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
   const catalogoFiscal = useCatalogoFiscal();
   const cantidadEmisores = useEstadoEmision()?.emisores?.length || 1;
   const [fiscalActivo, setFiscalActivo] = useState(false);
+  // Los datos fiscales de la factura los cargan socio, administrativo y contador (el vendedor no).
+  const { userLevel } = useAuth();
+  const puedeFiscal = String(userLevel || '').toLowerCase() !== 'vendedor';
   const [fiscal, setFiscal] = useState(() => fiscalVacio(todayISO()));
   const [errors, setErrors] = useState({});
 
@@ -152,7 +156,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       ),
     [items]
   );
-  const total = fiscalActivo ? calcularFiscal(fiscal, catalogoFiscal).total : totalItems;
+  const total = puedeFiscal && fiscalActivo ? calcularFiscal(fiscal, catalogoFiscal).total : totalItems;
 
   const esCuentaCorriente = form.tipo_pago === 'cuenta_corriente';
   const abonado = Number(form.monto_abonado) || 0;
@@ -269,7 +273,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       }
     }
 
-    if (fiscalActivo) {
+    if (puedeFiscal && fiscalActivo) {
       const ef = errorFiscal(fiscal, catalogoFiscal, { conProveedor: false, cantidadEmisores });
       if (ef) e.fiscal = ef;
     }
@@ -302,7 +306,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
       medios_pago: form.tipo_pago === 'contado' && Array.isArray(form.medios_pago) ? form.medios_pago : null,
       monto_abonado: esCuentaCorriente ? abonado : 0,
       observaciones: form.observaciones?.trim() || null,
-      ...(fiscalActivo ? { fiscal: payloadFiscal(fiscal, catalogoFiscal, { conProveedor: false }) } : {}),
+      ...(puedeFiscal && fiscalActivo ? { fiscal: payloadFiscal(fiscal, catalogoFiscal, { conProveedor: false }) } : {}),
       items: items.map((it) => ({
         producto_id: Number(it.producto_id),
         cantidad: Number(it.cantidad),
@@ -672,6 +676,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
                   </div>
                 </motion.div>
 
+                {puedeFiscal && (
                 <motion.div variants={fieldV} className="rounded-2xl border border-slate-200 p-4">
                   <label className="flex items-start gap-2 text-sm font-medium text-slate-700">
                     <input
@@ -697,6 +702,7 @@ export default function CompraFormModal({ open, onClose, onSubmit, initialData =
                     </div>
                   )}
                 </motion.div>
+                )}
 
                 <motion.div variants={fieldV}>
                   <label className="text-sm font-medium text-slate-600 mb-2 block">
