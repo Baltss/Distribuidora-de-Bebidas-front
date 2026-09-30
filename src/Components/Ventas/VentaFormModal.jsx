@@ -117,7 +117,7 @@ export default function VentaFormModal({ open, onClose, onSubmit }) {
         setLoadingRepartos(true);
         setRepartosError(null);
 
-        // Endpoint: https://vps-5697083-x.dattaweb.com/repartos
+        // Endpoint: https://api.soldiservicios.online/repartos
         const r = await http.get('/repartos', {
           params: {
             limit: 9999,
