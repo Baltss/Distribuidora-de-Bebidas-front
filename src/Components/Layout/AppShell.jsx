@@ -19,6 +19,7 @@ import {
   Receipt,
   Landmark,
   ClipboardCheck,
+  ArrowLeftRight,
   FileText,
   LogOut,
   Menu,
@@ -26,6 +27,7 @@ import {
 } from 'lucide-react';
 import logoSoldi from '../../Images/staff/LOGO-SOLDI.png';
 import { useAuth } from '../../AuthContext';
+import SucursalSelector from './SucursalSelector';
 
 // `roles`: opcional — si se define, el ítem sólo se muestra a esos roles.
 const NAV_ITEMS = [
@@ -37,6 +39,7 @@ const NAV_ITEMS = [
   { label: 'Clientes', to: '/dashboard/clientes', icon: UserCircle2 },
   { label: 'Ventas', to: '/dashboard/nueva-venta', icon: ShoppingBag },
   { label: 'Deudas y Cobranzas', to: '/dashboard/ventas/deudas', icon: AlertTriangle },
+  { label: 'Transferencias', to: '/dashboard/transferencias', icon: ArrowLeftRight, roles: ['socio', 'administrativo', 'contador'] },
   { label: 'Proveedores', to: '/dashboard/proveedores', icon: Truck },
   { label: 'Compras', to: '/dashboard/compras', icon: ShoppingCart },
   { label: 'Caja y Finanzas', to: '/dashboard/caja', icon: Receipt },
@@ -67,6 +70,12 @@ function SidebarContent({ pathname, displayUserName, nivelLabel, userInitial, us
             Sistema de Ventas
           </p>
         </div>
+      </div>
+
+      {/* Sucursal con la que se está trabajando */}
+      <div className="border-b border-slate-200 px-4 py-3">
+        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">Sucursal</p>
+        <SucursalSelector variante="claro" />
       </div>
 
       {/* Navegación */}

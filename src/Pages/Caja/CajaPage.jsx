@@ -44,7 +44,7 @@ import {
   corregirSaldoInicial,
   listCajasHistorial
 } from '../../api/caja.js';
-import { listLocales } from '../../api/locales.js';
+import { getSucursalActivaId, veTodasLasSucursales } from '../../utils/sucursalActiva';
 import { createGasto } from '../../api/gastos.js';
 import { listGastosCategorias } from '../../api/gastosCategorias.js';
 import { showErrorSwal, showSuccessSwal, showConfirmSwal, showWarnSwal } from '../../ui/swal';
@@ -90,10 +90,9 @@ export default function CajaPage() {
   const navigate = useNavigate();
   const { userLevel } = useAuth();
   const esAdmin = String(userLevel || '').toLowerCase() === 'socio';
+  const veTodas = veTodasLasSucursales(userLevel);
   const esVendedor = String(userLevel || '').toLowerCase() === 'vendedor';
 
-  const [locales, setLocales] = useState([]);
-  const [localSeleccionado, setLocalSeleccionado] = useState('');
 
   const [rows, setRows] = useState([]);
   const [meta, setMeta] = useState(null);
@@ -138,20 +137,10 @@ export default function CajaPage() {
     }
   };
 
-  const fetchLocales = async () => {
-    try {
-      const resp = await listLocales();
-      const activos = (Array.isArray(resp) ? resp : []).filter((l) => l.estado !== 'inactivo');
-      setLocales(activos);
-      if (esAdmin && activos.length > 0) {
-        setLocalSeleccionado((prev) => prev || String(activos[0].id));
-      }
-    } catch {
-      // no bloqueamos si falla
-    }
-  };
-
-  const localIdParam = esAdmin && localSeleccionado ? localSeleccionado : undefined;
+  // La sucursal es la elegida en el selector del menú (la misma para todo el sistema).
+  const sucursalElegida = getSucursalActivaId();
+  const localIdParam = veTodas && /^\d+$/.test(sucursalElegida) ? sucursalElegida : undefined;
+  const viendoTodas = veTodas && !localIdParam;
 
   const fetchCajaActual = async () => {
     try {
@@ -210,7 +199,6 @@ export default function CajaPage() {
 
   useEffect(() => {
     fetchCategorias();
-    fetchLocales();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -396,22 +384,11 @@ export default function CajaPage() {
           cobros, pagos, gastos, y ventas/compras de contado.
         </motion.p>
 
-        {esAdmin && locales.length > 1 && (
-          <div className="mt-4">
-            <label className="block text-xs font-medium text-slate-500 mb-1">Local</label>
-            <select
-              value={localSeleccionado}
-              onChange={(e) => setLocalSeleccionado(e.target.value)}
-              className="w-full sm:w-64 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800
-                         focus:outline-none focus:ring-2 focus:ring-teal-400/40"
-            >
-              {locales.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+        {viendoTodas && (
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Estás viendo la caja de todas las sucursales combinadas. Para abrir o cerrar una jornada o cargar un
+            movimiento, elegí una sucursal en el selector del menú.
+          </p>
         )}
 
         <div className="mt-6 space-y-6">

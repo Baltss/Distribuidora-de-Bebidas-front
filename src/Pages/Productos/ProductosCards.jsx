@@ -8,6 +8,7 @@ import useDebouncedValue from '../../hooks/useDebouncedValue';
 import ProductTableRow from '../../Components/Productos/ProductTableRow';
 import ProductoFormModal from '../../Components/Productos/ProductoFormModal';
 import StockMovimientosModal from '../../Components/Stock/StockMovimientosModal';
+import PreciosSucursalModal from '../../Components/Productos/PreciosSucursalModal';
 import CategoriasManagerModal from '../../Components/Categorias/CategoriasManagerModal';
 
 import {
@@ -49,6 +50,7 @@ export default function ProductosCards() {
 
   const [stockMap, setStockMap] = useState({});
   const [stockModalProducto, setStockModalProducto] = useState(null);
+  const [preciosModalProducto, setPreciosModalProducto] = useState(null);
   const [categoriasModalOpen, setCategoriasModalOpen] = useState(false);
 
   const fetchStock = async () => {
@@ -479,6 +481,7 @@ export default function ProductosCards() {
                       onToggleActivo={onToggleActivo}
                       onDelete={onDeleteDirect}
                       onVerStock={setStockModalProducto}
+                      onPrecios={setPreciosModalProducto}
                       stock={stockMap[it.id]}
                     />
                   ))
@@ -531,6 +534,13 @@ export default function ProductosCards() {
         producto={stockModalProducto}
         onClose={() => setStockModalProducto(null)}
         onChanged={fetchStock}
+      />
+
+      <PreciosSucursalModal
+        open={!!preciosModalProducto}
+        producto={preciosModalProducto}
+        onClose={() => setPreciosModalProducto(null)}
+        onChanged={fetchData}
       />
 
       <CategoriasManagerModal

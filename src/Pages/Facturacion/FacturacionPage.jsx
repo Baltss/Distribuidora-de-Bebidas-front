@@ -43,15 +43,18 @@ import {
   esAjusteManual,
   MOTIVO_COMPROBANTE
 } from '../../utils/comprobantes';
+import { useAuth } from '../../AuthContext';
+import { veTodasLasSucursales } from '../../utils/sucursalActiva';
 
 const money = (n) =>
   `$ ${Number(n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
+// `global`: son libros del CUIT completo, no de una sucursal; solo los ven quienes ven todas las sucursales.
 const TABS = [
   { key: 'pendientes', label: 'Por facturar' },
   { key: 'emitidos', label: 'Comprobantes' },
-  { key: 'compras', label: 'Compras' },
-  { key: 'contador', label: 'Para el contador' }
+  { key: 'compras', label: 'Compras', global: true },
+  { key: 'contador', label: 'Para el contador', global: true }
 ];
 
 const POLL_MS = 4000;
@@ -59,6 +62,8 @@ const selectCls =
   'rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-400/40';
 
 export default function FacturacionPage() {
+  const { userLevel } = useAuth();
+  const tabs = TABS.filter((t) => !t.global || veTodasLasSucursales(userLevel));
   const [tab, setTab] = useState('pendientes');
   const imprimir = useImprimirComprobante();
 
@@ -301,7 +306,7 @@ export default function FacturacionPage() {
         )}
 
         <div className="mt-6 flex gap-2 border-b border-slate-200">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}

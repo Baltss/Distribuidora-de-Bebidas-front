@@ -44,6 +44,7 @@ const limpiarSesionStorage = () => {
   sessionStorage.removeItem('userLevel');
   sessionStorage.removeItem('userLocalId');
   sessionStorage.removeItem('userIsReemplazante');
+  sessionStorage.removeItem('sucursalActivaId');
 };
 
 export const AuthProvider = ({ children }) => {

@@ -250,7 +250,8 @@ export default function NuevaVentaPage() {
   // ---------- Helpers ----------
   const getPrecioFromProducto = (p) => {
     if (!p) return null;
-    const n = Number(p.pre_prod);
+    // `precio` es el de la sucursal activa (o el base si no tiene uno propio); pre_prod es sólo el base.
+    const n = Number(p.precio ?? p.pre_prod);
     return Number.isFinite(n) && n >= 0 ? moneyRound(n) : null;
   };
 

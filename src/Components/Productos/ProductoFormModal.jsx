@@ -628,7 +628,7 @@ export default function ProductoFormModal({
                   <motion.div variants={fieldV}>
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        Precio producto
+                        Precio base (catálogo)
                       </label>
                       <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
                         <button

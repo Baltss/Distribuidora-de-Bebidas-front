@@ -263,21 +263,29 @@ export default function UsuarioFormModal({
                 {/* Local */}
                 <motion.div variants={fieldV}>
                   <label className={labelCls}>
-                    Local <span className="text-teal-600">*</span>
+                    Sucursal{' '}
+                    {['administrativo', 'vendedor'].includes(formData.rol) && <span className="text-teal-600">*</span>}
                   </label>
                   <select
                     value={formData.local_id || ''}
                     onChange={handleField('local_id')}
-                    required
+                    required={['administrativo', 'vendedor'].includes(formData.rol)}
                     className={inputCls}
                   >
-                    <option value="">Seleccione Local</option>
+                    <option value="">
+                      {['administrativo', 'vendedor'].includes(formData.rol) ? 'Seleccione la sucursal' : 'Sin sucursal fija'}
+                    </option>
                     {locales.map((l) => (
                       <option key={l.id} value={l.id}>
                         {l.nombre}
                       </option>
                     ))}
                   </select>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {['administrativo', 'vendedor'].includes(formData.rol)
+                      ? 'Trabaja siempre en esta sucursal y solo ve sus datos.'
+                      : 'El administrador y el contador ven todas las sucursales y eligen con cuál trabajar.'}
+                  </p>
                 </motion.div>
 
                 {/* Es reemplazante */}

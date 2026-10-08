@@ -12,7 +12,8 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
-  Boxes
+  Boxes,
+  Tags
 } from 'lucide-react';
 import DetailViewModal from '../Common/DetailViewModal';
 import moneyAR from '../../utils/money';
@@ -36,6 +37,7 @@ export default function ProductTableRow({
   onToggleActivo,
   onDelete,
   onVerStock,
+  onPrecios,
   stock
 }) {
   const { userLevel } = useAuth();
@@ -85,7 +87,8 @@ export default function ProductTableRow({
           rows: [
             { label: 'Presentación', value: presentacionLabel },
             { label: 'UM / Contenido', value: umContenido },
-            { label: 'Precio del producto', value: moneyAR(p?.pre_prod) },
+            { label: 'Precio del producto', value: moneyAR(p?.precio ?? p?.pre_prod) },
+            ...(p?.precio_propio === true ? [{ label: 'Precio base (catálogo)', value: moneyAR(p?.precio_base ?? p?.pre_prod) }] : []),
             {
               label: 'Último costo de compra',
               value: p?.ultimo_costo_compra != null ? moneyAR(p.ultimo_costo_compra) : '—'
@@ -144,7 +147,12 @@ export default function ProductTableRow({
         <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{presentacionLabel}</td>
         <td className="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">{umContenido}</td>
         <td className="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap">
-          {item?.pre_prod != null ? moneyAR(item.pre_prod) : '—'}
+          {(item?.precio ?? item?.pre_prod) != null ? moneyAR(item.precio ?? item.pre_prod) : '—'}
+          {item?.precio_propio === true && (
+            <span className="ml-1.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700" title="Esta sucursal tiene un precio distinto al del catálogo">
+              propio
+            </span>
+          )}
         </td>
         <td className="px-4 py-3 text-sm whitespace-nowrap">
           {stock ? (
@@ -191,6 +199,15 @@ export default function ProductTableRow({
             )}
             {!esVendedor && (
               <>
+                {onPrecios && (
+                  <button
+                    onClick={() => onPrecios(item)}
+                    title="Precio por sucursal"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-amber-700 transition"
+                  >
+                    <Tags className="h-4 w-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => onToggleActivo?.(item)}
                   title={isInactive ? 'Activar' : 'Desactivar'}

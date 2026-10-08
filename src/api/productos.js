@@ -127,7 +127,28 @@ export async function exportReposicionPdf(params = {}) {
   window.URL.revokeObjectURL(url);
 }
 
+/** Precio del producto en cada sucursal (sólo administrador). */
+export async function getPreciosSucursales(productoId) {
+  const { data } = await http.get(`/productos/${productoId}/precios`);
+  return data;
+}
+
+/** Fija el precio del producto en una sucursal (encabezado propio: no usa la sucursal elegida arriba). */
+export async function setPrecioSucursal(productoId, localId, precio) {
+  const { data } = await http.put(`/productos/${productoId}/precio`, { precio }, { headers: { 'X-Sucursal-Id': String(localId) } });
+  return data;
+}
+
+/** La sucursal vuelve a vender al precio base del catálogo. */
+export async function quitarPrecioSucursal(productoId, localId) {
+  const { data } = await http.delete(`/productos/${productoId}/precio`, { headers: { 'X-Sucursal-Id': String(localId) } });
+  return data;
+}
+
 export default {
+  getPreciosSucursales,
+  setPrecioSucursal,
+  quitarPrecioSucursal,
   listProductos,
   createProducto,
   updateProducto,

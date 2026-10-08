@@ -62,6 +62,7 @@ import CajaPage from './Pages/Caja/CajaPage.jsx';
 import DatosFiscalesPage from './Pages/Facturacion/DatosFiscalesPage.jsx';
 import AprobacionesPage from './Pages/Facturacion/AprobacionesPage.jsx';
 import FacturacionPage from './Pages/Facturacion/FacturacionPage.jsx';
+import TransferenciasPage from './Pages/Stock/TransferenciasPage.jsx';
 
 function AppContent() {
   return (
@@ -113,6 +114,15 @@ function AppContent() {
               <ProtectedRoute>
                 {' '}
                 <ProductosReposicionPage />{' '}
+              </ProtectedRoute>
+            }
+          />
+          <Ruta
+            path="/dashboard/transferencias"
+            element={
+              <ProtectedRoute roles={['socio', 'administrativo', 'contador']}>
+                {' '}
+                <TransferenciasPage />{' '}
               </ProtectedRoute>
             }
           />

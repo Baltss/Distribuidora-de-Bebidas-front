@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiX, FiBell, FiLogOut, FiChevronDown } from 'react-icons/fi';
 import logoSoldi from '../../Images/staff/LOGO-SOLDI.png';
 import { useAuth } from '../../AuthContext';
+import SucursalSelector from '../../Components/Layout/SucursalSelector';
 // import NotificationBell from './NotificationBell'; // si ya lo tenés, descomenta
 
 const linksDef = [
@@ -189,6 +190,7 @@ const NavbarStaff = () => {
 
           {/* acciones derecha desktop */}
           <div className="hidden lg:flex items-center gap-3">
+            <SucursalSelector />
             {/* <NotificationBell /> */}
             <button
               type="button"
@@ -384,6 +386,7 @@ const NavbarStaff = () => {
               </div>
 
               <div className="mt-auto pt-4 border-t border-white/10 space-y-3">
+                <SucursalSelector />
                 {/* <NotificationBell /> */}
                 <button
                   onClick={handleLogout}

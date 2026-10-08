@@ -43,6 +43,7 @@ function todayISODate() {
 function getPrecioVenta(prod) {
   if (!prod) return 0;
   if (prod.precio_venta != null) return Number(prod.precio_venta) || 0;
+  if (prod.precio != null) return Number(prod.precio) || 0; // el de la sucursal activa
   if (prod.pre_prod != null) return Number(prod.pre_prod) || 0;
   return 0;
 }

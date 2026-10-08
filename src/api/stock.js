@@ -46,7 +46,33 @@ export async function createStockAjuste(payload) {
   return data;
 }
 
+/** Transferencias de stock entre sucursales (docs/sucursales.md del backend). */
+export async function listTransferencias(params = {}) {
+  const { data } = await http.get(`/stock/transferencias${toQS(params)}`);
+  return data;
+}
+
+export async function getTransferencia(id) {
+  const { data } = await http.get(`/stock/transferencias/${id}`);
+  return data;
+}
+
+/** payload: { destino_local_id, items: [{ producto_id, cantidad }], observaciones? } — sale de la sucursal activa */
+export async function createTransferencia(payload) {
+  const { data } = await http.post('/stock/transferencias', payload);
+  return data;
+}
+
+export async function anularTransferencia(id, motivo) {
+  const { data } = await http.patch(`/stock/transferencias/${id}/anular`, { motivo });
+  return data;
+}
+
 export default {
+  listTransferencias,
+  getTransferencia,
+  createTransferencia,
+  anularTransferencia,
   listStockMovimientos,
   getStockProducto,
   getStockResumen,
